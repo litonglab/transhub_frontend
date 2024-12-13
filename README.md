@@ -1,75 +1,28 @@
-# essentials
+# Transhub Frontend
+本仓库是Transhub的前端代码仓库，使用Vue框架开发  
+后端链接：[Transhub Backend](https://github.com/litonglab/transhub_backend)
+## 1.  依赖
+- Node.js v22.5.1
+- Vue 3.4.37
 
-## Project setup
-
+## 2. Config
+位于src/config.js中，配置后端API地址
+- 本地部署：
+```javascript
+const hostname='https://localhost:{your backend port}/api'
 ```
-# yarn
-yarn
+- 远程部署：
+```javascript
+const hostname='https://{remote server ip}:{your nginx port}/api'
+```
+除此之外，远端部署时还需要对 **nginx** 进行设置，详见本目录下的 **nginx.md** 文件
 
-# npm
+## 3.  安装 & 运行
+```bash
 npm install
-
-# pnpm
-pnpm install
-```
-
-### Compiles and hot-reloads for development
-
-```
-# yarn
-yarn dev
-
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
 ```
-
-### Compiles and minifies for production
-
-```
-# yarn
-yarn build
-
-# npm
+## 4.  打包
+```bash
 npm run build
-
-# pnpm
-pnpm build
 ```
-
-### Lints and fixes files
-
-```
-# yarn
-yarn lint
-
-# npm
-npm run lint
-
-# pnpm
-pnpm lint
-```
-
-### Customize configuration
-
-See [Configuration Reference](https://vitejs.dev/config/).
-
-
-
-
-
-1. virnet deployment applicsation context to /
-2. cd into webapp_vue, npm install 
-3. create an npm run config, (npm run dev)
-4. start both.
-
-
-
-
-
-1. virnet deployment applicsation context to /
-2. cd into webapp_vue, npm install 
-3. create an npm run config, (npm run dev)
-4. start both.
