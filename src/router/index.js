@@ -1,0 +1,74 @@
+// Composables
+import { createRouter, createWebHistory } from "vue-router";
+import { useAppStore } from "@/store/app";
+
+const routes = [
+  {
+    path: "/",
+    redirect: "/login",
+  },
+  {
+    path: "/login",
+    name: "login",
+    meta: { requiresAuth: false },
+    component: () => import("@/new_views/Login.vue"),
+  },
+  {
+    path: "/transhub",
+    name: "home",
+    meta: { requiresAuth: true },
+    component: () => import("@/new_views/Home.vue"),
+    children: [
+      {
+        path: "help",
+        name: "help",
+        component: () => import("@/new_views/help.vue"),
+      },
+      {
+        path: "history",
+        name: "history",
+        component: () => import("@/new_views/history.vue"),
+      },
+      {
+        path: '/transhub/history/:upload_id',
+        name: 'Detail',
+        component: () => import('@/new_views/record_detail.vue'),
+        props: true,
+      },
+      {
+        path: "user",
+        name: "user",
+        component: () => import("@/new_views/user.vue"),
+      },
+      {
+        path: "upload",
+        name: "upload",
+        component: () => import("@/new_views/upload.vue"),
+      },
+      {
+        path: "ranklist",
+        name: "ranklist",
+        component: () => import("@/new_views/ranklist.vue"),
+      },
+    ],
+  },
+];
+
+const router = createRouter({
+  history: createWebHistory(process.env.BASE_URL),
+  routes,
+});
+
+router.beforeEach((to, from, next) => {
+  //next();
+  const appStore = useAppStore();
+  if (appStore.user_id != null) {
+    next();
+  } else {
+    // const {$cookies} = router.app.config.globalProperties
+    // Check if the route requires authentication and user is not logged in
+    next("/login");
+  }
+});
+
+export default router;
