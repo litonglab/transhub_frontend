@@ -1,4 +1,4 @@
-const hostname='https://10.77.70.150:4000/api'
+const hostname= import.meta.env.VITE_APP_API_HOST
 export const APIS = {
     
     // user
