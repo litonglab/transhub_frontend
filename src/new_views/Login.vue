@@ -26,16 +26,33 @@
         <v-col>
           <v-sheet width="300" class="my-login">
             <v-form validate-on="submit" @submit.prevent="login">
-              <v-text-field v-model="userId" label="账户" :rules="userIdRules"></v-text-field>
-              <v-text-field v-model="password" label="密码" :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                :rules="passwordRules" :type="showPassword ? 'text' : 'password'" counter
-                @click:append-inner="showPassword = !showPassword"></v-text-field>
-             
-              <v-select v-model="cname" :items="pantheons" label="请选择课程" required>
+              <v-text-field
+                v-model="userId"
+                label="账户"
+                :rules="userIdRules"
+              ></v-text-field>
+              <v-text-field
+                v-model="password"
+                label="密码"
+                :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                :rules="passwordRules"
+                :type="showPassword ? 'text' : 'password'"
+                counter
+                @click:append-inner="showPassword = !showPassword"
+              ></v-text-field>
+
+              <v-select
+                v-model="cname"
+                :items="pantheons"
+                label="请选择课程"
+                required
+              >
               </v-select>
 
               <v-btn type="submit" class="mb-6" block>登录</v-btn>
-              <v-btn class="mb-6" @click="dialogVisible = true" block>注册</v-btn>
+              <v-btn class="mb-6" @click="dialogVisible = true" block
+                >注册</v-btn
+              >
               <v-alert class="mt-2" v-if="showAlert" type="error">
                 {{ statement }}
               </v-alert>
@@ -45,12 +62,30 @@
       </v-row>
       <el-dialog v-model="dialogVisible" title="注册" width="30%">
         <v-form validate-on="submit" @submit.prevent="register">
-          <v-text-field v-model="userId" label="账户" :rules="userIdRules"></v-text-field>
-          <v-text-field v-model="password" label="密码" :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :rules="passwordRules" :type="showPassword ? 'text' : 'password'" counter
-            @click:append-inner="showPassword = !showPassword"></v-text-field>
-          <v-text-field v-model="Name" label="真实姓名" :rules="NameRules"></v-text-field>
-          <v-text-field v-model="sno" label="学号" :rules="snoRules"></v-text-field>
+          <v-text-field
+            v-model="userId"
+            label="账户"
+            :rules="userIdRules"
+          ></v-text-field>
+          <v-text-field
+            v-model="password"
+            label="密码"
+            :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            :rules="passwordRules"
+            :type="showPassword ? 'text' : 'password'"
+            counter
+            @click:append-inner="showPassword = !showPassword"
+          ></v-text-field>
+          <v-text-field
+            v-model="Name"
+            label="真实姓名"
+            :rules="NameRules"
+          ></v-text-field>
+          <v-text-field
+            v-model="sno"
+            label="学号"
+            :rules="snoRules"
+          ></v-text-field>
           <br />
           <br />
           <v-btn type="submit" class="mb-6" block>提交</v-btn>
@@ -67,11 +102,11 @@ import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import md5 from "js-md5";
 import { APIS } from "@/config";
-import axios from "axios";
-import {get_pantheon} from "@/utility.js";
+import { request } from "@/utility.js";
+import { get_pantheon } from "@/utility.js";
 
 const router = useRouter();
-const pantheons =ref([]);
+const pantheons = ref([]);
 const store = useAppStore();
 
 let userId = ref("");
@@ -110,33 +145,22 @@ const cname = ref("计算机网络");
 
 const showPassword = ref(false);
 
-
-
 let showAlert = ref(false);
 let statement = ref("");
 let dialogVisible = ref(false);
 
-
-
-function register() {
-  let data = new FormData();
-  data.append("username", userId.value);
-  data.append("password", password.value);
-  data.append("real_name", Name.value);
-  data.append("sno", sno.value);
-  //data.append("Sclass", Class.value);
-  axios.post(APIS.register, data).then((response) => {
-    if (response.data.code != 200) {
-      // this.$message.warning("注册失败");
-      ElMessage({ type: "error", message: response.data.message });
-      console.log(response);
-    } else {
-      ElMessage({ type: "success", message: "注册成功！请返回登录页面" });
-      // this.$message.warning("注册成功！请返回登录页面")
-      console.log(response);
-      dialogVisible.value = false;
-    }
-  });
+async function register() {
+  const formData = new FormData();
+  formData.append("username", userId.value);
+  formData.append("password", password.value);
+  formData.append("real_name", Name.value);
+  formData.append("sno", sno.value);
+  try {
+    const result = await request(APIS.register, { body: formData, headers: {}, isFormData: true });
+    ElMessage({ type: "success", message: "注册成功！请返回登录页面" });
+    dialogVisible.value = false;
+  } catch (error) {
+  }
 }
 
 async function login() {
@@ -144,50 +168,21 @@ async function login() {
     username: userId.value,
     password: password.value,
   };
-
-  const response = await fetch(APIS.login, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include',
-    body: JSON.stringify(data)
-  });
-
-  const result = await response.json();
-
-  if (result.code != 200) {
-    ElMessage({ type: "error", message: result.message });
-  } else {
+  try {
+    const result = await request(APIS.login, { body: JSON.stringify(data) });
     store.set_cname(cname.value);
     store.set_user_id(result.user_id);
     store.set_name(data.username);
-    //console.log("pushing");
     router.push({ name: "help" });
-    //console.log("pushed");
-  }
-  const response2 = await fetch(APIS.paticipate, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({ user_id: store.user_id, cname: store.cname })
+    await request(APIS.paticipate, {
+      body: JSON.stringify({ user_id: store.user_id, cname: store.cname }),
     });
-
-    const result2 = await response2.json();
-
-    if (result2.code != 200) {
-      ElMessage({ type: "error", message: result2.message });
-    } else {
-      console.log("paticipation success!");
-    }
+  } catch (error) {}
 }
 
 onMounted(async () => {
   pantheons.value = await get_pantheon();
   console.log(pantheons.value);
-  
 });
 </script>
 

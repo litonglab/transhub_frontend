@@ -67,6 +67,7 @@ import { ElMessage } from "element-plus";
 import { APIS } from "@/config";
 import { useAppStore } from "@/store/app.js";
 import { onMounted, onUnmounted } from "vue";
+import { request } from "@/utility.js";
 const store = useAppStore();
 const fileList = ref([]);
 const upload = ref({
@@ -108,19 +109,10 @@ const uploadFile = async ({ file }) => {
   formData.append("user_id", store.user_id);
   formData.append("cname", store.cname);
   try {
-    const res = await fetch(APIS.upload, {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    });
-    const data = await res.json();
-    if (data.code === 200) {
-      ElMessage.success("上传成功");
-    } else {
-      ElMessage.error(data.message);
-    }
+    await request(APIS.upload, { body: formData, isFormData: true });
+    ElMessage.success("上传成功");
   } catch (error) {
-    ElMessage.error("上传失败");
+    ElMessage.error("上传请求异常");
   }
 };
 
@@ -197,6 +189,7 @@ const handleSuccess = (response, file, fileList) => {
   padding: 6px 18px;
   box-shadow: 0 2px 8px rgba(255, 77, 79, 0.08);
   margin-left: 20px;
+  margin-right: 20px;
   letter-spacing: 1px;
   transition: color 0.3s;
   min-width: 200px;
