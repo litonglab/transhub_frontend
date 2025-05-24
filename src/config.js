@@ -1,4 +1,4 @@
-const hostname='https://10.77.70.150:4000/api'
+const hostname='http://10.77.70.150:54321'
 export const APIS = {
     
     // user
