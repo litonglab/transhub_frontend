@@ -110,8 +110,9 @@ async function showImage(type, task_id) {
             console.error(result.message);
             return;
         }
-
         const contentType = response.headers.get('Content-Type');
+        
+
         if (!contentType || !contentType.startsWith('image/')) {
             console.error("Returned content is not an image:", contentType);
             return;

@@ -16,8 +16,8 @@ import MarkdownItSup from "markdown-it-sup";
 import MarkdownItTasklists from "markdown-it-task-lists";
 import MarkdownItTOC from "markdown-it-toc-done-right";
 import 'highlight.js/styles/atom-one-dark.css'
-
-
+import markdownItKatex from 'markdown-it-katex';
+import 'katex/dist/katex.min.css';
 
 const md = new MarkdownIt()
   .use(MarkdownItAbbr)

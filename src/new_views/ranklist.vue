@@ -21,7 +21,7 @@
       :index="indexAdd">
     </el-table-column>
     <el-table-column
-      prop="user_name"
+      prop="username"
       label="用户名">
     </el-table-column>
     <el-table-column
