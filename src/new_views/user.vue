@@ -87,9 +87,24 @@
         <v-card-title>修改信息</v-card-title>
         <v-card-text>
           <v-form ref="realInfoRef" :lazy-validation="true">
-            <v-text-field label="真实姓名" v-model="real_info.real_name" :rules="info_rules.real_name"></v-text-field>
-            <v-text-field label="学号" v-model="real_info.sno" :rules="info_rules.sno"></v-text-field>
-            <v-select label="课程" v-model="real_info.cname" :items="pantheons" item-text="label" item-value="value" :rules="info_rules.myclass"></v-select>
+            <v-text-field
+              label="真实姓名"
+              v-model="real_info.real_name"
+              :rules="info_rules.real_name"
+            ></v-text-field>
+            <v-text-field
+              label="学号"
+              v-model="real_info.sno"
+              :rules="info_rules.sno"
+            ></v-text-field>
+            <v-select
+              label="课程"
+              v-model="real_info.cname"
+              :items="pantheons"
+              item-text="label"
+              item-value="value"
+              :rules="info_rules.myclass"
+            ></v-select>
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -101,34 +116,32 @@
   </v-container>
 </template>
 
-
 <script setup>
-import { ref, onMounted } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ref, onMounted } from "vue";
+import { ElMessage } from "element-plus";
 
-import { useAppStore } from '@/store/app';
-import { APIS } from '@/config';
-import { get_pantheon } from '@/utility';
+import { useAppStore } from "@/store/app";
+import { APIS } from "@/config";
+import { get_pantheon } from "@/utility";
+import { request } from "@/utility.js";
 
 const store = useAppStore();
-const pantheons =ref([]);
+const pantheons = ref([]);
 const name = store.name;
 
 const real_info = ref({
-  real_name: '',
-  sno: '',
-  cname: store.cname
+  real_name: "",
+  sno: "",
+  cname: store.cname,
 });
-
-
 
 const pwd_visible = ref(false);
 const dialogVisible_3 = ref(false);
 
 const formLabelAlign = ref({
-  oldpwd: '',
-  newpwd: '',
-  confirmpwd: ''
+  oldpwd: "",
+  newpwd: "",
+  confirmpwd: "",
 });
 
 //const validateConfirmPwd = async (rule, value, callback) => {
@@ -164,15 +177,9 @@ const rules = {
 };
 
 const info_rules = {
-  real_name: [
-    { required: true, message: '请输入真实姓名', trigger: 'blur' }
-  ],
-  sno: [
-    { required: true, message: '请输入学号', trigger: 'blur' }
-  ],
-  myclass: [
-    { required: true, message: '请选择课程', trigger: 'change' }
-  ]
+  real_name: [{ required: true, message: "请输入真实姓名", trigger: "blur" }],
+  sno: [{ required: true, message: "请输入学号", trigger: "blur" }],
+  myclass: [{ required: true, message: "请选择课程", trigger: "change" }],
 };
 
 const realInfoRef = ref(null);
@@ -184,123 +191,62 @@ const change_pwd = async () => {
   if (!valid) return; // 验证失败则阻止提交
   console.log(pwdFormRef.value)
   console.log('change_pwd：', valid);
-  fetch(APIS.changepwd, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include',
-    body: JSON.stringify({
-      user_id: store.user_id,
-      oldpwd: formLabelAlign.value.oldpwd,
-      new_pwd: formLabelAlign.value.newpwd
-    })
-  }).then(res => res.json())
-    .then(res => {
-      if (res.code !== 200) {
-        ElMessage({
-          message: res.message,
-          type: 'error'
-        });
-      }
-      else {
-        ElMessage({
-          message: '密码修改成功',
-          type: 'success'
-        });
-        pwd_visible.value = false;
-
-      }
+  try {
+    await request(APIS.changepwd, {
+      body: JSON.stringify({
+        user_id: store.user_id,
+        oldpwd: formLabelAlign.value.oldpwd,
+        new_pwd: formLabelAlign.value.newpwd,
+      }),
     });
+    ElMessage({ message: "密码修改成功", type: "success" });
+    pwd_visible.value = false;
+  } catch (error) {
+    
+  }
 
 };
 
 const update_info = async () => {
-
-
-  const setInfoResponse = await fetch(APIS.set_info, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include',
-    body: JSON.stringify({
-      user_id: store.user_id,
-      real_name: real_info.value.real_name,
-      sno: real_info.value.sno,
-      //cname: real_info.value.cname
-    })
-  });
-  const setInfoResult = await setInfoResponse.json();
-
-  if (setInfoResult.code === 200) {
-    ElMessage({
-      message: '信息修改成功',
-      type: 'success'
+  try {
+    await request(APIS.set_info, {
+      body: JSON.stringify({
+        user_id: store.user_id,
+        real_name: real_info.value.real_name,
+        sno: real_info.value.sno,
+      }),
     });
+    ElMessage({ message: "信息修改成功", type: "success" });
     dialogVisible_3.value = false;
-
-    // paticipate other cname
     store.set_cname(real_info.value.cname);
-
-    const paticipateResponse = await fetch(APIS.paticipate, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({ user_id: store.user_id, cname: store.cname })
+    await request(APIS.paticipate, {
+      body: JSON.stringify({ user_id: store.user_id, cname: store.cname }),
     });
-    const paticipateResult = await paticipateResponse.json();
-
-    if (paticipateResult.code !== 200) {
-      ElMessage({
-        message: paticipateResult.msg,
-        type: 'error'
-      });
-    } else {
-      console.log('paticipation success!');
-    }
-  } else {
-    ElMessage({
-      message: setInfoResult.msg,
-      type: 'error'
-    });
+  } catch (error) {
+    
   }
 };
+
 const resetForm = (formName) => {
   formRef.value.resetFields();
 };
 
-function getRealInfo() {
-  fetch(APIS.get_info, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include',
-    body: JSON.stringify({
-      user_id: store.user_id
+async function getRealInfo() {
+  try {
+    const result = await request(APIS.get_info, {
+      body: JSON.stringify({ user_id: store.user_id }),
     })
-  }).then(res => res.json())
-    .then(res => {
-      if (res.code === 200) {
-        real_info.value.real_name = res.real_info.real_name;
-        real_info.value.sno = res.real_info.sno;
-      } else {
-        ElMessage({
-          message: res.msg,
-          type: 'error'
-        });
-      }
-    });
+    real_info.value.real_name = result.real_info.real_name;
+    real_info.value.sno = result.real_info.sno;
+  } catch (error) {
+    ElMessage.error("获取信息请求异常");
+  }
 }
 
 onMounted(async () => {
   getRealInfo();
   pantheons.value = await get_pantheon();
 });
-
 </script>
 <style scoped>
 .text-h4 {

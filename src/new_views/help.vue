@@ -1,8 +1,10 @@
 <script setup>
-import { ref } from 'vue';
-import { APIS } from '@/config';
+import { ref } from "vue";
+import { APIS } from "@/config";
 import { useAppStore } from "@/store/app.js";
-import { onMounted } from 'vue';
+import { onMounted } from "vue";
+import { request } from "@/utility.js";
+import { ElMessage } from "element-plus";
 
 const store = useAppStore();
 
@@ -15,9 +17,9 @@ import MarkdownItSub from "markdown-it-sub";
 import MarkdownItSup from "markdown-it-sup";
 import MarkdownItTasklists from "markdown-it-task-lists";
 import MarkdownItTOC from "markdown-it-toc-done-right";
-import 'highlight.js/styles/atom-one-dark.css'
-import markdownItKatex from 'markdown-it-katex';
-import 'katex/dist/katex.min.css';
+import "highlight.js/styles/atom-one-dark.css";
+import markdownItKatex from "markdown-it-katex";
+import "katex/dist/katex.min.css";
 
 const md = new MarkdownIt()
   .use(MarkdownItAbbr)
@@ -29,22 +31,21 @@ const md = new MarkdownIt()
   .use(MarkdownItTasklists)
   .use(MarkdownItTOC);
 
-const markdownContent = ref('');
+const markdownContent = ref("");
 async function fetchMarkdown() {
   try {
-    const response = await fetch(APIS.get_tutorial, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
+    const markdowns = await request(
+      APIS.get_tutorial,
+      {
+        body: JSON.stringify({ cname: store.cname }),
       },
-      credentials: 'include',
-      body: JSON.stringify({ cname: store.cname })
-    });
-    const markdowns = await response.text();
-    //console.log(markdowns);
-    markdownContent.value = md.render(markdowns);
+      { raw: true }
+    );
+    const text = await markdowns.text();
+    markdownContent.value = md.render(text);
   } catch (error) {
-    console.error('Error fetching markdown file:', error);
+    ElMessage.error("获取指南请求异常");
+    console.error("Error fetching markdown file:", error);
   }
 }
 
@@ -54,16 +55,15 @@ onMounted(() => {
 </script>
 
 <template>
-    <div v-html="markdownContent" class="markdown-body" />
+  <div v-html="markdownContent" class="markdown-body" />
 </template>
 
 <style scoped>
-  .markdown-body {
-    box-sizing: border-box;
-    min-width: 200px;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0px;
-  }
-
+.markdown-body {
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0px;
+}
 </style>
