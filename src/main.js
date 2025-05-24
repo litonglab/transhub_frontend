@@ -41,5 +41,3 @@ app.provide(
 registerPlugins(app);
 
 app.mount("#app");
-
-console.log(import.meta.env.VITE_APP_API_HOST);

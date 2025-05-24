@@ -168,6 +168,20 @@ const handleSortChange = ({ column, prop, order }) => {
   });
 }
 
+const indexAdd = (index) => {
+  const page = pageParams.value.page;
+  const pageSize = pageParams.value.pageSize;
+  return index + 1 + (page - 1) * pageSize;
+};
+
+const handleSizeChange = (size) => {
+  pageParams.value.pageSize = size;
+};
+
+const handleCurrentChange = (currentPage) => {
+  pageParams.value.page = currentPage;
+};
+
 onMounted(() => {
   get_history_records();
 
