@@ -41,7 +41,7 @@
           <v-row class="mt-4">
             <v-col cols="12" class="text-center">
               <v-btn color="red-darken-4" outlined @click="pwd_visible = true" class="mx-2">修改密码</v-btn>
-              <v-btn color="red-darken-4" outlined @click="dialogVisible_3 = true" class="mx-2">修改信息</v-btn>
+              <!-- <v-btn color="red-darken-4" outlined @click="dialogVisible_3 = true" class="mx-2">修改信息</v-btn>-->
             </v-col>
           </v-row>
         </v-sheet>
@@ -65,12 +65,12 @@
       <v-card>
         <v-card-title>修改密码</v-card-title>
         <v-card-text>
-          <v-form>
-            <v-text-field label="旧密码" v-model="formLabelAlign.oldpwd" prepend-icon="mdi-lock" type="password"
+          <v-form ref="pwdFormRef">
+            <v-text-field label="旧密码" v-model="formLabelAlign.oldpwd" prepend-icon="mdi-lock" type="password" :rules="rules.oldpwd"
               ></v-text-field>
-            <v-text-field label="新密码" v-model="formLabelAlign.newpwd" prepend-icon="mdi-lock" type="password"
+            <v-text-field label="新密码" v-model="formLabelAlign.newpwd" prepend-icon="mdi-lock" type="password" :rules="rules.newpwd"
               ></v-text-field>
-            <v-text-field label="确认密码" v-model="formLabelAlign.confirmpwd" prepend-icon="mdi-lock" type="password"
+            <v-text-field label="确认密码" v-model="formLabelAlign.confirmpwd" prepend-icon="mdi-lock" type="password" :rules="rules.confirmpwd"
               ></v-text-field>
           </v-form>
         </v-card-text>
@@ -82,7 +82,7 @@
     </v-dialog>
 
     <!-- 修改信息对话框 -->
-    <v-dialog v-model="dialogVisible_3" max-width="500px">
+    <!-- <v-dialog v-model="dialogVisible_3" max-width="500px">
       <v-card>
         <v-card-title>修改信息</v-card-title>
         <v-card-text>
@@ -97,7 +97,7 @@
           <v-btn @click="resetForm2">重置</v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
+    </v-dialog>-->
   </v-container>
 </template>
 
@@ -131,24 +131,35 @@ const formLabelAlign = ref({
   confirmpwd: ''
 });
 
-const validateConfirmPwd = (rule, value, callback) => {
-  if (value !== formLabelAlign.value.newpwd) {
-    callback(new Error('两次输入密码不一致'));
-  } else {
-    callback();
-  }
+//const validateConfirmPwd = async (rule, value, callback) => {
+ // await nextTick()
+  //console.log('当前新密码:', formLabelAlign.value.newpwd);
+ // console.log('当前确认密码:', value);
+ // if (!value) {
+ //   callback(new Error('请确认新密码'));
+ // } else if (value !== formLabelAlign.value.newpwd) {
+ //   callback(new Error('两次输入密码不一致'));
+ // } else {
+ //   callback();
+ // }
+//};
+
+const validateConfirmPwd = (value) => {
+  if (!value) return '请确认新密码';          // 返回错误字符串
+  if (value !== formLabelAlign.value.newpwd) return '两次输入不一致';
+  return true;                              // 返回 true 表示验证通过
 };
 
 const rules = {
   oldpwd: [
-    { required: true, message: '请输入旧密码', trigger: 'blur' }
+    { required: true, message: '请输入旧密码', trigger: ['blur', 'input'] }
   ],
   newpwd: [
-    { required: true, message: '请输入新密码', trigger: 'blur' }
+    { required: true, message: '请输入新密码', trigger: ['blur', 'input'] }
   ],
   confirmpwd: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
-    { validator: validateConfirmPwd, trigger: 'blur' }
+    (value) => !!value || '请确认新密码', // 必填规则
+    (value) => value === formLabelAlign.value.newpwd || '两次输入不一致' // 一致性规则
   ]
 };
 
@@ -165,8 +176,14 @@ const info_rules = {
 };
 
 const realInfoRef = ref(null);
+const pwdFormRef = ref(null); // 声明表单引用
 
-const change_pwd = () => {
+const change_pwd = async () => {
+
+  const { valid } = await pwdFormRef.value.validate({ force: true });
+  if (!valid) return; // 验证失败则阻止提交
+  console.log(pwdFormRef.value)
+  console.log('change_pwd：', valid);
   fetch(APIS.changepwd, {
     method: 'POST',
     headers: {
@@ -182,7 +199,7 @@ const change_pwd = () => {
     .then(res => {
       if (res.code !== 200) {
         ElMessage({
-          message: res.msg,
+          message: res.message,
           type: 'error'
         });
       }
