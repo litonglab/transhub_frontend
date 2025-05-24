@@ -5,24 +5,57 @@
 - Node.js v22.5.1
 - Vue 3.4.37
 
+
+
 ## 2. Config
-位于src/config.js中，配置后端API地址
+
+位于.env.development和.env.production中，分别对应开发环境后端地址和生产环境后端地址，配置后端地址时不要以斜杠/结尾。配置后端API地址。
 - 本地部署：
 ```javascript
-const hostname='https://localhost:{your backend port}/api'
+VITE_APP_API_HOST='http://localhost:8080'  // 注意结尾不要加斜杠/
 ```
 - 远程部署：
 ```javascript
-const hostname='https://{remote server ip}:{your nginx port}/api'
+VITE_APP_API_HOST=''
 ```
 除此之外，远端部署时还需要对 **nginx** 进行设置，详见本目录下的 **nginx.md** 文件
 
-## 3.  安装 & 运行
-```bash
+
+
+## 3.  安装
+
+```
 npm install
 npm run dev
 ```
-## 4.  打包
+
+
+
+## 4. 开发环境运行
+
+```bash
+npm run dev
+```
+当以开发环境运行时，将使用.env.development中指定的后端地址。
+
+
+
+## 5.  生产环境打包
+
 ```bash
 npm run build
 ```
+
+当正式部署到服务器时，必须使用以上命令打包，不要直接以开发环境运行。
+
+在重新打包之前，请删除此前已打包的dist文件夹，以免出现问题。开发环境将使用.env.production中指定的后端地址。
+
+打包好后，会生成dist文件夹，它不能独立运行，需依赖其他的服务器程序。
+
+因此这里有两种部署方式：
+
+- 一种是前端和后端分别部署，比如前端部署在nginx中，后端则单独启动Flask框架。此时需要在.env.production中填写对应的后端地址。
+
+- 另一种方法是前端直接随后端部署（推荐），当前端打包好后，只需把打包产生的dist文件夹复制到后端的app_frontend_dist文件夹中，此时.env.production中后端地址不用填写，使用空字符即可。这样部署比较简便。
+
+由于系统体量不大，为了简便起见，建议直接用第二种方法部署。
