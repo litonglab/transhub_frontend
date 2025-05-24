@@ -50,6 +50,17 @@ const routes = [
         name: "ranklist",
         component: () => import("@/new_views/ranklist.vue"),
       },
+      {
+        path: "/404",
+        name: "NotFound",
+        component: () => import("@/new_views/NotFound.vue"),
+      },
+      // 所有未定义路由，全部重定向到404页
+      {
+        path: "/:pathMatch(.*)",
+        redirect: "/404",
+        hidden: true,
+      },
     ],
   },
 ];
