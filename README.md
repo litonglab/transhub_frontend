@@ -10,10 +10,10 @@
 ## 2. Config
 
 配置后端API地址：位于`.env.developmen`t和`.env.production`中，分别对应开发环境后端地址和生产环境后端地址，配置后端地址时不要以斜杠/结尾。
-- 本地部署（开发环境）：
+- 本地开发（开发环境）：
 ```javascript
-# 本地开发环境部署时，为解决跨域问题，需使用代理方式请求后端接口
-# VITE_APP_API_HOST必须填写为/api，使用VITE_APP_PROXY_API_HOST填写后端地址
+// 本地开发环境部署时，为解决跨域问题，需使用代理方式请求后端接口
+// VITE_APP_API_HOST必须填写为/api，使用VITE_APP_PROXY_API_HOST填写后端地址
 VITE_APP_API_HOST='/api'  // 请勿修改
 VITE_APP_PROXY_API_HOST='http://localhost:54321'  //填写后端地址，请勿使用斜杠/结尾
 ```
@@ -38,6 +38,8 @@ npm install
 ```bash
 npm run dev
 ```
+使用上述命令运行时，即开发环境。开发环境有很多特殊处理，性能较差，不能直接用此方法部署到现网。
+
 当以开发环境运行时，将使用`.env.development`中指定的后端地址。
 
 
@@ -47,10 +49,11 @@ npm run dev
 ```bash
 npm run build
 ```
+使用上述命令打包后，生产的`dist`文件夹用于生产环境。
 
-当正式部署到服务器时，必须使用以上命令打包，不要直接以开发环境运行。
+当正式部署到服务器时，必须使用以上命令打包，不要直接以开发环境运行。开发环境将使用`.env.production`中指定的后端地址。
 
-在重新打包之前，请删除此前已打包的dist文件夹，以免出现问题。开发环境将使用`.env.production`中指定的后端地址。
+在重新打包之前以及更新现网`dist`文件夹时，请先删除此前的`dist`文件夹，以免出现问题。
 
 打包好后，会生成dist文件夹，它不能独立运行，需依赖其他的服务器程序。
 
