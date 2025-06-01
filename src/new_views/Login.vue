@@ -51,7 +51,8 @@
 
               <v-btn type="submit" class="mb-6" block>登录</v-btn>
               <v-btn class="mb-6" @click="dialogVisible = true" block
-                >注册</v-btn
+              >注册
+              </v-btn
               >
               <v-alert class="mt-2" v-if="showAlert" type="error">
                 {{ statement }}
@@ -86,8 +87,8 @@
             label="学号"
             :rules="snoRules"
           ></v-text-field>
-          <br />
-          <br />
+          <br/>
+          <br/>
           <v-btn type="submit" class="mb-6" block>提交</v-btn>
         </v-form>
       </el-dialog>
@@ -96,14 +97,12 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { useAppStore } from "@/store/app.js";
-import { useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
-import md5 from "js-md5";
-import { APIS } from "@/config";
-import { request } from "@/utility.js";
-import { get_pantheon } from "@/utility.js";
+import {onMounted, ref} from "vue";
+import {useAppStore} from "@/store/app.js";
+import {useRouter} from "vue-router";
+import {ElMessage, ElMessageBox} from "element-plus";
+import {APIS} from "@/config";
+import {get_pantheon, request} from "@/utility.js";
 
 const router = useRouter();
 const pantheons = ref([]);
@@ -149,6 +148,41 @@ let showAlert = ref(false);
 let statement = ref("");
 let dialogVisible = ref(false);
 
+const countdown = ref(60)
+let timer = null
+
+const openCountdownBox = (msg) => {
+  countdown.value = 3
+  ElMessageBox({
+    title: '提示',
+    message: () => `登录中...`,
+    showClose: false,
+    closeOnClickModal: false,
+    closeOnPressEscape: false,
+    distinguishCancelAndClose: true,
+    showCancelButton: false,
+    showConfirmButton: false,
+    type: "info",
+    center: true,
+    beforeClose: (action, instance, done) => {
+      // 倒计时未结束时禁止关闭
+      if (countdown.value > 0) return
+      done()
+    }
+  })
+
+  timer = setInterval(() => {
+    countdown.value--
+    // 通过ElMessageBox实例更新内容
+    document.querySelector('.el-message-box__message').innerText = `${msg}\n请等待 ${countdown.value} 秒...`
+    if (countdown.value <= 0) {
+      clearInterval(timer)
+      // 允许关闭，显示按钮
+      ElMessageBox.close()
+    }
+  }, 1000)
+}
+
 async function register() {
   const formData = new FormData();
   formData.append("username", userId.value);
@@ -156,8 +190,8 @@ async function register() {
   formData.append("real_name", Name.value);
   formData.append("sno", sno.value);
   try {
-    const result = await request(APIS.register, { body: formData, headers: {}, isFormData: true });
-    ElMessage({ type: "success", message: "注册成功！请返回登录页面" });
+    await request(APIS.register, {body: formData, headers: {}, isFormData: true});
+    ElMessage({type: "success", message: "注册成功！请返回登录页面"});
     dialogVisible.value = false;
   } catch (error) {
   }
@@ -167,17 +201,24 @@ async function login() {
   let data = {
     username: userId.value,
     password: password.value,
+    cname: cname.value,
   };
   try {
-    const result = await request(APIS.login, { body: JSON.stringify(data) });
-    store.set_cname(cname.value);
-    store.set_user_id(result.user_id);
-    store.set_name(data.username);
-    router.push({ name: "help" });
-    await request(APIS.paticipate, {
-      body: JSON.stringify({ user_id: store.user_id, cname: store.cname }),
-    });
-  } catch (error) {}
+    const result = await request(APIS.login, {body: JSON.stringify(data)});
+    if (result.code === 200) {
+      // store.set_cname(cname.value);
+      store.set_user_id(result.user_id);
+      store.set_name(data.username);
+      router.push({name: "help"});
+    } else if (result.code === 201) {
+      // 使用ElMessageBox弹出一个对话框，并显示一个60秒的倒计时，倒计时结束前，不能关闭对话框
+      openCountdownBox(result.message);
+    } else {
+      ElMessage({type: "error", message: "登录过程发生未知错误，请稍后再试"});
+    }
+
+  } catch (error) {
+  }
 }
 
 onMounted(async () => {

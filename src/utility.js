@@ -14,9 +14,9 @@ export function formatDateTime(dateString) {
   return formattedDate.replace(/\//g, "-").replace(",", "");
 }
 
-import { APIS } from "./config.js";
-import { ElMessage } from "element-plus";
-import { useRouter } from "vue-router";
+import {APIS} from "./config.js";
+import {ElMessage} from "element-plus";
+import {useRouter} from "vue-router";
 
 /**
  * 统一后端请求封装
@@ -36,7 +36,7 @@ export async function request(url, options = {}, config = {}) {
   // 默认 method/post，Content-Type/json
   const defaultOptions = {
     method: 'POST',
-    ...(isFormData ? {} : { headers: { 'Content-Type': 'application/json' } }),
+    ...(isFormData ? {} : {headers: {'Content-Type': 'application/json'}}),
   };
   // 合并 headers
   const mergedOptions = {
@@ -44,7 +44,7 @@ export async function request(url, options = {}, config = {}) {
     ...options,
     headers: isFormData
       ? (options.headers || undefined) // 不加 Content-Type
-      : { ...defaultOptions.headers, ...(options.headers || {}) },
+      : {...defaultOptions.headers, ...(options.headers || {})},
   };
   const showError = config.showError !== false;
   try {
@@ -53,9 +53,10 @@ export async function request(url, options = {}, config = {}) {
     const contentType = response.headers.get('Content-Type') || '';
     if (contentType.startsWith('application/json')) {
       const data = await response.json();
-      if (data.code === 200) {
+      // 2xx状态码均为成功
+      if (data.code >= 200 && data.code < 300) {
         return data;
-      } else if (data.code === 401 || data.message.indexOf("login") !==-1 //此条件待后端更新后可删除
+      } else if (data.code === 401 || data.message.indexOf("login") !== -1 //此条件待后端更新后可删除
       ) {
         // if (showError) ElMessage.error('请先登录');
         if (router) router.push('/login');

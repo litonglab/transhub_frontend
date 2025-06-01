@@ -66,12 +66,15 @@
         <v-card-title>修改密码</v-card-title>
         <v-card-text>
           <v-form ref="pwdFormRef">
-            <v-text-field label="旧密码" v-model="formLabelAlign.oldpwd" prepend-icon="mdi-lock" type="password" :rules="rules.oldpwd"
-              ></v-text-field>
-            <v-text-field label="新密码" v-model="formLabelAlign.newpwd" prepend-icon="mdi-lock" type="password" :rules="rules.newpwd"
-              ></v-text-field>
-            <v-text-field label="确认密码" v-model="formLabelAlign.confirmpwd" prepend-icon="mdi-lock" type="password" :rules="rules.confirmpwd"
-              ></v-text-field>
+            <v-text-field label="旧密码" v-model="formLabelAlign.oldpwd" prepend-icon="mdi-lock" type="password"
+                          :rules="rules.oldpwd"
+            ></v-text-field>
+            <v-text-field label="新密码" v-model="formLabelAlign.newpwd" prepend-icon="mdi-lock" type="password"
+                          :rules="rules.newpwd"
+            ></v-text-field>
+            <v-text-field label="确认密码" v-model="formLabelAlign.confirmpwd" prepend-icon="mdi-lock" type="password"
+                          :rules="rules.confirmpwd"
+            ></v-text-field>
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -117,13 +120,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import {onMounted, ref} from "vue";
+import {ElMessage} from "element-plus";
 
-import { useAppStore } from "@/store/app";
-import { APIS } from "@/config";
-import { get_pantheon } from "@/utility";
-import { request } from "@/utility.js";
+import {useAppStore} from "@/store/app";
+import {APIS} from "@/config";
+import {get_pantheon} from "@/utility";
+import {request} from "@/utility.js";
 
 const store = useAppStore();
 const pantheons = ref([]);
@@ -145,16 +148,16 @@ const formLabelAlign = ref({
 });
 
 //const validateConfirmPwd = async (rule, value, callback) => {
- // await nextTick()
-  //console.log('当前新密码:', formLabelAlign.value.newpwd);
- // console.log('当前确认密码:', value);
- // if (!value) {
- //   callback(new Error('请确认新密码'));
- // } else if (value !== formLabelAlign.value.newpwd) {
- //   callback(new Error('两次输入密码不一致'));
- // } else {
- //   callback();
- // }
+// await nextTick()
+//console.log('当前新密码:', formLabelAlign.value.newpwd);
+// console.log('当前确认密码:', value);
+// if (!value) {
+//   callback(new Error('请确认新密码'));
+// } else if (value !== formLabelAlign.value.newpwd) {
+//   callback(new Error('两次输入密码不一致'));
+// } else {
+//   callback();
+// }
 //};
 
 const validateConfirmPwd = (value) => {
@@ -165,10 +168,10 @@ const validateConfirmPwd = (value) => {
 
 const rules = {
   oldpwd: [
-    { required: true, message: '请输入旧密码', trigger: ['blur', 'input'] }
+    {required: true, message: '请输入旧密码', trigger: ['blur', 'input']}
   ],
   newpwd: [
-    { required: true, message: '请输入新密码', trigger: ['blur', 'input'] }
+    {required: true, message: '请输入新密码', trigger: ['blur', 'input']}
   ],
   confirmpwd: [
     (value) => !!value || '请确认新密码', // 必填规则
@@ -177,9 +180,9 @@ const rules = {
 };
 
 const info_rules = {
-  real_name: [{ required: true, message: "请输入真实姓名", trigger: "blur" }],
-  sno: [{ required: true, message: "请输入学号", trigger: "blur" }],
-  myclass: [{ required: true, message: "请选择课程", trigger: "change" }],
+  real_name: [{required: true, message: "请输入真实姓名", trigger: "blur"}],
+  sno: [{required: true, message: "请输入学号", trigger: "blur"}],
+  myclass: [{required: true, message: "请选择课程", trigger: "change"}],
 };
 
 const realInfoRef = ref(null);
@@ -187,7 +190,7 @@ const pwdFormRef = ref(null); // 声明表单引用
 
 const change_pwd = async () => {
 
-  const { valid } = await pwdFormRef.value.validate({ force: true });
+  const {valid} = await pwdFormRef.value.validate({force: true});
   if (!valid) return; // 验证失败则阻止提交
   console.log(pwdFormRef.value)
   console.log('change_pwd：', valid);
@@ -199,10 +202,10 @@ const change_pwd = async () => {
         new_pwd: formLabelAlign.value.newpwd,
       }),
     });
-    ElMessage({ message: "密码修改成功", type: "success" });
+    ElMessage({message: "密码修改成功", type: "success"});
     pwd_visible.value = false;
   } catch (error) {
-    
+
   }
 
 };
@@ -216,14 +219,14 @@ const update_info = async () => {
         sno: real_info.value.sno,
       }),
     });
-    ElMessage({ message: "信息修改成功", type: "success" });
+    ElMessage({message: "信息修改成功", type: "success"});
     dialogVisible_3.value = false;
-    store.set_cname(real_info.value.cname);
-    await request(APIS.paticipate, {
-      body: JSON.stringify({ user_id: store.user_id, cname: store.cname }),
-    });
+    // store.set_cname(real_info.value.cname);
+    // await request(APIS.paticipate, {
+    //   body: JSON.stringify({ user_id: store.user_id, cname: store.cname }),
+    // });
   } catch (error) {
-    
+
   }
 };
 
@@ -234,7 +237,7 @@ const resetForm = (formName) => {
 async function getRealInfo() {
   try {
     const result = await request(APIS.get_info, {
-      body: JSON.stringify({ user_id: store.user_id }),
+      body: JSON.stringify({user_id: store.user_id}),
     })
     real_info.value.real_name = result.real_info.real_name;
     real_info.value.sno = result.real_info.sno;
