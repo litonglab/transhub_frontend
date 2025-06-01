@@ -55,19 +55,14 @@ export async function request(url, options = {}, config = {}) {
       // 2xx状态码均为成功
       if (data.code >= 200 && data.code < 300) {
         return data;
-      } else if (data.code === 401 || data.message.indexOf("login") !== -1 //此条件待后端更新后可删除
-      ) {
-        // if (showError) ElMessage.error('请先登录');
-        if (router) router.push('/login');
+      } else if (data.code === 401) {
+        if (router) await router.push('/login');
         else window.location.href = '/login';
-        // throw new Error('未登录');
         throw new Error(data.message);
       } else {
-        // if (showError) ElMessage.error(data.message || '请求失败');
         throw new Error(data.message || '请求失败');
       }
     } else if (response.status !== 200) {
-      // if (showError) ElMessage.error(`网络或系统错误：${response.status}`);
       throw new Error(`网络或系统错误：${response.status}`);
     } else {
       return response;
