@@ -87,20 +87,14 @@ export async function request(url, options = {}, config = {}) {
 
 export async function get_pantheon() {
   try {
-    const response = await fetch(APIS.get_pantheon, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const result = await request(
+      APIS.get_pantheon,
+      {
+        method: "GET"
       },
-    });
-    const data = await response.json();
-    if (data.code === 200) {
-      return data.pantheon;
-    } else {
-      return [];
-    }
+    );
+    return result.pantheon;
   } catch (error) {
-    console.error("Error fetching pantheon:", error);
     return [];
   }
 }

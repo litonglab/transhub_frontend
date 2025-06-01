@@ -35,7 +35,7 @@ async function fetchMarkdown() {
     const markdowns = await request(
       APIS.get_tutorial,
       {
-        body: JSON.stringify({cname: store.cname}),
+        method: "GET"
       },
       {raw: true}
     );
@@ -43,7 +43,6 @@ async function fetchMarkdown() {
     markdownContent.value = md.render(text);
   } catch (error) {
     ElMessage.error("获取指南请求异常");
-    console.error("Error fetching markdown file:", error);
   }
 }
 

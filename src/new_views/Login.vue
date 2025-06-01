@@ -140,7 +140,7 @@ const snoRules = [
     return true;
   },
 ];
-const cname = ref("计算机网络");
+const cname = ref("");
 
 const showPassword = ref(false);
 
@@ -223,7 +223,11 @@ async function login() {
 
 onMounted(async () => {
   pantheons.value = await get_pantheon();
-  console.log(pantheons.value);
+  if (pantheons.value.length > 0) {
+    cname.value = pantheons.value[0]; // 默认选择第一个课程
+  } else {
+    cname.value = "未加载到课程信息，请稍后再试";
+  }
 });
 </script>
 
