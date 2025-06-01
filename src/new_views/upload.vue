@@ -32,12 +32,13 @@
       :on-preview="handlePreview"
       :on-remove="handleRemove"
       :before-remove="beforeRemove"
-      multiple
-      :limit="1"
+      :multiple="false"
       :on-exceed="handleExceed"
+      :on-change="handleChange"
       :data="{ url: upload.url, user_id: upload.user_id }"
       :on-success="handleSuccess"
       :file-list="fileList"
+      :accept="'.cc,.c,.cxx,.cpp,.c++,.h,.hpp,.hxx,.h++'"
     >
       <el-button size="large" type="success">点击上传</el-button>
       <div slot="tip" class="el-upload__tip">
@@ -63,7 +64,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { APIS } from "@/config";
 import { useAppStore } from "@/store/app.js";
 import { onMounted, onUnmounted } from "vue";
@@ -109,10 +110,22 @@ const uploadFile = async ({ file }) => {
   formData.append("user_id", store.user_id);
   formData.append("cname", store.cname);
   try {
-    await request(APIS.upload, { body: formData, isFormData: true });
-    ElMessage.success("上传成功");
+    await request(APIS.upload, { body: formData, isFormData: true }, {showError: false});
+    ElMessage.success({
+      message: "上传成功",
+      duration: 5000,
+      center: true,
+    });
   } catch (error) {
-    ElMessage.error("上传请求异常");
+    ElMessageBox.alert(
+      error.message || "请检查文件格式或网络连接",
+      "上传失败",
+      {
+        confirmButtonText: "确定",
+        type: "error",
+        center: true,
+      }
+    );
   }
 };
 
@@ -140,6 +153,12 @@ const handleExceed = (files, fileList) => {
       files.length + fileList.length
     } 个文件`
   );
+};
+
+const handleChange = (file, fileList) => {
+  if (fileList.length > 1) {
+    fileList.splice(0, 1);
+  }
 };
 
 const handleSuccess = (response, file, fileList) => {
