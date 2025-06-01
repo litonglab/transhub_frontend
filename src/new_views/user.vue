@@ -134,6 +134,7 @@ const name = store.name;
 const real_info = ref({
   real_name: "",
   sno: "",
+  cname: "",
 });
 
 const pwd_visible = ref(false);
@@ -239,6 +240,7 @@ async function getRealInfo() {
     })
     real_info.value.real_name = result.real_info.real_name;
     real_info.value.sno = result.real_info.sno;
+    real_info.value.cname = result.real_info.cname;
   } catch (error) {
     ElMessage.error("获取信息请求异常");
   }
