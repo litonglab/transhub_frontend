@@ -13,7 +13,6 @@ import {createApp} from "vue";
 // Plugins
 import {registerPlugins} from "@/plugins";
 import {createVuetify} from "vuetify";
-import axios from "axios";
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
 import {createPinia} from "pinia";
@@ -28,15 +27,6 @@ app.use(vuetify);
 app.use(ElementPlus);
 app.use(pinia);
 // app.use(router).mount('#app')
-app.config.globalProperties.$axios = axios;
-app.provide(
-  "axios",
-  axios.create({
-    baseURL: "",
-    withCredentials: true,
-
-  })
-);
 
 registerPlugins(app);
 

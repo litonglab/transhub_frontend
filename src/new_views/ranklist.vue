@@ -52,7 +52,6 @@
 
 <script setup>
 import {onBeforeUnmount, onMounted, ref} from "vue";
-// import { axios } from '@/utils/request';
 import {APIS} from "@/config.js";
 import {useAppStore} from "@/store/app.js";
 import {formatDateTime, request} from "@/utility.js";
