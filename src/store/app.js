@@ -6,7 +6,6 @@ export const useAppStore = defineStore('app', {
     task_id: [],
     user_id: '',
     name: '',
-    cname: '',
   }),
   getters: {
     get_task_id(state) {
@@ -18,9 +17,6 @@ export const useAppStore = defineStore('app', {
     get_name(state) {
       return state.name
     },
-    get_cname(state) {
-      return state.cname
-    }
   },
   actions:
   {
@@ -33,9 +29,6 @@ export const useAppStore = defineStore('app', {
     set_name(name) {
       this.name = name
     },
-    set_cname(cname) {
-      this.cname = cname
-    }
   },
   persist:true,
 }

@@ -1,3 +1,6 @@
+import {ElMessage} from "element-plus";
+import {useRouter} from "vue-router";
+
 export function formatDateTime(dateString) {
   const date = new Date(Date.parse(dateString));
   const options = {
@@ -13,10 +16,6 @@ export function formatDateTime(dateString) {
   const formattedDate = new Intl.DateTimeFormat("zh-CN", options).format(date);
   return formattedDate.replace(/\//g, "-").replace(",", "");
 }
-
-import {APIS} from "./config.js";
-import {ElMessage} from "element-plus";
-import {useRouter} from "vue-router";
 
 /**
  * 统一后端请求封装
@@ -85,16 +84,3 @@ export async function request(url, options = {}, config = {}) {
   }
 }
 
-export async function get_pantheon() {
-  try {
-    const result = await request(
-      APIS.get_pantheon,
-      {
-        method: "GET"
-      },
-    );
-    return result.pantheon;
-  } catch (error) {
-    return [];
-  }
-}

@@ -8,7 +8,7 @@
 
         <v-spacer></v-spacer>
         <v-btn>
-          {{user_name}}
+          {{ user_name }}
         </v-btn>
         <v-btn @click="logout">
           退出登录
@@ -56,9 +56,12 @@
 </template>
 
 <script setup>
-import { reactive, ref} from "vue";
+import {reactive, ref} from "vue";
 import {useAppStore} from "@/store/app.js";
 import {useRouter} from 'vue-router';
+import {request} from "@/utility";
+import {APIS} from "@/config";
+import {ElMessage} from "element-plus";
 
 const router = useRouter()
 
@@ -67,25 +70,29 @@ const store = useAppStore();
 // const powers = ref([])
 const user_name = store.name
 const selected_component = ref("student")
-const info=[
-  {id_name:'help',power_info:'竞赛指南'}, 
-  {id_name:'upload',power_info:'算法提交'},  
-  {id_name:'ranklist',power_info:'榜单展示'},   
-  {id_name:'user',power_info:'个人中心'}, 
-  {id_name:'history',power_info:'历史记录'}
+const info = [
+  {id_name: 'help', power_info: '竞赛指南'},
+  {id_name: 'upload', power_info: '算法提交'},
+  {id_name: 'ranklist', power_info: '榜单展示'},
+  {id_name: 'user', power_info: '个人中心'},
+  {id_name: 'history', power_info: '历史记录'}
 ]
 
 const powers = reactive({
   array: info
 })
 
-function logout() {
-  store.set_user_id("")
-  store.set_name("")
-  store.set_cname("")
-
-  console.log("logout")
-  router.push({name: 'login'})
+async function logout() {
+  try {
+    await request(APIS.logout, {
+      method: "GET",
+    });
+    ElMessage({type: "success", message: "注销成功"});
+    store.set_user_id("")
+    store.set_name("")
+    router.push({name: 'login'})
+  } catch (error) {
+  }
 }
 
 </script>

@@ -125,7 +125,6 @@ import {ElMessage} from "element-plus";
 
 import {useAppStore} from "@/store/app";
 import {APIS} from "@/config";
-import {get_pantheon} from "@/utility";
 import {request} from "@/utility.js";
 
 const store = useAppStore();
@@ -247,7 +246,17 @@ async function getRealInfo() {
 
 onMounted(async () => {
   getRealInfo();
-  pantheons.value = await get_pantheon();
+  try {
+    const result = await request(
+      APIS.get_pantheon,
+      {
+        method: "GET"
+      },
+    );
+    pantheons.value = result['pantheon'] || [];
+  } catch (error) {
+    pantheons.value = [];
+  }
 });
 </script>
 <style scoped>

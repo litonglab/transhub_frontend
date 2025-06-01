@@ -102,7 +102,7 @@ import {useAppStore} from "@/store/app.js";
 import {useRouter} from "vue-router";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {APIS} from "@/config";
-import {get_pantheon, request} from "@/utility.js";
+import {request} from "@/utility.js";
 
 const router = useRouter();
 const pantheons = ref([]);
@@ -206,10 +206,9 @@ async function login() {
   try {
     const result = await request(APIS.login, {body: JSON.stringify(data)});
     if (result.code === 200) {
-      // store.set_cname(cname.value);
       store.set_user_id(result.user_id);
       store.set_name(data.username);
-      router.push({name: "help"});
+      await router.push({name: "help"});
     } else if (result.code === 201) {
       // 使用ElMessageBox弹出一个对话框，并显示一个60秒的倒计时，倒计时结束前，不能关闭对话框
       openCountdownBox(result.message);
@@ -222,7 +221,18 @@ async function login() {
 }
 
 onMounted(async () => {
-  pantheons.value = await get_pantheon();
+  try {
+    const result = await request(
+      APIS.get_pantheon,
+      {
+        method: "GET"
+      },
+    );
+    pantheons.value = result['pantheon'] || [];
+  } catch (error) {
+    pantheons.value = [];
+  }
+
   if (pantheons.value.length > 0) {
     cname.value = pantheons.value[0]; // 默认选择第一个课程
   } else {

@@ -8,18 +8,18 @@
 import App from "./App.vue";
 
 // Composables
-import { createApp } from "vue";
+import {createApp} from "vue";
 
 // Plugins
-import { registerPlugins } from "@/plugins";
-import { createVuetify } from "vuetify";
+import {registerPlugins} from "@/plugins";
+import {createVuetify} from "vuetify";
 import axios from "axios";
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
-import { createPinia } from "pinia";
-const pinia = createPinia();
-import 'highlight.js/styles/github.css'; // 或者选择其他主题，如 'monokai.css'
+import {createPinia} from "pinia";
+import 'highlight.js/styles/github.css'; // 或者选择其他主题，如 'monokai.css';
 
+const pinia = createPinia();
 
 const vuetify = createVuetify();
 
@@ -34,7 +34,7 @@ app.provide(
   axios.create({
     baseURL: "",
     withCredentials: true,
-    
+
   })
 );
 
