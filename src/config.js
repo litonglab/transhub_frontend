@@ -3,11 +3,12 @@ export const APIS = {
 
   // user
   login: hostname + '/user_login',
-  login_out: hostname + '/user_logout',
+  logout: hostname + '/user_logout',
   register: hostname + '/user_register',
   changepwd: hostname + '/user_change_password',
   get_info: hostname + '/user_get_real_info',
   set_info: hostname + '/user_set_real_info',
+  check_login: hostname + '/user_check_login',
 
   //task
   upload: hostname + '/task_upload',
