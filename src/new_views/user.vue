@@ -135,7 +135,6 @@ const name = store.name;
 const real_info = ref({
   real_name: "",
   sno: "",
-  cname: store.cname,
 });
 
 const pwd_visible = ref(false);

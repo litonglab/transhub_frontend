@@ -24,7 +24,7 @@
       </el-table-column>
       <el-table-column prop="cname" label="比赛名称" width="100">
       </el-table-column>
-      <el-table-column prop="algorithm" label="算法"> </el-table-column>
+      <el-table-column prop="algorithm" label="算法"></el-table-column>
       <el-table-column
         prop="formatted_time"
         label="上传时间"
@@ -32,21 +32,23 @@
         sortable="custom"
       >
       </el-table-column>
-      <el-table-column prop="status" label="状态"> </el-table-column>
+      <el-table-column prop="status" label="状态"></el-table-column>
       <el-table-column prop="score" label="总评分" sortable="custom">
       </el-table-column>
 
       <el-table-column label="详情">
         <template #default="{ row }">
           <el-button type="success" plain @click="viewDetail(row.upload_id)"
-            >查看</el-button
+          >查看
+          </el-button
           >
         </template>
       </el-table-column>
       <el-table-column label="代码">
         <template #default="{ row }">
           <el-button type="success" plain @click="checkCode(row.upload_id)"
-            >下载</el-button
+          >下载
+          </el-button
           >
         </template>
       </el-table-column>
@@ -68,12 +70,13 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import { useAppStore } from "@/store/app.js";
-import { APIS } from "@/config";
-import { ElMessage } from "element-plus";
-import { formatDateTime, request } from "@/utility.js";
+import {onMounted, ref} from "vue";
+import {useRouter} from "vue-router";
+import {useAppStore} from "@/store/app.js";
+import {APIS} from "@/config";
+import {ElMessage} from "element-plus";
+import {formatDateTime, request} from "@/utility.js";
+
 const router = useRouter();
 const store = useAppStore();
 const totalTableData = ref([]);
@@ -85,16 +88,13 @@ const pageParams = ref({
 async function get_history_records() {
   try {
     const res = await request(APIS.get_history_records, {
-      body: JSON.stringify({
-        user_id: store.user_id,
-        cname: store.cname,
-      }),
+      method: "GET",
     });
     let temp = res.history;
     totalTableData.value = temp
       .map((record) => {
         const formatted_time = formatDateTime(record.created_time);
-        return { ...record, formatted_time };
+        return {...record, formatted_time};
       })
       .sort((a, b) => {
         return new Date(b.created_time) - new Date(a.created_time);
@@ -106,7 +106,7 @@ async function get_history_records() {
 }
 
 function viewDetail(upload_id) {
-  router.push({ name: "Detail", params: { upload_id } });
+  router.push({name: "Detail", params: {upload_id}});
 }
 
 async function checkCode(upload_id) {
@@ -119,7 +119,7 @@ async function checkCode(upload_id) {
           upload_id: upload_id,
         }),
       },
-      { raw: true }
+      {raw: true}
     );
     if (response.ok) {
       ElMessage.success(`代码下载成功`);
@@ -142,7 +142,7 @@ async function checkCode(upload_id) {
   }
 }
 
-const handleSortChange = ({ column, prop, order }) => {
+const handleSortChange = ({column, prop, order}) => {
   // 实现排序逻辑
   totalTableData.value.sort((a, b) => {
     if (order === "ascending") {

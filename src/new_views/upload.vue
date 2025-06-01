@@ -12,18 +12,18 @@
     </template>
     <div style="line-height: 40px" class="text item">
       1. 文件名仅可由字母、下划线、数字组成，且必须以字母开头。
-      <br />
+      <br/>
       2.
       文件名必须包含参赛选手的学号信息，否则成绩无效，建议命名为：姓名首字母缩写_学号.cc，如：xyz_2021123456.cc，每次提交请保持文件名一致。
-      <br />
+      <br/>
       3. 运行结束后，在排行榜或个人中心中查看得分和性能图。
-      <br />
+      <br/>
       4.
       排行榜展示的是个人最新提交的算法，所以烦请各位参赛者务必保存好自己各个版本的代码，以便最后提交得分最高的算法。
-      <br />
+      <br/>
       5.
       文件提交后需等待运行完成后才能查看结果，等待时间因并发提交的文件数量不同而不同，但最多不会超过三小时，超过该时间请与工作人员联系.
-      <br />
+      <br/>
     </div>
     <el-upload
       class="upload-demo"
@@ -47,28 +47,28 @@
     </el-upload>
     <div class="countdown-timer-card">
       <span class="countdown-timer"
-        >剩余：{{ countdownDisplay }}</span
+      >剩余：{{ countdownDisplay }}</span
       >
     </div>
   </el-card>
   <el-card class="box-card" style="margin-top: 20px;margin-bottom: 20px;">
     <div style="line-height: 40px" class="text item">
       截止时间：6月2日21:00，截止后将不再接受新的提交，已提交的算法将继续运行并更新排行榜，最终成绩以最后一次运行结果为准。
-      <br />
+      <br/>
       鼓励同学们寻找平台的漏洞和不足，提出宝贵意见和建议，帮助我们改进平台。
-      <br />
+      <br/>
       有意利用漏洞取得的不当成绩视为无效，打榜结束后，将对每个同学的最终代码进行审查。
     </div>
   </el-card>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { APIS } from "@/config";
-import { useAppStore } from "@/store/app.js";
-import { onMounted, onUnmounted } from "vue";
-import { request } from "@/utility.js";
+import {onMounted, onUnmounted, ref} from "vue";
+import {ElMessage, ElMessageBox} from "element-plus";
+import {APIS} from "@/config";
+import {useAppStore} from "@/store/app.js";
+import {request} from "@/utility.js";
+
 const store = useAppStore();
 const fileList = ref([]);
 const upload = ref({
@@ -104,13 +104,11 @@ onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
 
-const uploadFile = async ({ file }) => {
+const uploadFile = async ({file}) => {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("user_id", store.user_id);
-  formData.append("cname", store.cname);
   try {
-    await request(APIS.upload, { body: formData, isFormData: true }, {showError: false});
+    await request(APIS.upload, {body: formData, isFormData: true}, {showError: false});
     ElMessage.success({
       message: "上传成功",
       duration: 5000,
@@ -213,6 +211,7 @@ const handleSuccess = (response, file, fileList) => {
   transition: color 0.3s;
   min-width: 200px;
 }
+
 .countdown-timer:before {
   content: "\23F1  ";
   font-size: 18px;

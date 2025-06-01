@@ -20,8 +20,8 @@
   >
     <el-table-column label="序号" type="index" width="100" :index="indexAdd">
     </el-table-column>
-    <el-table-column prop="username" label="用户名"> </el-table-column>
-    <el-table-column prop="algorithm" label="算法名称"> </el-table-column>
+    <el-table-column prop="username" label="用户名"></el-table-column>
+    <el-table-column prop="algorithm" label="算法名称"></el-table-column>
     <el-table-column prop="formatted_time" label="上传时间" width="180">
     </el-table-column>
     <el-table-column prop="task_score" sortable="custom" label="总评分">
@@ -29,7 +29,8 @@
     <el-table-column label="详情">
       <template #default="{ row }">
         <el-button type="success" plain @click="viewDetail(row.upload_id)"
-          >查看</el-button
+        >查看
+        </el-button
         >
       </template>
     </el-table-column>
@@ -50,13 +51,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import {onBeforeUnmount, onMounted, ref} from "vue";
 // import { axios } from '@/utils/request';
-import { APIS } from "@/config.js";
-import { useAppStore } from "@/store/app.js";
-import { formatDateTime, request } from "@/utility.js";
-import { useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
+import {APIS} from "@/config.js";
+import {useAppStore} from "@/store/app.js";
+import {formatDateTime, request} from "@/utility.js";
+import {useRouter} from "vue-router";
+
 const router = useRouter();
 const store = useAppStore();
 const tableData = ref([]);
@@ -67,7 +68,7 @@ const pageParams = ref({
 const pages = ref(1);
 const isDestroyed = ref(true);
 
-const sortTableFun = ({ prop, order }) => {
+const sortTableFun = ({prop, order}) => {
   tableData.value.sort((a, b) => {
     if (order === "ascending") {
       return a[prop] - b[prop];
@@ -80,15 +81,12 @@ const sortTableFun = ({ prop, order }) => {
 const rankList = async () => {
   try {
     const data = await request(APIS.get_ranks, {
-      body: JSON.stringify({
-        user_id: store.user_id,
-        cname: store.cname,
-      }),
+      method: "GET",
     });
     console.log(data);
     tableData.value = data.rank.map((record) => {
       const formatted_time = formatDateTime(record.upload_time);
-      return { ...record, formatted_time };
+      return {...record, formatted_time};
     });
   } catch (error) {
     console.log(error);
@@ -121,7 +119,7 @@ onBeforeUnmount(() => {
 });
 
 function viewDetail(upload_id) {
-  router.push({ name: "Detail", params: { upload_id } });
+  router.push({name: "Detail", params: {upload_id}});
 }
 </script>
 
@@ -138,19 +136,23 @@ function viewDetail(upload_id) {
   margin-top: 20px;
   margin-bottom: 40px;
 }
+
 .demo-image {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .view-wrapper {
   padding-top: 1.22667rem;
 }
+
 .view-wrapper /deep/ .van-nav-bar .van-icon {
   color: #333;
   font-size: 18px;
   margin-right: 3px;
 }
+
 .view-wrapper /deep/ .van-loading {
   position: absolute;
   top: 50%;

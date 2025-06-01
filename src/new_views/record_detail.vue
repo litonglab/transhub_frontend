@@ -31,7 +31,7 @@
           label="丢包率"
           width="100"
         ></el-table-column>
-        <el-table-column prop="buffer_size" label="缓冲区容量" width="100" />
+        <el-table-column prop="buffer_size" label="缓冲区容量" width="100"/>
         <el-table-column
           prop="task_status"
           label="任务状态"
@@ -45,14 +45,16 @@
         <el-table-column label="吞吐量" width="180">
           <template #default="scope">
             <el-button @click="showImage('throughput', scope.row.task_id)"
-              >查看</el-button
+            >查看
+            </el-button
             >
           </template>
         </el-table-column>
         <el-table-column label="时延">
           <template #default="scope">
             <el-button @click="showImage('delay', scope.row.task_id)"
-              >查看</el-button
+            >查看
+            </el-button
             >
           </template>
         </el-table-column>
@@ -81,12 +83,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useAppStore } from "@/store/app.js";
-import { APIS } from "@/config";
-import { ElMessage } from "element-plus";
-import { request } from "@/utility.js";
+import {onMounted, ref} from "vue";
+import {useRoute, useRouter} from "vue-router";
+import {useAppStore} from "@/store/app.js";
+import {APIS} from "@/config";
+import {ElMessage} from "element-plus";
+import {request} from "@/utility.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -104,8 +106,6 @@ async function fetchTasks() {
     const data = await request(APIS.get_history_record_detail, {
       body: JSON.stringify({
         upload_id: upload_id,
-        user_id: store.user_id,
-        cname: store.cname,
       }),
     });
     tasks.value = data.tasks;
@@ -130,7 +130,7 @@ async function showImage(type, task_id) {
           graph_type: type,
         }),
       },
-      { raw: true }
+      {raw: true}
     );
     if (!response.ok) {
       const result = await response.json();
