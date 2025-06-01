@@ -1,13 +1,9 @@
 <script setup>
-import { ref } from "vue";
-import { APIS } from "@/config";
-import { useAppStore } from "@/store/app.js";
-import { onMounted } from "vue";
-import { request } from "@/utility.js";
-import { ElMessage } from "element-plus";
-
-const store = useAppStore();
-
+import {onMounted, ref} from "vue";
+import {APIS} from "@/config";
+import {useAppStore} from "@/store/app.js";
+import {request} from "@/utility.js";
+import {ElMessage} from "element-plus";
 import MarkdownIt from "markdown-it";
 import MarkdownItAbbr from "markdown-it-abbr";
 import MarkdownItAnchor from "markdown-it-anchor";
@@ -18,8 +14,9 @@ import MarkdownItSup from "markdown-it-sup";
 import MarkdownItTasklists from "markdown-it-task-lists";
 import MarkdownItTOC from "markdown-it-toc-done-right";
 import "highlight.js/styles/atom-one-dark.css";
-import markdownItKatex from "markdown-it-katex";
 import "katex/dist/katex.min.css";
+
+const store = useAppStore();
 
 const md = new MarkdownIt()
   .use(MarkdownItAbbr)
@@ -32,14 +29,15 @@ const md = new MarkdownIt()
   .use(MarkdownItTOC);
 
 const markdownContent = ref("");
+
 async function fetchMarkdown() {
   try {
     const markdowns = await request(
       APIS.get_tutorial,
       {
-        body: JSON.stringify({ cname: store.cname }),
+        body: JSON.stringify({cname: store.cname}),
       },
-      { raw: true }
+      {raw: true}
     );
     const text = await markdowns.text();
     markdownContent.value = md.render(text);
@@ -55,7 +53,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-html="markdownContent" class="markdown-body" />
+  <div v-html="markdownContent" class="markdown-body"/>
 </template>
 
 <style scoped>
