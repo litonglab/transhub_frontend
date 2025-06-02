@@ -4,13 +4,13 @@
     <div class="text-h4 pa-10">算法提交</div>
   </el-row>
   <!--  <detail :task_ID="task_id"></detail>-->
-  <el-card class="box-card">
+  <el-card class="box-card" style="margin-bottom: 30px">
     <template #header>
       <div class="card-header">
         <span>使用指南</span>
       </div>
     </template>
-    <div style="line-height: 40px" class="text item">
+    <div style="line-height: 36px" class="text item">
       1. 文件名仅可由字母、下划线、数字组成，且必须以字母开头。
       <br/>
       2.
