@@ -18,7 +18,13 @@ onMounted(async () => {
       {method: "GET"},
       {showError: false,} // 不显示错误信息
     );
-    await router.push({name: "help"});
+    // 判断当前路由是否为登录页面，router有概率获取不到当前路由
+    if (router.currentRoute.value.name === "login"
+      || window.location.pathname === "/login"
+      || window.location.pathname === "/"
+    ) {
+      await router.push({name: "help"});
+    }
   } catch (error) {
   }
 })
