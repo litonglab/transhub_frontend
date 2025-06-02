@@ -22,7 +22,13 @@
       排行榜展示的是个人最新提交的算法，所以烦请各位参赛者务必保存好自己各个版本的代码，以便最后提交得分最高的算法。
       <br/>
       5.
-      文件提交后需等待运行完成后才能查看结果，等待时间因并发提交的文件数量不同而不同，但最多不会超过三小时，超过该时间请与工作人员联系.
+      文件提交后需等待运行完成后才能查看结果，等待时间因并发提交的文件数量不同而不同，但最多不会超过三小时，超过该时间请与工作人员联系。
+      <br/>
+      6.
+      截止后将不再接受新的提交，已提交的算法将继续运行并更新排行榜，最终成绩以最后一次运行结果为准。
+      <br/>
+      7.
+      利用漏洞取得的不当成绩视为无效，打榜结束后，将对每个同学的最终代码进行审查。
       <br/>
     </div>
     <el-upload
@@ -50,6 +56,8 @@
       <el-button plain link type="primary" :disabled="upload_loading" :loading="upload_loading">
         将代码文件拖入此处或点击上传
       </el-button>
+      <br/>
+      <el-text class="mx-1" type="info">竞赛时间：2025年1月1日0:00～2025年1月1日23:59</el-text>
       <template #tip>
         <div class="el-upload__tip">
           代码文件以“算法名称.cc”的格式命名
@@ -60,13 +68,6 @@
       <span class="countdown-timer"
       >剩余：{{ countdownDisplay }}</span
       >
-    </div>
-  </el-card>
-  <el-card class="box-card" style="margin-top: 20px;margin-bottom: 20px;">
-    <div style="line-height: 40px" class="text item">
-      截止时间：6月2日21:00，截止后将不再接受新的提交，已提交的算法将继续运行并更新排行榜，最终成绩以最后一次运行结果为准。
-      <br/>
-      有意利用漏洞取得的不当成绩视为无效，打榜结束后，将对每个同学的最终代码进行审查。
     </div>
   </el-card>
 </template>
