@@ -68,8 +68,11 @@ import {ElMessage, ElMessageBox} from "element-plus";
 import {APIS} from "@/config";
 import {useAppStore} from "@/store/app.js";
 import {request} from "@/utility.js";
+import {useRouter} from "vue-router";
 
 const store = useAppStore();
+
+const router = useRouter();
 const fileList = ref([]);
 const upload = ref({
   url: APIS.upload,
@@ -108,14 +111,44 @@ const uploadFile = async ({file}) => {
   const formData = new FormData();
   formData.append("file", file);
   try {
-    await request(APIS.upload, {body: formData, isFormData: true}, {showError: false});
-    ElMessage.success({
-      message: "上传成功",
-      duration: 5000,
+    let result = await request(APIS.upload, {body: formData, isFormData: true}, {showError: false});
+    let message = result['message'];
+    let title = "上传成功";
+    if (result['enqueue_summary']['failed_enqueues'] !== 0) {
+      title = "上传成功，部分任务未入队";
+      message = result['message'];
+      message += `<br/>任务列表：${result['tasks']}`;
+      message += `<br/>未入队的任务列表：${result['enqueue_summary']['failed_tasks']}`;
+      message += `<br/>请将以上信息反馈给管理员，谢谢。`;
+    }
+
+    ElMessageBox({
+      title: title,
+      message: message,
+      showClose: true,
+      dangerouslyUseHTMLString: true,
+      closeOnClickModal: false,
+      closeOnPressEscape: false,
+      distinguishCancelAndClose: true,
+      showCancelButton: true,
+      showConfirmButton: true,
+      type: "success",
       center: true,
-    });
+      confirmButtonText: '查看任务状态',
+      cancelButtonText: '继续上传',
+    }).then((action) => {
+      if (action === 'confirm') {
+        // 跳转到任务状态页面
+        router.push({name: "Detail", params: {upload_id: result.upload_id}});
+      }
+    }).catch(
+      () => {
+        // 用户点击取消或关闭弹窗
+      }
+    )
   } catch (error) {
-    ElMessageBox.alert(
+    console.log(error);
+    await ElMessageBox.alert(
       error.message || "请检查文件格式或网络连接",
       "上传失败",
       {
