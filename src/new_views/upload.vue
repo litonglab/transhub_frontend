@@ -28,6 +28,7 @@
     <el-upload
       class="upload-demo"
       action=""
+      drag
       :http-request="uploadFile"
       :on-preview="handlePreview"
       :on-remove="handleRemove"
@@ -35,15 +36,25 @@
       :multiple="false"
       :on-exceed="handleExceed"
       :on-change="handleChange"
-      :data="{ url: upload.url, user_id: upload.user_id }"
+      :data="{ url: upload.url }"
       :on-success="handleSuccess"
       :file-list="fileList"
-      :accept="'.cc,.c,.cxx,.cpp,.c++,.h,.hpp,.hxx,.h++'"
+      :accept="'.cc,.c,.cxx,.cpp,.c++'"
+      :disabled="upload_loading"
     >
-      <el-button size="large" type="success">点击上传</el-button>
-      <div slot="tip" class="el-upload__tip">
-        &nbsp;&nbsp;&nbsp;代码文件以“算法名称.cc”的格式命名
+      <el-icon class="el-icon--upload" style="height: 0">
+        <upload-filled/>
+      </el-icon>
+      <div class="el-upload__text">
       </div>
+      <el-button plain link type="primary" :disabled="upload_loading" :loading="upload_loading">
+        将代码文件拖入此处或点击上传
+      </el-button>
+      <template #tip>
+        <div class="el-upload__tip">
+          代码文件以“算法名称.cc”的格式命名
+        </div>
+      </template>
     </el-upload>
     <div class="countdown-timer-card">
       <span class="countdown-timer"
@@ -55,8 +66,6 @@
     <div style="line-height: 40px" class="text item">
       截止时间：6月2日21:00，截止后将不再接受新的提交，已提交的算法将继续运行并更新排行榜，最终成绩以最后一次运行结果为准。
       <br/>
-      鼓励同学们寻找平台的漏洞和不足，提出宝贵意见和建议，帮助我们改进平台。
-      <br/>
       有意利用漏洞取得的不当成绩视为无效，打榜结束后，将对每个同学的最终代码进行审查。
     </div>
   </el-card>
@@ -66,18 +75,17 @@
 import {onMounted, onUnmounted, ref} from "vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {APIS} from "@/config";
-import {useAppStore} from "@/store/app.js";
 import {request} from "@/utility.js";
 import {useRouter} from "vue-router";
+import {UploadFilled} from "@element-plus/icons-vue";
 
-const store = useAppStore();
 
 const router = useRouter();
 const fileList = ref([]);
 const upload = ref({
   url: APIS.upload,
-  user_id: useAppStore().user_id,
 });
+let upload_loading = ref(false);
 
 const countdownDisplay = ref("");
 const deadline = new Date("2025-06-02T21:00:00+08:00");
@@ -92,6 +100,11 @@ function updateCountdown() {
   const seconds = Math.floor((diff % (1000 * 60)) / 1000);
   const days = Math.floor(hours / 24);
   const showHours = hours % 24;
+  if (diff <= 0) {
+    countdownDisplay.value = "提交已截止";
+    if (timer) clearInterval(timer);
+    return;
+  }
   countdownDisplay.value = `${days > 0 ? days + "天" : ""}${showHours
     .toString()
     .padStart(2, "0")}小时${minutes.toString().padStart(2, "0")}分${seconds
@@ -111,6 +124,7 @@ const uploadFile = async ({file}) => {
   const formData = new FormData();
   formData.append("file", file);
   try {
+    upload_loading.value = true;
     let result = await request(APIS.upload, {body: formData, isFormData: true}, {showError: false});
     let message = result['message'];
     let title = "上传成功";
@@ -158,6 +172,7 @@ const uploadFile = async ({file}) => {
       }
     );
   }
+  upload_loading.value = false;
 };
 
 const handlePreview = (file) => {
