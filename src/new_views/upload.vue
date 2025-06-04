@@ -57,7 +57,7 @@
         将代码文件拖入此处或点击上传
       </el-button>
       <br/>
-      <el-text class="mx-1" type="info">竞赛时间：2025年1月1日0:00～2025年1月1日23:59</el-text>
+      <el-text class="mx-1" type="info">竞赛时间：{{ time_range_str }}</el-text>
       <template #tip>
         <div class="el-upload__tip">
           代码文件以“算法名称.cc”的格式命名
@@ -89,7 +89,8 @@ const upload = ref({
 let upload_loading = ref(false);
 
 const countdownDisplay = ref("");
-const deadline = new Date("2025-06-02T21:00:00+08:00");
+const deadline = new Date("2025-01-01T21:00:00+08:00");
+let time_range_str = ref("2025年1月1日0:00～2025年1月1日23:59");
 let timer = null;
 
 function updateCountdown() {
@@ -113,7 +114,20 @@ function updateCountdown() {
     .padStart(2, "0")}秒`;
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const result = await request(
+      APIS.get_competition_time,
+      {
+        method: "GET"
+      },
+    );
+    // 返回的是时间戳
+    deadline.value = new Date(result['data'][1]*1000);
+    let start_time = new Date(result['data'][0]*1000);
+    time_range_str.value = `${start_time.toLocaleString()}～${deadline.value.toLocaleString()}`;
+  } catch (error) {
+  }
   updateCountdown();
   timer = setInterval(updateCountdown, 1000);
 });

@@ -60,7 +60,7 @@ export async function request(url, options = {}, config = {}) {
         else window.location.href = '/login';
         throw new Error(data.message);
       } else {
-        throw new Error(data.message || '请求失败');
+        throw new Error(data.message || data.msg ||'请求失败');
       }
     } else if (response.status !== 200) {
       throw new Error(`网络或系统错误：${response.status}`);
