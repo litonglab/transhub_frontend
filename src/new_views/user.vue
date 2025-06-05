@@ -201,7 +201,6 @@ async function getRealInfo() {
     real_info.value.sno = result.real_info.sno;
     real_info.value.cname = result.real_info.cname;
   } catch (error) {
-    ElMessage.error("获取信息请求异常");
   }
 }
 

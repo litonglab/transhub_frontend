@@ -42,7 +42,6 @@ async function fetchMarkdown() {
     const text = await markdowns.text();
     markdownContent.value = md.render(text);
   } catch (error) {
-    ElMessage.error("获取指南请求异常");
   }
 }
 

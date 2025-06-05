@@ -114,8 +114,6 @@ async function fetchTasks() {
       type: "success",
     });
   } catch (error) {
-    ElMessage.error("获取任务详情请求异常");
-    console.error("Error fetching tasks", error);
   }
 }
 
@@ -154,8 +152,6 @@ async function showImage(type, task_id) {
     dialogType.value = "image";
     dialogVisible.value = true;
   } catch (error) {
-    ElMessage.error("获取图片请求异常");
-    console.error("Error fetching image", error);
   }
 }
 

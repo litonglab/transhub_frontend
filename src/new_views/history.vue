@@ -100,8 +100,6 @@ async function get_history_records() {
         return new Date(b.created_time) - new Date(a.created_time);
       });
   } catch (error) {
-    ElMessage.error("获取历史记录请求异常");
-    console.log("history vue error", error);
   }
 }
 
@@ -137,8 +135,6 @@ async function checkCode(upload_id) {
       ElMessage.error(`代码下载失败`);
     }
   } catch (error) {
-    ElMessage.error("代码下载请求异常");
-    console.log("history vue error", error);
   }
 }
 
