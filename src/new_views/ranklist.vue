@@ -1,6 +1,16 @@
 <template>
   <el-row>
-    <div class="text-h4 pa-10">榜单展示</div>
+    <div
+      class="text-h4 pa-10"
+      style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+    >
+      <span style="width: 720px">榜单展示</span>
+      <el-button type="primary" @click="rankList">刷新</el-button>
+    </div>
   </el-row>
   <el-empty v-if="!tableData.length" description="还没有人提交过"></el-empty>
   <!-- <div class="flex default_margin flex_justify_content_center">
@@ -82,7 +92,6 @@ const rankList = async () => {
     const data = await request(APIS.get_ranks, {
       method: "GET",
     });
-    console.log(data);
     tableData.value = data.rank.map((record) => {
       const formatted_time = formatDateTime(record.upload_time);
       return {...record, formatted_time};

@@ -1,7 +1,17 @@
 <template>
   <div id="historyRecord">
     <el-row>
-      <div class="text-h4 pa-10">历史记录</div>
+      <div
+        class="text-h4 pa-10"
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <span style="width: 720px">历史记录</span>
+        <el-button type="primary" @click="get_history_records">刷新</el-button>
+      </div>
     </el-row>
     <el-empty
       v-if="!totalTableData.length"
