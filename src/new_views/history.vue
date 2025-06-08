@@ -120,8 +120,16 @@ async function checkCode(upload_id) {
       {raw: true}
     );
     if (response.ok) {
+      // 获取文件名
+      const contentDisposition = response.headers.get("Content-Disposition");
+      const fileNameMatch = contentDisposition
+        ? contentDisposition.match(/filename="?([^"]+)"?/)
+        : null;
+      let fileName = "code.cc"; // 默认文件名
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = fileNameMatch[1];
+      }
       ElMessage.success(`代码下载成功`);
-      let fileName = "code.cc";
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
