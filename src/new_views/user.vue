@@ -1,13 +1,11 @@
 <template>
+  <el-row>
+    <div class="text-h4 pa-10">个人中心</div>
+  </el-row>
   <v-container>
     <v-row>
       <v-col cols="12">
         <v-sheet class="pa-10" elevation="2">
-          <v-row>
-            <v-col>
-              <h1 class="text-h4">个人中心</h1>
-            </v-col>
-          </v-row>
           <v-row>
             <v-col cols="12">
               <v-row>
