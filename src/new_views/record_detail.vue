@@ -19,7 +19,6 @@
         :data="tasks"
         style="width: 100%"
         height="500"
-        :header-row-class-name="fixedHeader"
       >
         <el-table-column
           prop="trace_name"

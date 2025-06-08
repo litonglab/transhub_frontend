@@ -12,28 +12,20 @@
             <v-col cols="12">
               <v-row>
                 <v-col cols="12" md="3">
-                  <v-list-item-content>
-                    <v-list-item-title>用户名:</v-list-item-title>
-                    <v-list-item-subtitle>{{ name }}</v-list-item-subtitle>
-                  </v-list-item-content>
+                  <v-list-item-title>用户名:</v-list-item-title>
+                  <v-list-item-subtitle>{{ name }}</v-list-item-subtitle>
                 </v-col>
                 <v-col cols="12" md="3">
-                  <v-list-item-content>
-                    <v-list-item-title>真实姓名:</v-list-item-title>
-                    <v-list-item-subtitle>{{ real_info.real_name }}</v-list-item-subtitle>
-                  </v-list-item-content>
+                  <v-list-item-title>真实姓名:</v-list-item-title>
+                  <v-list-item-subtitle>{{ real_info.real_name }}</v-list-item-subtitle>
                 </v-col>
                 <v-col cols="12" md="3">
-                  <v-list-item-content>
-                    <v-list-item-title>学号:</v-list-item-title>
-                    <v-list-item-subtitle>{{ real_info.sno }}</v-list-item-subtitle>
-                  </v-list-item-content>
+                  <v-list-item-title>学号:</v-list-item-title>
+                  <v-list-item-subtitle>{{ real_info.sno }}</v-list-item-subtitle>
                 </v-col>
                 <v-col cols="12" md="3">
-                  <v-list-item-content>
-                    <v-list-item-title>课程:</v-list-item-title>
-                    <v-list-item-subtitle>{{ real_info.cname }}</v-list-item-subtitle>
-                  </v-list-item-content>
+                  <v-list-item-title>课程:</v-list-item-title>
+                  <v-list-item-subtitle>{{ real_info.cname }}</v-list-item-subtitle>
                 </v-col>
               </v-row>
             </v-col>
@@ -47,18 +39,6 @@
         </v-sheet>
       </v-col>
     </v-row>
-    <!-- <v-row>
-      <v-col cols="12">
-        <v-card class="mt-4">
-          <v-card-title>
-            最近提交
-          </v-card-title>
-          <v-card-text>
-            <div class="content">{{ code }}</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row> -->
 
     <!-- 修改密码对话框 -->
     <v-dialog v-model="pwd_visible" max-width="500px">
