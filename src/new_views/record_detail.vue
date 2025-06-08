@@ -44,18 +44,20 @@
         ></el-table-column>
         <el-table-column label="吞吐量" width="180">
           <template #default="scope">
-            <el-button @click="showImage('throughput', scope.row.task_id)"
+            <el-button v-if="scope.row.task_status === 'finished'" @click="showImage('throughput', scope.row.task_id)"
             >查看
             </el-button
             >
+            <span v-else>任务完成后可查看</span>
           </template>
         </el-table-column>
         <el-table-column label="时延">
           <template #default="scope">
-            <el-button @click="showImage('delay', scope.row.task_id)"
+            <el-button v-if="scope.row.task_status === 'finished'" @click="showImage('delay', scope.row.task_id)"
             >查看
             </el-button
             >
+            <span v-else>-</span>
           </template>
         </el-table-column>
         <el-table-column label="日志">
