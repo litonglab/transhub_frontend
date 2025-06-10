@@ -90,23 +90,22 @@ let upload_loading = ref(false);
 
 const countdownDisplay = ref("");
 const deadline = ref(new Date("2025-01-01T21:00:00+08:00"));
-let time_range_str = ref("2025年1月1日0:00～2025年1月1日23:59");
+let time_range_str = ref("加载中...");
 let timer = null;
 
 function updateCountdown() {
   const now = new Date();
   let diff = deadline.value - now;
-  if (diff < 0) diff = 0;
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-  const days = Math.floor(hours / 24);
-  const showHours = hours % 24;
   if (diff <= 0) {
     countdownDisplay.value = "提交已截止";
     if (timer) clearInterval(timer);
     return;
   }
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  const days = Math.floor(hours / 24);
+  const showHours = hours % 24;
   countdownDisplay.value = `${days > 0 ? days + "天" : ""}${showHours
     .toString()
     .padStart(2, "0")}小时${minutes.toString().padStart(2, "0")}分${seconds
@@ -126,10 +125,11 @@ onMounted(async () => {
     deadline.value = new Date(result['data'][1] * 1000);
     let start_time = new Date(result['data'][0] * 1000);
     time_range_str.value = `${start_time.toLocaleString()}～${deadline.value.toLocaleString()}`;
+    updateCountdown();
+    timer = setInterval(updateCountdown, 1000);
   } catch (error) {
+    time_range_str.value = "加载失败，请稍后再试";
   }
-  updateCountdown();
-  timer = setInterval(updateCountdown, 1000);
 });
 onUnmounted(() => {
   if (timer) clearInterval(timer);
