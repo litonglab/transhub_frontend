@@ -107,6 +107,7 @@ async function get_history_records() {
       .sort((a, b) => {
         return new Date(b.created_time) - new Date(a.created_time);
       });
+    ElMessage.success("加载成功");
   } catch (error) {
   }
 }

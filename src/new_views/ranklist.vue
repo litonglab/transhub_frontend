@@ -65,6 +65,7 @@ import {onBeforeUnmount, onMounted, ref} from "vue";
 import {APIS} from "@/config.js";
 import {formatDateTime, request} from "@/utility.js";
 import {useRouter} from "vue-router";
+import {ElMessage} from "element-plus";
 
 const router = useRouter();
 const tableData = ref([]);
@@ -94,6 +95,7 @@ const rankList = async () => {
       const formatted_time = formatDateTime(record.upload_time);
       return {...record, formatted_time};
     });
+    ElMessage.success("加载成功");
   } catch (error) {
     console.log(error);
   }
