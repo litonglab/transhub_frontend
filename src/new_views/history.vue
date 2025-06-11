@@ -82,13 +82,11 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
-import {useAppStore} from "@/store/app.js";
 import {APIS} from "@/config";
 import {ElMessage} from "element-plus";
 import {formatDateTime, request} from "@/utility.js";
 
 const router = useRouter();
-const store = useAppStore();
 const totalTableData = ref([]);
 const pageParams = ref({
   page: 1, // 查询第一页
@@ -123,7 +121,6 @@ async function checkCode(upload_id) {
       APIS.get_code,
       {
         body: JSON.stringify({
-          user_id: store.user_id,
           upload_id: upload_id,
         }),
       },

@@ -206,7 +206,6 @@ async function login() {
   try {
     const result = await request(APIS.login, {body: JSON.stringify(data)});
     if (result.code === 200) {
-      store.set_user_id(result.user_id);
       store.set_name(data.username);
       await router.push({name: "help"});
     } else if (result.code === 201) {

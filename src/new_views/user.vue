@@ -141,8 +141,7 @@ const change_pwd = async () => {
   try {
     await request(APIS.changepwd, {
       body: JSON.stringify({
-        user_id: store.user_id,
-        oldpwd: formLabelAlign.value.oldpwd,
+        old_pwd: formLabelAlign.value.oldpwd,
         new_pwd: formLabelAlign.value.newpwd,
       }),
     });
@@ -172,9 +171,10 @@ const resetForm = (formName) => {
 
 async function getRealInfo() {
   try {
-    const result = await request(APIS.get_info, {
-      body: JSON.stringify({user_id: store.user_id}),
-    })
+    const result = await request(APIS.get_info,
+      {
+        method: "GET"
+      },);
     real_info.value.real_name = result.real_info.real_name;
     real_info.value.sno = result.real_info.sno;
     real_info.value.cname = result.real_info.cname;

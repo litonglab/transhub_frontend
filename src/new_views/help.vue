@@ -1,7 +1,6 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {APIS} from "@/config";
-import {useAppStore} from "@/store/app.js";
 import {request} from "@/utility.js";
 import {ElMessage} from "element-plus";
 import MarkdownIt from "markdown-it";
@@ -16,7 +15,7 @@ import MarkdownItTOC from "markdown-it-toc-done-right";
 import "highlight.js/styles/atom-one-dark.css";
 import "katex/dist/katex.min.css";
 
-const store = useAppStore();
+
 
 const md = new MarkdownIt()
   .use(MarkdownItAbbr)

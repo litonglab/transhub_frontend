@@ -63,12 +63,10 @@
 <script setup>
 import {onBeforeUnmount, onMounted, ref} from "vue";
 import {APIS} from "@/config.js";
-import {useAppStore} from "@/store/app.js";
 import {formatDateTime, request} from "@/utility.js";
 import {useRouter} from "vue-router";
 
 const router = useRouter();
-const store = useAppStore();
 const tableData = ref([]);
 const pageParams = ref({
   page: 1,

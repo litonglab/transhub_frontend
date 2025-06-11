@@ -86,14 +86,12 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {useAppStore} from "@/store/app.js";
 import {APIS} from "@/config";
 import {ElMessage} from "element-plus";
 import {request} from "@/utility.js";
 
 const route = useRoute();
 const router = useRouter();
-const store = useAppStore();
 
 const upload_id = route.params.upload_id;
 const tasks = ref([]);
@@ -124,7 +122,6 @@ async function showImage(type, task_id) {
       APIS.get_graph,
       {
         body: JSON.stringify({
-          user_id: store.user_id,
           task_id: task_id,
           graph_type: type,
         }),

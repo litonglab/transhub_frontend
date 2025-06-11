@@ -88,7 +88,6 @@ async function logout() {
       method: "GET",
     });
     ElMessage({type: "success", message: "注销成功"});
-    store.set_user_id("")
     store.set_name("")
     router.push({name: 'login'})
   } catch (error) {

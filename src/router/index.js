@@ -1,6 +1,5 @@
 // Composables
 import { createRouter, createWebHistory } from "vue-router";
-import { useAppStore } from "@/store/app";
 
 const routes = [
   {
@@ -71,15 +70,15 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  //next();
-  const appStore = useAppStore();
-  if (appStore.user_id != null) {
-    next();
-  } else {
-    // const {$cookies} = router.app.config.globalProperties
-    // Check if the route requires authentication and user is not logged in
-    next("/login");
-  }
+  next();
+  // const appStore = useAppStore();
+  // if (appStore.user_id != null) {
+  //   next();
+  // } else {
+  //   // const {$cookies} = router.app.config.globalProperties
+  //   // Check if the route requires authentication and user is not logged in
+  //   next("/login");
+  // }
 });
 
 export default router;
