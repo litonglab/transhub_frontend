@@ -2,7 +2,12 @@
   <el-row>
     <div
       class="text-h4 pa-10"
-      style="display: flex; justify-content: space-between; align-items: center; width: 100%;"
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+      "
     >
       <span>榜单展示</span>
       <div>
@@ -11,9 +16,6 @@
     </div>
   </el-row>
   <el-empty v-if="!tableData.length" description="还没有人提交过"></el-empty>
-  <!-- <div class="flex default_margin flex_justify_content_center">
-    <canvas v-for="page in pages" :id="'the-canvas'+page" :key="page"></canvas>
-  </div> -->
   <el-table
     :data="
       tableData.slice(
@@ -29,7 +31,11 @@
     <el-table-column label="序号" type="index" width="100" :index="indexAdd">
     </el-table-column>
     <el-table-column prop="username" label="用户名"></el-table-column>
-    <el-table-column prop="algorithm" label="算法名称" min-width="150"></el-table-column>
+    <el-table-column
+      prop="algorithm"
+      label="算法名称"
+      min-width="150"
+    ></el-table-column>
     <el-table-column prop="formatted_time" label="上传时间" min-width="150">
     </el-table-column>
     <el-table-column prop="task_score" sortable="custom" label="总评分">
@@ -70,8 +76,27 @@ const pageParams = ref({
   page: 1,
   pageSize: 20,
 });
-const pages = ref(1);
 const isDestroyed = ref(true);
+
+// 从 localStorage 加载分页状态
+const loadPageState = () => {
+  const savedState = localStorage.getItem("ranklistPageState");
+  if (savedState) {
+    const {page, pageSize} = JSON.parse(savedState);
+    pageParams.value = {page, pageSize};
+  }
+};
+
+// 保存分页状态到 localStorage
+const savePageState = () => {
+  localStorage.setItem(
+    "ranklistPageState",
+    JSON.stringify({
+      page: pageParams.value.page,
+      pageSize: pageParams.value.pageSize,
+    })
+  );
+};
 
 const sortTableFun = ({prop, order}) => {
   tableData.value.sort((a, b) => {
@@ -100,12 +125,12 @@ const rankList = async () => {
 
 const handleSizeChange = (size) => {
   pageParams.value.pageSize = size;
-  console.log(pageParams.value.pageSize, "size");
+  savePageState();
 };
 
 const handleCurrentChange = (currentPage) => {
   pageParams.value.page = currentPage;
-  console.log(pageParams.value.page, "page");
+  savePageState();
 };
 
 const indexAdd = (index) => {
@@ -115,11 +140,12 @@ const indexAdd = (index) => {
 };
 
 onMounted(() => {
+  loadPageState();
   rankList();
 });
 
 onBeforeUnmount(() => {
-  console.log("destroy");
+  savePageState();
   isDestroyed.value = false;
 });
 

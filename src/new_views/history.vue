@@ -12,7 +12,10 @@
       >
         <span>历史记录</span>
         <div>
-          <el-button type="primary" @click="get_history_records">刷新</el-button>
+          <el-button type="primary" @click="get_history_records"
+          >刷新
+          </el-button
+          >
         </div>
       </div>
     </el-row>
@@ -37,7 +40,11 @@
       </el-table-column>
       <el-table-column prop="cname" label="比赛名称" min-width="100">
       </el-table-column>
-      <el-table-column prop="algorithm" label="算法" min-width="150"></el-table-column>
+      <el-table-column
+        prop="algorithm"
+        label="算法"
+        min-width="150"
+      ></el-table-column>
       <el-table-column
         prop="formatted_time"
         label="上传时间"
@@ -45,7 +52,11 @@
         sortable="custom"
       >
       </el-table-column>
-      <el-table-column prop="status" label="状态" min-width="120"></el-table-column>
+      <el-table-column
+        prop="status"
+        label="状态"
+        min-width="120"
+      ></el-table-column>
       <el-table-column prop="score" label="总评分" sortable="custom">
       </el-table-column>
 
@@ -53,16 +64,14 @@
         <template #default="{ row }">
           <el-button type="success" plain @click="viewDetail(row.upload_id)"
           >查看
-          </el-button
-          >
+          </el-button>
         </template>
       </el-table-column>
       <el-table-column label="代码">
         <template #default="{ row }">
           <el-button type="success" plain @click="checkCode(row.upload_id)"
           >下载
-          </el-button
-          >
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -83,7 +92,7 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue";
+import {onBeforeUnmount, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import {APIS} from "@/config";
 import {ElMessage} from "element-plus";
@@ -95,6 +104,26 @@ const pageParams = ref({
   page: 1, // 查询第一页
   pageSize: 10, // 每页两条  --- 要与pagination中page-size一致
 });
+
+// 从 localStorage 加载分页状态
+const loadPageState = () => {
+  const savedState = localStorage.getItem("historyPageState");
+  if (savedState) {
+    const {page, pageSize} = JSON.parse(savedState);
+    pageParams.value = {page, pageSize};
+  }
+};
+
+// 保存分页状态到 localStorage
+const savePageState = () => {
+  localStorage.setItem(
+    "historyPageState",
+    JSON.stringify({
+      page: pageParams.value.page,
+      pageSize: pageParams.value.pageSize,
+    })
+  );
+};
 
 async function get_history_records() {
   try {
@@ -182,14 +211,21 @@ const indexAdd = (index) => {
 
 const handleSizeChange = (size) => {
   pageParams.value.pageSize = size;
+  savePageState();
 };
 
 const handleCurrentChange = (currentPage) => {
   pageParams.value.page = currentPage;
+  savePageState();
 };
 
 onMounted(() => {
+  loadPageState();
   get_history_records();
+});
+
+onBeforeUnmount(() => {
+  savePageState();
 });
 </script>
 
