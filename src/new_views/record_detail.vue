@@ -7,55 +7,54 @@
           display: flex;
           justify-content: space-between;
           align-items: center;
+          width: 100%;
         "
       >
-        <span style="width: 720px">任务详情</span>
-        <el-button type="primary" @click="fetchTasks">刷新</el-button>
-        <el-button type="primary" @click="router.go(-1)">返回</el-button>
+        <span>任务详情</span>
+        <div>
+          <el-button type="primary" @click="fetchTasks">刷新</el-button>
+          <el-button type="primary" @click="router.go(-1)">返回</el-button>
+        </div>
       </div>
     </el-row>
     <div class="table-container">
-      <el-table
-        :data="tasks"
-        style="width: 100%"
-        height="500"
-      >
+      <el-table :data="tasks" style="width: 100%" height="500">
         <el-table-column
           prop="trace_name"
           label="测试文件"
-          width="180"
+          min-width="180"
         ></el-table-column>
         <el-table-column
           prop="loss_rate"
           label="丢包率"
-          width="100"
         ></el-table-column>
-        <el-table-column prop="buffer_size" label="缓冲区容量" width="100"/>
+        <el-table-column prop="buffer_size" label="缓冲区容量"/>
         <el-table-column
           prop="task_status"
           label="任务状态"
-          width="100"
+          min-width="120"
         ></el-table-column>
         <el-table-column
           prop="task_score"
           label="得分"
-          width="100"
         ></el-table-column>
-        <el-table-column label="吞吐量" width="180">
+        <el-table-column label="吞吐量">
           <template #default="scope">
-            <el-button v-if="scope.row.task_status === 'finished'" @click="showImage('throughput', scope.row.task_id)"
+            <el-button
+              v-if="scope.row.task_status === 'finished'"
+              @click="showImage('throughput', scope.row.task_id)"
             >查看
-            </el-button
-            >
+            </el-button>
             <span v-else>任务完成后可查看</span>
           </template>
         </el-table-column>
         <el-table-column label="时延">
           <template #default="scope">
-            <el-button v-if="scope.row.task_status === 'finished'" @click="showImage('delay', scope.row.task_id)"
+            <el-button
+              v-if="scope.row.task_status === 'finished'"
+              @click="showImage('delay', scope.row.task_id)"
             >查看
-            </el-button
-            >
+            </el-button>
             <span v-else>-</span>
           </template>
         </el-table-column>

@@ -2,10 +2,10 @@
   <el-row>
     <div class="text-h4 pa-10">个人中心</div>
   </el-row>
-  <v-container>
+  <el-card class="box-card" style="margin: 15px 25px">
     <v-row>
       <v-col cols="12">
-        <v-sheet class="pa-10" elevation="2">
+        <v-sheet>
           <v-row>
             <v-col cols="12">
               <v-row>
@@ -111,7 +111,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-container>
+  </el-card>
 </template>
 
 <script setup>
@@ -250,7 +250,6 @@ onMounted(async () => {
 }
 
 .mx-2 {
-  margin-left: 8px;
-  margin-right: 8px;
+  margin: 8px;
 }
 </style>

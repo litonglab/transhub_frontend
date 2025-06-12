@@ -2,14 +2,12 @@
   <el-row>
     <div
       class="text-h4 pa-10"
-      style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        "
+      style="display: flex; justify-content: space-between; align-items: center; width: 100%;"
     >
-      <span style="width: 720px">榜单展示</span>
-      <el-button type="primary" @click="rankList">刷新</el-button>
+      <span>榜单展示</span>
+      <div>
+        <el-button type="primary" @click="rankList">刷新</el-button>
+      </div>
     </div>
   </el-row>
   <el-empty v-if="!tableData.length" description="还没有人提交过"></el-empty>
@@ -31,8 +29,8 @@
     <el-table-column label="序号" type="index" width="100" :index="indexAdd">
     </el-table-column>
     <el-table-column prop="username" label="用户名"></el-table-column>
-    <el-table-column prop="algorithm" label="算法名称"></el-table-column>
-    <el-table-column prop="formatted_time" label="上传时间" width="180">
+    <el-table-column prop="algorithm" label="算法名称" min-width="150"></el-table-column>
+    <el-table-column prop="formatted_time" label="上传时间" min-width="150">
     </el-table-column>
     <el-table-column prop="task_score" sortable="custom" label="总评分">
     </el-table-column>
@@ -40,8 +38,7 @@
       <template #default="{ row }">
         <el-button type="success" plain @click="viewDetail(row.upload_id)"
         >查看
-        </el-button
-        >
+        </el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -51,7 +48,7 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
       :current-page="pageParams.page"
-      :page-sizes="[10, 15, 20, 25]"
+      :page-sizes="[10, 15, 20, 25, 50]"
       :page-size="pageParams.pageSize"
       layout="total, sizes, prev, next, jumper"
       :total="tableData.length"
@@ -155,13 +152,13 @@ function viewDetail(upload_id) {
   padding-top: 1.22667rem;
 }
 
-.view-wrapper /deep/ .van-nav-bar .van-icon {
+.view-wrapper :deep(.van-nav-bar .van-icon) {
   color: #333;
   font-size: 18px;
   margin-right: 3px;
 }
 
-.view-wrapper /deep/ .van-loading {
+.view-wrapper :deep(.van-loading) {
   position: absolute;
   top: 50%;
   left: 46%;

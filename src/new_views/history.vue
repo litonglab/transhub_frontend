@@ -7,10 +7,13 @@
           display: flex;
           justify-content: space-between;
           align-items: center;
+          width: 100%;
         "
       >
-        <span style="width: 720px">历史记录</span>
-        <el-button type="primary" @click="get_history_records">刷新</el-button>
+        <span>历史记录</span>
+        <div>
+          <el-button type="primary" @click="get_history_records">刷新</el-button>
+        </div>
       </div>
     </el-row>
     <el-empty
@@ -32,9 +35,9 @@
     >
       <el-table-column label="编号" type="index" :index="indexAdd" width="100">
       </el-table-column>
-      <el-table-column prop="cname" label="比赛名称" width="100">
+      <el-table-column prop="cname" label="比赛名称" min-width="100">
       </el-table-column>
-      <el-table-column prop="algorithm" label="算法"></el-table-column>
+      <el-table-column prop="algorithm" label="算法" min-width="150"></el-table-column>
       <el-table-column
         prop="formatted_time"
         label="上传时间"
@@ -42,7 +45,7 @@
         sortable="custom"
       >
       </el-table-column>
-      <el-table-column prop="status" label="状态"></el-table-column>
+      <el-table-column prop="status" label="状态" min-width="120"></el-table-column>
       <el-table-column prop="score" label="总评分" sortable="custom">
       </el-table-column>
 
@@ -69,7 +72,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="pageParams.page"
-        :page-sizes="[10, 15, 20, 25]"
+        :page-sizes="[10, 15, 20, 25, 50]"
         :page-size="pageParams.pageSize"
         layout="total, sizes, prev, next, jumper"
         :total="totalTableData.length"
