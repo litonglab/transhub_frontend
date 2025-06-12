@@ -14,8 +14,7 @@
         <div>
           <el-button type="primary" @click="get_history_records"
           >刷新
-          </el-button
-          >
+          </el-button>
         </div>
       </div>
     </el-row>
@@ -58,6 +57,9 @@
         min-width="120"
       ></el-table-column>
       <el-table-column prop="score" label="总评分" sortable="custom">
+        <template #default="scope">
+          {{ scope.row.score.toFixed(2) }}
+        </template>
       </el-table-column>
 
       <el-table-column label="详情">

@@ -39,6 +39,9 @@
     <el-table-column prop="formatted_time" label="上传时间" min-width="150">
     </el-table-column>
     <el-table-column prop="task_score" sortable="custom" label="总评分">
+      <template #default="scope">
+        {{ scope.row.task_score.toFixed(2) }}
+      </template>
     </el-table-column>
     <el-table-column label="详情">
       <template #default="{ row }">
