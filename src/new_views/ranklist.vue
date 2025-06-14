@@ -63,7 +63,7 @@
       ></el-table-column>
       <el-table-column prop="formatted_time" label="上传时间" min-width="150">
       </el-table-column>
-      <el-table-column prop="task_score" sortable="custom" label="总分">
+      <el-table-column prop="task_score" sortable="custom" label="总分" :sort-orders="['ascending', 'descending']">
         <template #default="scope">
           {{ scope.row.task_score.toFixed(2) }}
         </template>
@@ -238,9 +238,6 @@ async function get_ranklist() {
           ...record,
           formatted_time,
         };
-      })
-      .sort((a, b) => {
-        return new Date(b.upload_time) - new Date(a.upload_time);
       });
 
     // Don't force re-render TaskDetailTable components, let them reuse existing instances
