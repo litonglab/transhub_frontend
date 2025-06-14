@@ -16,7 +16,7 @@
             {{ allExpanded ? "折叠所有" : "展开所有" }}
           </el-button>
           <el-button type="primary" @click="get_history_records"
-            >刷新
+          >刷新
           </el-button>
         </div>
       </div>
@@ -93,14 +93,14 @@
             "
           >
             <el-button type="success" plain @click="toggleExpand(row)"
-              >查看
+            >查看
             </el-button>
             <el-icon
               class="link-icon"
               style="cursor: pointer; font-size: 16px; color: #409eff"
               @click="viewDetail(row.upload_id)"
             >
-              <Link />
+              <Link/>
             </el-icon>
           </div>
         </template>
@@ -108,7 +108,7 @@
       <el-table-column label="代码">
         <template #default="{ row }">
           <el-button type="success" plain @click="checkCode(row.upload_id)"
-            >下载
+          >下载
           </el-button>
         </template>
       </el-table-column>
@@ -129,12 +129,12 @@
 </template>
 
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import { APIS } from "@/config";
-import { ElMessage } from "element-plus";
-import { formatDateTime, request } from "@/utility.js";
-import { Link } from "@element-plus/icons-vue";
+import {nextTick, onBeforeUnmount, onMounted, ref} from "vue";
+import {useRouter} from "vue-router";
+import {APIS} from "@/config";
+import {ElMessage} from "element-plus";
+import {formatDateTime, request} from "@/utility.js";
+import {Link} from "@element-plus/icons-vue";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 
 const router = useRouter();
@@ -152,8 +152,8 @@ const allExpanded = ref(false);
 const loadPageState = () => {
   const savedState = localStorage.getItem("historyPageState");
   if (savedState) {
-    const { page, pageSize } = JSON.parse(savedState);
-    pageParams.value = { page, pageSize };
+    const {page, pageSize} = JSON.parse(savedState);
+    pageParams.value = {page, pageSize};
   }
 };
 
@@ -217,7 +217,7 @@ async function get_history_records() {
 }
 
 function viewDetail(upload_id) {
-  router.push({ name: "Detail", params: { upload_id } });
+  router.push({name: "Detail", params: {upload_id}});
 }
 
 async function checkCode(upload_id) {
@@ -229,7 +229,7 @@ async function checkCode(upload_id) {
           upload_id: upload_id,
         }),
       },
-      { raw: true }
+      {raw: true}
     );
     if (response.ok) {
       const contentDisposition = response.headers.get("Content-Disposition");
@@ -257,7 +257,7 @@ async function checkCode(upload_id) {
   }
 }
 
-const handleSortChange = ({ column, prop, order }) => {
+const handleSortChange = ({column, prop, order}) => {
   totalTableData.value.sort((a, b) => {
     if (order === "ascending") {
       if (prop === "formatted_time") {
@@ -282,14 +282,37 @@ const indexAdd = (index) => {
 const handleSizeChange = (size) => {
   pageParams.value.pageSize = size;
   savePageState();
+  cleanupInvisibleComponents();
   updateAllExpandedStatus();
 };
 
 const handleCurrentChange = (currentPage) => {
   pageParams.value.page = currentPage;
   savePageState();
+  cleanupInvisibleComponents();
   updateAllExpandedStatus();
 };
+
+// Clean up component references that are not visible on current page
+function cleanupInvisibleComponents() {
+  const currentPageData = totalTableData.value.slice(
+    (pageParams.value.page - 1) * pageParams.value.pageSize,
+    pageParams.value.page * pageParams.value.pageSize
+  );
+  const currentPageIds = currentPageData.map(item => item.upload_id);
+
+  // Remove component references that are not on current page
+  Object.keys(taskDetailRefs.value).forEach(uploadId => {
+    if (!currentPageIds.includes(uploadId)) {
+      delete taskDetailRefs.value[uploadId];
+    }
+  });
+
+  // Update expandedRows to only include items on current page
+  expandedRows.value = expandedRows.value.filter(uploadId =>
+    currentPageIds.includes(uploadId)
+  );
+}
 
 // Update allExpanded status based on current page data
 function updateAllExpandedStatus() {
