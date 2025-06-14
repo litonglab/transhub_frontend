@@ -1,5 +1,6 @@
 <template>
   <div id="historyRecord">
+    <task-detail-table ref="taskDetailTableRef" style="display: none"/>
     <el-row>
       <div
         class="text-h4 pa-10"
@@ -23,6 +24,7 @@
       description="当前暂无历史记录"
     ></el-empty>
     <el-table
+      v-else
       :data="
         totalTableData.slice(
           (pageParams.page - 1) * pageParams.pageSize,
@@ -34,8 +36,24 @@
       style="width: 100%; margin: auto"
       @sort-change="handleSortChange"
       :default-sort="{ prop: 'formatted_time', order: 'descending' }"
+      @expand-change="handleExpandChange"
+      row-key="upload_id"
+      :expand-row-keys="expandedRows"
     >
-      <el-table-column label="编号" type="index" :index="indexAdd" width="100">
+      <el-table-column type="expand">
+        <template #default="props">
+          <div v-if="props.row.tasks" class="expanded-content">
+            <task-detail-table :tasks="props.row.tasks"/>
+          </div>
+          <div
+            v-else-if="props.row.loading"
+            class="expanded-content loading-container"
+          >
+            <el-skeleton :rows="3" animated/>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="编号" type="index" :index="indexAdd" width="60">
       </el-table-column>
       <el-table-column prop="cname" label="比赛名称" min-width="100">
       </el-table-column>
@@ -56,17 +74,32 @@
         label="状态"
         min-width="120"
       ></el-table-column>
-      <el-table-column prop="score" label="总评分" sortable="custom">
+      <el-table-column prop="score" label="总分" sortable="custom">
         <template #default="scope">
           {{ scope.row.score.toFixed(2) }}
         </template>
       </el-table-column>
-
-      <el-table-column label="详情">
+      <el-table-column label="详情" min-width="90">
         <template #default="{ row }">
-          <el-button type="success" plain @click="viewDetail(row.upload_id)"
-          >查看
-          </el-button>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+            "
+          >
+            <el-button type="success" plain @click="toggleExpand(row)"
+            >查看
+            </el-button>
+            <el-icon
+              class="link-icon"
+              style="cursor: pointer; font-size: 16px; color: #409eff"
+              @click="viewDetail(row.upload_id)"
+            >
+              <Link/>
+            </el-icon>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="代码">
@@ -79,14 +112,13 @@
     </el-table>
     <el-row class="flex default_margin flex_justify_content_center">
       <el-pagination
-        background
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="pageParams.page"
-        :page-sizes="[10, 15, 20, 25, 50]"
+        v-model:current-page="pageParams.page"
+        :page-sizes="[5, 10, 25, 50, 100]"
         :page-size="pageParams.pageSize"
         layout="total, sizes, prev, next, jumper"
         :total="totalTableData.length"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
       >
       </el-pagination>
     </el-row>
@@ -94,18 +126,22 @@
 </template>
 
 <script setup>
-import {onBeforeUnmount, onMounted, ref} from "vue";
+import {nextTick, onBeforeUnmount, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import {APIS} from "@/config";
 import {ElMessage} from "element-plus";
 import {formatDateTime, request} from "@/utility.js";
+import {Link} from "@element-plus/icons-vue";
+import TaskDetailTable from "@/components/TaskDetailTable.vue";
 
 const router = useRouter();
 const totalTableData = ref([]);
 const pageParams = ref({
-  page: 1, // 查询第一页
-  pageSize: 10, // 每页两条  --- 要与pagination中page-size一致
+  page: 1,
+  pageSize: 25,
 });
+const expandedRows = ref([]);
+const taskDetailTableRef = ref(null);
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -133,16 +169,57 @@ async function get_history_records() {
       method: "GET",
     });
     let temp = res.history;
+    // 保存当前展开行的upload_id列表
+    const expandedIds = [...expandedRows.value];
+
     totalTableData.value = temp
       .map((record) => {
         const formatted_time = formatDateTime(record.created_time);
-        return {...record, formatted_time};
+        return {
+          ...record,
+          formatted_time,
+          loading: false,
+          tasks: null,
+        };
       })
       .sort((a, b) => {
         return new Date(b.created_time) - new Date(a.created_time);
       });
+
+    // 并发加载已展开行的任务详情
+    const rowsToRefresh = totalTableData.value.filter((item) =>
+      expandedIds.includes(item.upload_id)
+    );
+    rowsToRefresh.forEach((row) => (row.loading = true));
+
+    try {
+      const tasksPromises = rowsToRefresh.map((row) =>
+        taskDetailTableRef.value
+          .fetchTasks(row.upload_id)
+          .then((tasks) => {
+            row.tasks = tasks;
+          })
+          .catch((error) => {
+            console.error(`获取任务详情失败 (${row.upload_id}):`, error);
+          })
+          .finally(() => {
+            row.loading = false;
+          })
+      );
+
+      await Promise.all(tasksPromises);
+    } catch (error) {
+      console.error("获取任务详情失败:", error);
+    }
+
+    // 恢复展开状态
+    await nextTick(() => {
+      expandedRows.value = expandedIds;
+    });
     ElMessage.success("加载成功");
   } catch (error) {
+    console.error("获取历史记录失败:", error);
+    // ElMessage.error("获取历史记录失败");
   }
 }
 
@@ -162,12 +239,11 @@ async function checkCode(upload_id) {
       {raw: true}
     );
     if (response.ok) {
-      // 获取文件名
       const contentDisposition = response.headers.get("Content-Disposition");
       const fileNameMatch = contentDisposition
         ? contentDisposition.match(/filename="?([^"]+)"?/)
         : null;
-      let fileName = "code.cc"; // 默认文件名
+      let fileName = "code.cc";
       if (fileNameMatch && fileNameMatch[1]) {
         fileName = fileNameMatch[1];
       }
@@ -181,15 +257,14 @@ async function checkCode(upload_id) {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    } else {
-      ElMessage.error(`代码下载失败`);
     }
   } catch (error) {
+    console.error("下载代码失败:", error);
+    // ElMessage.error("下载代码失败");
   }
 }
 
 const handleSortChange = ({column, prop, order}) => {
-  // 实现排序逻辑
   totalTableData.value.sort((a, b) => {
     if (order === "ascending") {
       if (prop === "formatted_time") {
@@ -221,6 +296,32 @@ const handleCurrentChange = (currentPage) => {
   savePageState();
 };
 
+async function handleExpandChange(row, expanded) {
+  if (expanded) {
+    row.loading = true;
+    row.tasks = await taskDetailTableRef.value.fetchTasks(row.upload_id);
+    row.loading = false;
+    // 将当前行的upload_id添加到展开行列表中
+    expandedRows.value = [...expandedRows.value, row.upload_id];
+  } else {
+    // 从展开行列表中移除当前行的upload_id
+    expandedRows.value = expandedRows.value.filter(
+      (id) => id !== row.upload_id
+    );
+  }
+}
+
+function toggleExpand(row) {
+  const index = expandedRows.value.indexOf(row.upload_id);
+  if (index > -1) {
+    expandedRows.value.splice(index, 1);
+    handleExpandChange(row, false);
+  } else {
+    expandedRows.value.push(row.upload_id);
+    handleExpandChange(row, true);
+  }
+}
+
 onMounted(() => {
   loadPageState();
   get_history_records();
@@ -245,14 +346,14 @@ onBeforeUnmount(() => {
   margin-bottom: 10px;
 }
 
-.card-container {
-  height: 500px;
-  /* 设置固定高度 */
-  overflow-y: auto;
-  /* 显示垂直滚动条 */
+.expanded-content {
+  padding: 20px;
 }
 
-.content {
-  white-space: pre-line;
+.loading-container {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
