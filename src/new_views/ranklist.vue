@@ -12,6 +12,9 @@
       >
         <span>榜单展示</span>
         <div>
+          <el-button type="success" @click="toggleExpandAll">
+            {{ allExpanded ? "折叠所有" : "展开所有" }}
+          </el-button>
           <el-button type="primary" @click="get_ranklist">刷新</el-button>
         </div>
       </div>
@@ -76,14 +79,14 @@
             "
           >
             <el-button type="success" plain @click="toggleExpand(row)"
-            >查看
+              >查看
             </el-button>
             <el-icon
               class="link-icon"
               style="cursor: pointer; font-size: 16px; color: #409eff"
               @click="viewDetail(row.upload_id)"
             >
-              <Link/>
+              <Link />
             </el-icon>
           </div>
         </template>
@@ -106,12 +109,12 @@
 </template>
 
 <script setup>
-import {nextTick, onBeforeUnmount, onMounted, ref} from "vue";
-import {APIS} from "@/config.js";
-import {formatDateTime, request} from "@/utility.js";
-import {useRouter} from "vue-router";
-import {ElMessage} from "element-plus";
-import {Link} from "@element-plus/icons-vue";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { APIS } from "@/config.js";
+import { formatDateTime, request } from "@/utility.js";
+import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import { Link } from "@element-plus/icons-vue";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 
 const router = useRouter();
@@ -123,13 +126,14 @@ const pageParams = ref({
 const expandedRows = ref([]);
 const tableRef = ref(null);
 const taskDetailRefs = ref({});
+const allExpanded = ref(false);
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
   const savedState = localStorage.getItem("ranklistPageState");
   if (savedState) {
-    const {page, pageSize} = JSON.parse(savedState);
-    pageParams.value = {page, pageSize};
+    const { page, pageSize } = JSON.parse(savedState);
+    pageParams.value = { page, pageSize };
   }
 };
 
@@ -144,7 +148,7 @@ const savePageState = () => {
   );
 };
 
-const sortTableFun = ({prop, order}) => {
+const sortTableFun = ({ prop, order }) => {
   totalTableData.value.sort((a, b) => {
     if (order === "ascending") {
       return a[prop] - b[prop];
@@ -153,6 +157,42 @@ const sortTableFun = ({prop, order}) => {
     }
   });
 };
+
+// Toggle expand all rows function
+async function toggleExpandAll() {
+  if (allExpanded.value) {
+    // Collapse all rows
+    expandedRows.value = [];
+    taskDetailRefs.value = {};
+    // Use tableRef to collapse all rows in the table
+    if (tableRef.value) {
+      const currentPageData = totalTableData.value.slice(
+        (pageParams.value.page - 1) * pageParams.value.pageSize,
+        pageParams.value.page * pageParams.value.pageSize
+      );
+      currentPageData.forEach((row) => {
+        tableRef.value.toggleRowExpansion(row, false);
+      });
+    }
+    allExpanded.value = false;
+  } else {
+    // Expand all rows on current page
+    const currentPageData = totalTableData.value.slice(
+      (pageParams.value.page - 1) * pageParams.value.pageSize,
+      pageParams.value.page * pageParams.value.pageSize
+    );
+
+    currentPageData.forEach((row) => {
+      if (!expandedRows.value.includes(row.upload_id)) {
+        expandedRows.value.push(row.upload_id);
+      }
+      if (tableRef.value) {
+        tableRef.value.toggleRowExpansion(row, true);
+      }
+    });
+    allExpanded.value = true;
+  }
+}
 
 async function handleExpandChange(row, expandedRowsParam) {
   // expandedRowsParam 是一个数组，包含当前所有展开的行
@@ -177,6 +217,9 @@ async function handleExpandChange(row, expandedRowsParam) {
       delete taskDetailRefs.value[row.upload_id];
     }
   }
+
+  // Update allExpanded status based on current page data
+  updateAllExpandedStatus();
 }
 
 async function get_ranklist() {
@@ -231,12 +274,29 @@ const handleSizeChange = (size) => {
   pageParams.value.pageSize = size;
   pageParams.value.page = 1;
   savePageState();
+  updateAllExpandedStatus();
 };
 
 const handleCurrentChange = (currentPage) => {
   pageParams.value.page = currentPage;
   savePageState();
+  updateAllExpandedStatus();
 };
+
+// Update allExpanded status based on current page data
+function updateAllExpandedStatus() {
+  const currentPageData = totalTableData.value.slice(
+    (pageParams.value.page - 1) * pageParams.value.pageSize,
+    pageParams.value.page * pageParams.value.pageSize
+  );
+  const currentPageIds = currentPageData.map((item) => item.upload_id);
+  const expandedInCurrentPage = currentPageIds.filter((id) =>
+    expandedRows.value.includes(id)
+  );
+  allExpanded.value =
+    expandedInCurrentPage.length === currentPageData.length &&
+    currentPageData.length > 0;
+}
 
 const indexAdd = (index) => {
   const page = pageParams.value.page;
@@ -252,7 +312,7 @@ function toggleExpand(row) {
 }
 
 function viewDetail(upload_id) {
-  router.push({name: "Detail", params: {upload_id}});
+  router.push({ name: "Detail", params: { upload_id } });
 }
 
 onMounted(() => {

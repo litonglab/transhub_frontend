@@ -11,7 +11,7 @@
     >
       <span>任务详情</span>
       <div>
-        <el-button type="primary" @click="goBack">返回</el-button>
+        <el-button type="success" @click="goBack">返回上页</el-button>
         <el-button type="primary" @click="refreshTasks">刷新</el-button>
       </div>
     </div>

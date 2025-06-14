@@ -12,8 +12,11 @@
       >
         <span>历史记录</span>
         <div>
+          <el-button type="success" @click="toggleExpandAll">
+            {{ allExpanded ? "折叠所有" : "展开所有" }}
+          </el-button>
           <el-button type="primary" @click="get_history_records"
-          >刷新
+            >刷新
           </el-button>
         </div>
       </div>
@@ -90,14 +93,14 @@
             "
           >
             <el-button type="success" plain @click="toggleExpand(row)"
-            >查看
+              >查看
             </el-button>
             <el-icon
               class="link-icon"
               style="cursor: pointer; font-size: 16px; color: #409eff"
               @click="viewDetail(row.upload_id)"
             >
-              <Link/>
+              <Link />
             </el-icon>
           </div>
         </template>
@@ -105,7 +108,7 @@
       <el-table-column label="代码">
         <template #default="{ row }">
           <el-button type="success" plain @click="checkCode(row.upload_id)"
-          >下载
+            >下载
           </el-button>
         </template>
       </el-table-column>
@@ -126,12 +129,12 @@
 </template>
 
 <script setup>
-import {nextTick, onBeforeUnmount, onMounted, ref} from "vue";
-import {useRouter} from "vue-router";
-import {APIS} from "@/config";
-import {ElMessage} from "element-plus";
-import {formatDateTime, request} from "@/utility.js";
-import {Link} from "@element-plus/icons-vue";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { APIS } from "@/config";
+import { ElMessage } from "element-plus";
+import { formatDateTime, request } from "@/utility.js";
+import { Link } from "@element-plus/icons-vue";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 
 const router = useRouter();
@@ -143,13 +146,14 @@ const pageParams = ref({
 const expandedRows = ref([]);
 const tableRef = ref(null);
 const taskDetailRefs = ref({});
+const allExpanded = ref(false);
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
   const savedState = localStorage.getItem("historyPageState");
   if (savedState) {
-    const {page, pageSize} = JSON.parse(savedState);
-    pageParams.value = {page, pageSize};
+    const { page, pageSize } = JSON.parse(savedState);
+    pageParams.value = { page, pageSize };
   }
 };
 
@@ -213,7 +217,7 @@ async function get_history_records() {
 }
 
 function viewDetail(upload_id) {
-  router.push({name: "Detail", params: {upload_id}});
+  router.push({ name: "Detail", params: { upload_id } });
 }
 
 async function checkCode(upload_id) {
@@ -225,7 +229,7 @@ async function checkCode(upload_id) {
           upload_id: upload_id,
         }),
       },
-      {raw: true}
+      { raw: true }
     );
     if (response.ok) {
       const contentDisposition = response.headers.get("Content-Disposition");
@@ -253,7 +257,7 @@ async function checkCode(upload_id) {
   }
 }
 
-const handleSortChange = ({column, prop, order}) => {
+const handleSortChange = ({ column, prop, order }) => {
   totalTableData.value.sort((a, b) => {
     if (order === "ascending") {
       if (prop === "formatted_time") {
@@ -278,12 +282,65 @@ const indexAdd = (index) => {
 const handleSizeChange = (size) => {
   pageParams.value.pageSize = size;
   savePageState();
+  updateAllExpandedStatus();
 };
 
 const handleCurrentChange = (currentPage) => {
   pageParams.value.page = currentPage;
   savePageState();
+  updateAllExpandedStatus();
 };
+
+// Update allExpanded status based on current page data
+function updateAllExpandedStatus() {
+  const currentPageData = totalTableData.value.slice(
+    (pageParams.value.page - 1) * pageParams.value.pageSize,
+    pageParams.value.page * pageParams.value.pageSize
+  );
+  const currentPageIds = currentPageData.map((item) => item.upload_id);
+  const expandedInCurrentPage = currentPageIds.filter((id) =>
+    expandedRows.value.includes(id)
+  );
+  allExpanded.value =
+    expandedInCurrentPage.length === currentPageData.length &&
+    currentPageData.length > 0;
+}
+
+// Toggle expand all rows function
+async function toggleExpandAll() {
+  if (allExpanded.value) {
+    // Collapse all rows
+    expandedRows.value = [];
+    taskDetailRefs.value = {};
+    // Use tableRef to collapse all rows in the table
+    if (tableRef.value) {
+      const currentPageData = totalTableData.value.slice(
+        (pageParams.value.page - 1) * pageParams.value.pageSize,
+        pageParams.value.page * pageParams.value.pageSize
+      );
+      currentPageData.forEach((row) => {
+        tableRef.value.toggleRowExpansion(row, false);
+      });
+    }
+    allExpanded.value = false;
+  } else {
+    // Expand all rows on current page
+    const currentPageData = totalTableData.value.slice(
+      (pageParams.value.page - 1) * pageParams.value.pageSize,
+      pageParams.value.page * pageParams.value.pageSize
+    );
+
+    currentPageData.forEach((row) => {
+      if (!expandedRows.value.includes(row.upload_id)) {
+        expandedRows.value.push(row.upload_id);
+      }
+      if (tableRef.value) {
+        tableRef.value.toggleRowExpansion(row, true);
+      }
+    });
+    allExpanded.value = true;
+  }
+}
 
 async function handleExpandChange(row, expandedRowsParam) {
   // expandedRowsParam is an array containing all currently expanded rows
@@ -308,6 +365,9 @@ async function handleExpandChange(row, expandedRowsParam) {
       delete taskDetailRefs.value[row.upload_id];
     }
   }
+
+  // Update allExpanded status based on current page data
+  updateAllExpandedStatus();
 }
 
 function toggleExpand(row) {
