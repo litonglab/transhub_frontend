@@ -156,7 +156,7 @@ const sortTableFun = ({prop, order}) => {
 async function handleExpandChange(row, expanded) {
   if (expanded) {
     row.loading = true;
-    row.tasks = await taskDetailTableRef.value.fetchTasks(row.upload_id);
+    row.tasks = await taskDetailTableRef.value.fetchTasks(row.upload_id, 500);
     row.loading = false;
     // 将当前行的upload_id添加到展开行列表中
     expandedRows.value = [...expandedRows.value, row.upload_id];
@@ -200,7 +200,7 @@ async function get_ranklist() {
     try {
       const tasksPromises = rowsToRefresh.map((row) =>
         taskDetailTableRef.value
-          .fetchTasks(row.upload_id)
+          .fetchTasks(row.upload_id, 500)
           .then((tasks) => {
             row.tasks = tasks;
           })

@@ -97,13 +97,16 @@ const dialogVisible = ref(false);
 const dialogContent = ref("");
 const dialogType = ref("");
 
-async function fetchTasks(upload_id) {
+async function fetchTasks(upload_id, delay = 0) {
   try {
     const data = await request(APIS.get_history_record_detail, {
       body: JSON.stringify({
         upload_id: upload_id,
       }),
     });
+    if (delay) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
     return data.tasks || [];
   } catch (error) {
     console.error("获取任务详情失败:", error);
