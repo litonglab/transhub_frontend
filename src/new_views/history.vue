@@ -1,6 +1,5 @@
 <template>
   <div id="historyRecord">
-    <task-detail-table ref="taskDetailTableRef" style="display: none"/>
     <el-row>
       <div
         class="text-h4 pa-10"
@@ -25,6 +24,7 @@
     ></el-empty>
     <el-table
       v-else
+      ref="tableRef"
       :data="
         totalTableData.slice(
           (pageParams.page - 1) * pageParams.pageSize,
@@ -38,18 +38,18 @@
       :default-sort="{ prop: 'formatted_time', order: 'descending' }"
       @expand-change="handleExpandChange"
       row-key="upload_id"
-      :expand-row-keys="expandedRows"
     >
       <el-table-column type="expand">
         <template #default="props">
-          <div v-if="props.row.tasks" class="expanded-content">
-            <task-detail-table :tasks="props.row.tasks"/>
-          </div>
-          <div
-            v-else-if="props.row.loading"
-            class="expanded-content loading-container"
-          >
-            <el-skeleton :rows="3" animated/>
+          <div class="expanded-content">
+            <task-detail-table
+              :ref="
+                (el) => {
+                  if (el) taskDetailRefs[props.row.upload_id] = el;
+                }
+              "
+              :upload_id="props.row.upload_id"
+            />
           </div>
         </template>
       </el-table-column>
@@ -141,7 +141,8 @@ const pageParams = ref({
   pageSize: 25,
 });
 const expandedRows = ref([]);
-const taskDetailTableRef = ref(null);
+const tableRef = ref(null);
+const taskDetailRefs = ref({});
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -169,8 +170,8 @@ async function get_history_records() {
       method: "GET",
     });
     let temp = res.history;
-    // 保存当前展开行的upload_id列表
-    const expandedIds = [...expandedRows.value];
+    // Save the upload_id list of currently expanded rows
+    const currentExpandedIds = [...expandedRows.value];
 
     totalTableData.value = temp
       .map((record) => {
@@ -178,48 +179,36 @@ async function get_history_records() {
         return {
           ...record,
           formatted_time,
-          loading: false,
-          tasks: null,
         };
       })
       .sort((a, b) => {
         return new Date(b.created_time) - new Date(a.created_time);
       });
 
-    // 并发加载已展开行的任务详情
-    const rowsToRefresh = totalTableData.value.filter((item) =>
-      expandedIds.includes(item.upload_id)
-    );
-    rowsToRefresh.forEach((row) => (row.loading = true));
-
-    try {
-      const tasksPromises = rowsToRefresh.map((row) =>
-        taskDetailTableRef.value
-          .fetchTasks(row.upload_id, 500)
-          .then((tasks) => {
-            row.tasks = tasks;
-          })
-          .catch((error) => {
-            console.error(`获取任务详情失败 (${row.upload_id}):`, error);
-          })
-          .finally(() => {
-            row.loading = false;
-          })
+    // Don't force re-render TaskDetailTable components, let them reuse existing instances
+    // Refresh data of expanded components in the next tick
+    await nextTick(() => {
+      const validExpandedIds = currentExpandedIds.filter((id) =>
+        totalTableData.value.some((record) => record.upload_id === id)
       );
 
-      await Promise.all(tasksPromises);
-    } catch (error) {
-      console.error("获取任务详情失败:", error);
-    }
-
-    // 恢复展开状态
-    await nextTick(() => {
-      expandedRows.value = expandedIds;
+      // Refresh data of expanded components
+      for (const uploadId of validExpandedIds) {
+        const taskDetailRef = taskDetailRefs.value[uploadId];
+        if (taskDetailRef && taskDetailRef.fetchTasks) {
+          taskDetailRef.fetchTasks(uploadId, 200).catch((error) => {
+            console.error(
+              `Failed to refresh task details (${uploadId}):`,
+              error
+            );
+          });
+        }
+      }
     });
+
     ElMessage.success("加载成功");
   } catch (error) {
-    console.error("获取历史记录失败:", error);
-    // ElMessage.error("获取历史记录失败");
+    console.error("Failed to get history records:", error);
   }
 }
 
@@ -259,8 +248,8 @@ async function checkCode(upload_id) {
       window.URL.revokeObjectURL(url);
     }
   } catch (error) {
-    console.error("下载代码失败:", error);
-    // ElMessage.error("下载代码失败");
+    console.error("Failed to download code:", error);
+    // ElMessage.error("Failed to download code");
   }
 }
 
@@ -296,29 +285,35 @@ const handleCurrentChange = (currentPage) => {
   savePageState();
 };
 
-async function handleExpandChange(row, expanded) {
-  if (expanded) {
-    row.loading = true;
-    row.tasks = await taskDetailTableRef.value.fetchTasks(row.upload_id, 500);
-    row.loading = false;
-    // 将当前行的upload_id添加到展开行列表中
-    expandedRows.value = [...expandedRows.value, row.upload_id];
+async function handleExpandChange(row, expandedRowsParam) {
+  // expandedRowsParam is an array containing all currently expanded rows
+  const isExpanded =
+    Array.isArray(expandedRowsParam) &&
+    expandedRowsParam.some(
+      (expandedRow) => expandedRow.upload_id === row.upload_id
+    );
+
+  if (isExpanded) {
+    // Row is expanded
+    if (!expandedRows.value.includes(row.upload_id)) {
+      expandedRows.value = [...expandedRows.value, row.upload_id];
+    }
   } else {
-    // 从展开行列表中移除当前行的upload_id
+    // The Row is collapsed
     expandedRows.value = expandedRows.value.filter(
       (id) => id !== row.upload_id
     );
+    // Clean up the corresponding component reference
+    if (taskDetailRefs.value[row.upload_id]) {
+      delete taskDetailRefs.value[row.upload_id];
+    }
   }
 }
 
 function toggleExpand(row) {
-  const index = expandedRows.value.indexOf(row.upload_id);
-  if (index > -1) {
-    expandedRows.value.splice(index, 1);
-    handleExpandChange(row, false);
-  } else {
-    expandedRows.value.push(row.upload_id);
-    handleExpandChange(row, true);
+  // Use el-table API to toggle expand state, ensuring state synchronization
+  if (tableRef.value) {
+    tableRef.value.toggleRowExpansion(row);
   }
 }
 
@@ -348,12 +343,5 @@ onBeforeUnmount(() => {
 
 .expanded-content {
   padding: 20px;
-}
-
-.loading-container {
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 </style>

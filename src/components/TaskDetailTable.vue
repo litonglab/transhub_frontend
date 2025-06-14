@@ -2,11 +2,28 @@
   <el-card shadow="hover">
     <div class="task-detail-table-wrapper">
       <el-table
-        :data="tasks"
+        :data="internalTasks"
         style="width: 100%"
         :max-height="height"
         class="task-detail-table"
+        v-loading="loading"
+        element-loading-text="加载中..."
       >
+        <template #empty>
+          <div class="empty-container">
+            <span>暂无数据</span>
+            <el-button
+              link
+              :icon="RefreshIcon"
+              @click="handleRefresh"
+              :loading="loading"
+              size="small"
+              class="refresh-button"
+              title="刷新数据"
+            >
+            </el-button>
+          </div>
+        </template>
         <el-table-column
           prop="trace_name"
           label="测试文件"
@@ -43,6 +60,21 @@
           </template>
         </el-table-column>
         <el-table-column label="日志">
+          <template #header>
+            <div class="column-header">
+              <span>日志</span>
+              <el-button
+                link
+                :icon="RefreshIcon"
+                @click="handleRefresh"
+                :loading="loading"
+                size="small"
+                class="refresh-button"
+                title="刷新数据"
+              >
+              </el-button>
+            </div>
+          </template>
           <template #default="scope">
             <el-button @click="showLog(scope.row.log)">查看</el-button>
           </template>
@@ -63,7 +95,7 @@
         <div v-else>
           <textarea
             v-model="dialogContent"
-            style="width: 100%; height: 400px; white-space: pre-wrap"
+            style="width: 100%; height: 500px; white-space: pre-wrap"
             readonly
           ></textarea>
         </div>
@@ -73,31 +105,31 @@
 </template>
 
 <script setup>
-import {ref} from "vue";
+import {ref, watch} from "vue";
 import {APIS} from "@/config.js";
 import {request} from "@/utility.js";
 import {ElMessage} from "element-plus";
+import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
 
 const props = defineProps({
-  tasks: {
-    type: Array,
-    default: () => [],
+  upload_id: {
+    type: String,
+    required: true,
   },
   height: {
     type: String,
-    default: "400",
-  },
-  upload_id: {
-    type: String,
-    default: "",
+    default: "500",
   },
 });
 
+const internalTasks = ref([]);
 const dialogVisible = ref(false);
 const dialogContent = ref("");
 const dialogType = ref("");
+const loading = ref(false);
 
 async function fetchTasks(upload_id, delay = 0) {
+  loading.value = true;
   try {
     const data = await request(APIS.get_history_record_detail, {
       body: JSON.stringify({
@@ -107,13 +139,44 @@ async function fetchTasks(upload_id, delay = 0) {
     if (delay) {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
-    return data.tasks || [];
+    const tasks = data.tasks || [];
+    internalTasks.value = tasks;
+    return tasks;
   } catch (error) {
-    console.error("获取任务详情失败:", error);
-    // ElMessage.error("获取任务详情失败");
+    console.error("Failed to get task details:", error);
+    internalTasks.value = [];
     return [];
+  } finally {
+    loading.value = false;
   }
 }
+
+// Handle refresh button click
+function handleRefresh() {
+  if (props.upload_id) {
+    fetchTasks(props.upload_id, 100)
+      .then((result) => {
+        if (result.length !== 0) {
+          ElMessage.success("刷新成功");
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to refresh data:", error);
+        // ElMessage.error("Failed to refresh data");
+      });
+  }
+}
+
+// 监听 upload_id 变化，自动获取数据
+watch(
+  () => props.upload_id,
+  (newUploadId) => {
+    if (newUploadId) {
+      fetchTasks(newUploadId);
+    }
+  },
+  {immediate: true}
+);
 
 async function showImage(type, task_id) {
   try {
@@ -165,6 +228,30 @@ defineExpose({
 </script>
 
 <style scoped>
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.refresh-button {
+  padding: 2px;
+  margin-left: 8px;
+  color: #409eff;
+}
+
+.refresh-button:hover {
+  color: #66b1ff;
+}
+
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
 .task-detail-table-wrapper {
   width: 100%;
 }
