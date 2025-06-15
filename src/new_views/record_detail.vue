@@ -27,7 +27,6 @@
 import {defineProps, ref} from "vue";
 import {useRouter} from "vue-router";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
-import {ElMessage} from "element-plus";
 
 const props = defineProps({
   upload_id: {
@@ -49,11 +48,9 @@ function refreshTasks() {
     taskDetailTableRef.value
       .fetchTasks(props.upload_id, 100)
       .then(() => {
-        ElMessage.success("刷新成功");
       })
       .catch((error) => {
         console.error("Failed to refresh task details:", error);
-        // ElMessage.error("刷新失败");
       });
   } else {
     // ElMessage.error("组件未就绪");

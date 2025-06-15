@@ -15,7 +15,7 @@
           <el-button type="success" @click="toggleExpandAll">
             {{ allExpanded ? "折叠所有" : "展开所有" }}
           </el-button>
-          <el-button type="primary" @click="get_ranklist">刷新</el-button>
+          <el-button type="primary" @click="get_ranklist(200)">刷新</el-button>
         </div>
       </div>
     </el-row>
@@ -26,6 +26,7 @@
     <el-table
       v-else
       ref="tableRef"
+      v-loading="loading"
       :data="
         totalTableData.slice(
           (pageParams.page - 1) * pageParams.pageSize,
@@ -63,7 +64,12 @@
       ></el-table-column>
       <el-table-column prop="formatted_time" label="上传时间" min-width="150">
       </el-table-column>
-      <el-table-column prop="task_score" sortable="custom" label="总分" :sort-orders="['ascending', 'descending']">
+      <el-table-column
+        prop="task_score"
+        sortable="custom"
+        label="总分"
+        :sort-orders="['ascending', 'descending']"
+      >
         <template #default="scope">
           {{ scope.row.task_score.toFixed(2) }}
         </template>
@@ -113,7 +119,6 @@ import {nextTick, onBeforeUnmount, onMounted, ref} from "vue";
 import {APIS} from "@/config.js";
 import {formatDateTime, request} from "@/utility.js";
 import {useRouter} from "vue-router";
-import {ElMessage} from "element-plus";
 import {Link} from "@element-plus/icons-vue";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 
@@ -127,6 +132,7 @@ const expandedRows = ref([]);
 const tableRef = ref(null);
 const taskDetailRefs = ref({});
 const allExpanded = ref(false);
+const loading = ref(false);
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -158,7 +164,7 @@ const sortTableFun = ({prop, order}) => {
   });
 };
 
-// Toggle expand all rows function
+// Toggle expand all rows functions
 async function toggleExpandAll() {
   if (allExpanded.value) {
     // Collapse all rows
@@ -176,7 +182,7 @@ async function toggleExpandAll() {
     }
     allExpanded.value = false;
   } else {
-    // Expand all rows on current page
+    // Expand all rows on the current page
     const currentPageData = totalTableData.value.slice(
       (pageParams.value.page - 1) * pageParams.value.pageSize,
       pageParams.value.page * pageParams.value.pageSize
@@ -222,7 +228,8 @@ async function handleExpandChange(row, expandedRowsParam) {
   updateAllExpandedStatus();
 }
 
-async function get_ranklist() {
+async function get_ranklist(loading_delay = 0) {
+  loading.value = true;
   try {
     const res = await request(APIS.get_ranks, {
       method: "GET",
@@ -231,14 +238,13 @@ async function get_ranklist() {
     // 保存当前真正展开的行的upload_id列表
     const currentExpandedIds = [...expandedRows.value];
 
-    totalTableData.value = temp
-      .map((record) => {
-        const formatted_time = formatDateTime(record.upload_time);
-        return {
-          ...record,
-          formatted_time,
-        };
-      });
+    totalTableData.value = temp.map((record) => {
+      const formatted_time = formatDateTime(record.upload_time);
+      return {
+        ...record,
+        formatted_time,
+      };
+    });
 
     // Don't force re-render TaskDetailTable components, let them reuse existing instances
     // Refresh data of expanded components in the next tick
@@ -260,10 +266,13 @@ async function get_ranklist() {
         }
       }
     });
-
-    ElMessage.success("加载成功");
   } catch (error) {
     console.error("获取榜单数据失败:", error);
+  } finally {
+    if (loading_delay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, loading_delay));
+    }
+    loading.value = false;
   }
 }
 
@@ -288,17 +297,17 @@ function cleanupInvisibleComponents() {
     (pageParams.value.page - 1) * pageParams.value.pageSize,
     pageParams.value.page * pageParams.value.pageSize
   );
-  const currentPageIds = currentPageData.map(item => item.upload_id);
+  const currentPageIds = currentPageData.map((item) => item.upload_id);
 
   // Remove component references that are not on current page
-  Object.keys(taskDetailRefs.value).forEach(uploadId => {
+  Object.keys(taskDetailRefs.value).forEach((uploadId) => {
     if (!currentPageIds.includes(uploadId)) {
       delete taskDetailRefs.value[uploadId];
     }
   });
 
   // Update expandedRows to only include items on current page
-  expandedRows.value = expandedRows.value.filter(uploadId =>
+  expandedRows.value = expandedRows.value.filter((uploadId) =>
     currentPageIds.includes(uploadId)
   );
 }

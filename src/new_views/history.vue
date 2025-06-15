@@ -15,7 +15,7 @@
           <el-button type="success" @click="toggleExpandAll">
             {{ allExpanded ? "折叠所有" : "展开所有" }}
           </el-button>
-          <el-button type="primary" @click="get_history_records"
+          <el-button type="primary" @click="get_history_records(200)"
           >刷新
           </el-button>
         </div>
@@ -28,6 +28,7 @@
     <el-table
       v-else
       ref="tableRef"
+      v-loading="loading"
       :data="
         totalTableData.slice(
           (pageParams.page - 1) * pageParams.pageSize,
@@ -147,6 +148,7 @@ const expandedRows = ref([]);
 const tableRef = ref(null);
 const taskDetailRefs = ref({});
 const allExpanded = ref(false);
+const loading = ref(false);
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -168,7 +170,8 @@ const savePageState = () => {
   );
 };
 
-async function get_history_records() {
+async function get_history_records(loading_delay = 0) {
+  loading.value = true;
   try {
     const res = await request(APIS.get_history_records, {
       method: "GET",
@@ -209,10 +212,13 @@ async function get_history_records() {
         }
       }
     });
-
-    ElMessage.success("加载成功");
   } catch (error) {
     console.error("Failed to get history records:", error);
+  } finally {
+    if (loading_delay) {
+      await new Promise((resolve) => setTimeout(resolve, loading_delay));
+    }
+    loading.value = false;
   }
 }
 
@@ -299,17 +305,17 @@ function cleanupInvisibleComponents() {
     (pageParams.value.page - 1) * pageParams.value.pageSize,
     pageParams.value.page * pageParams.value.pageSize
   );
-  const currentPageIds = currentPageData.map(item => item.upload_id);
+  const currentPageIds = currentPageData.map((item) => item.upload_id);
 
   // Remove component references that are not on current page
-  Object.keys(taskDetailRefs.value).forEach(uploadId => {
+  Object.keys(taskDetailRefs.value).forEach((uploadId) => {
     if (!currentPageIds.includes(uploadId)) {
       delete taskDetailRefs.value[uploadId];
     }
   });
 
   // Update expandedRows to only include items on current page
-  expandedRows.value = expandedRows.value.filter(uploadId =>
+  expandedRows.value = expandedRows.value.filter((uploadId) =>
     currentPageIds.includes(uploadId)
   );
 }
@@ -329,7 +335,7 @@ function updateAllExpandedStatus() {
     currentPageData.length > 0;
 }
 
-// Toggle expand all rows function
+// Toggle expand all rows functions
 async function toggleExpandAll() {
   if (allExpanded.value) {
     // Collapse all rows
@@ -347,7 +353,7 @@ async function toggleExpandAll() {
     }
     allExpanded.value = false;
   } else {
-    // Expand all rows on current page
+    // Expand all rows on the current page
     const currentPageData = totalTableData.value.slice(
       (pageParams.value.page - 1) * pageParams.value.pageSize,
       pageParams.value.page * pageParams.value.pageSize

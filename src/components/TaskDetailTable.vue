@@ -155,10 +155,10 @@ async function fetchTasks(upload_id, delay = 0) {
 function handleRefresh() {
   if (props.upload_id) {
     fetchTasks(props.upload_id, 100)
-      .then((result) => {
-        if (result.length !== 0) {
-          ElMessage.success("刷新成功");
-        }
+      .then(() => {
+        // if (result.length !== 0) {
+        //   ElMessage.success("刷新成功");
+        // }
       })
       .catch((error) => {
         console.error("Failed to refresh data:", error);
