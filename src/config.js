@@ -12,7 +12,6 @@ export const APIS = {
 
   //task
   upload: hostname + '/task_upload',
-  get_task_info: hostname + '/task_get_task_info',
 
   //history
   get_history_records: hostname + '/history_get_history_records',
