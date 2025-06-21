@@ -1,10 +1,10 @@
 # nginx部署指南
-nginx是一个高性能的HTTP反向代理服务器，~~部署在前端服务器上，用于转发请求到后端服务器。~~
-~~在Transhub中，前后端在一个服务器上，nginx主要有两个功能~~：  
-- ~~用户访问服务器的端口时，转发到前端页面~~
-- ~~用户访问服务器的/api路径时，转发到后端API~~
+nginx是一个高性能的HTTP反向代理服务器，部署在前端服务器上，用于转发请求到后端服务器。
+在Transhub中，前后端在一个服务器上，nginx主要有两个功能：  
+- 用户访问服务器的端口时，转发到前端页面
+- 用户访问服务器的/api路径时，转发到后端API，因此需要配置生产环境环境变量中的`VITE_APP_API_HOST`为`/api`
 
-(202505补充说明：为便于部署，直接将打包好的前端dist文件夹放到flask后端中，随后端一起部署，不需要单独部署前端)
+(202505补充说明：为便于部署，可以直接将打包好的前端dist文件夹放到flask后端指定文件夹中，随后端一起部署，不需要单独部署前端)
 
 ## 1. 安装
 ```bash
@@ -19,7 +19,7 @@ server {
         listen 4000 ssl;
         listen [::]:4000 ssl;
         server_name tranhub;  # You can specify the server_name if needed
-        root /home/liuwei/new_transhub/dist;  # Replace with the actual path to your Vite dist folder
+        root /home/liuwei/new_transhub/dist;  # 生成的前端dist文件夹路径，Replace with the actual path to your Vite dist folder
         index index.html;
 
         # 指定 SSL 证书路径
@@ -37,7 +37,7 @@ server {
 
             location /api {
                 rewrite ^/api/?(.*)$ /$1 break;   # Strip /api prefix before proxying
-                proxy_pass http://localhost:12345;  # Backend API running on port 12345
+                proxy_pass http://localhost:12345;  # 后端的访问地址，Backend API running on port 12345
 
                 # Ensure the headers for session and client information are forwarded
                 proxy_set_header Host $host;
