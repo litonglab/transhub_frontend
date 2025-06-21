@@ -67,7 +67,6 @@ function refreshTasks() {
 }
 
 .table-container {
-  height: calc(100vh - 120px);
   overflow: auto;
 }
 </style>
