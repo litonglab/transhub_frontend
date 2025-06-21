@@ -1,74 +1,167 @@
 <template>
-  <el-row>
-    <div class="text-h4 pa-10">榜单展示</div>
-  </el-row>
-  <el-empty v-if="!tableData.length" description="还没有人提交过"></el-empty>
-  <!-- <div class="flex default_margin flex_justify_content_center">
-    <canvas v-for="page in pages" :id="'the-canvas'+page" :key="page"></canvas>
-  </div> -->
-  <el-table
-    :data="
-      tableData.slice(
-        (pageParams.page - 1) * pageParams.pageSize,
-        pageParams.page * pageParams.pageSize
-      )
-    "
-    :header-cell-style="{ 'text-align': 'center' }"
-    :cell-style="{ textAlign: 'center' }"
-    @sort-change="sortTableFun"
-    style="width: 100%; margin: auto"
-  >
-    <el-table-column label="序号" type="index" width="100" :index="indexAdd">
-    </el-table-column>
-    <el-table-column prop="username" label="用户名"> </el-table-column>
-    <el-table-column prop="algorithm" label="算法名称"> </el-table-column>
-    <el-table-column prop="formatted_time" label="上传时间" width="180">
-    </el-table-column>
-    <el-table-column prop="task_score" sortable="custom" label="总评分">
-    </el-table-column>
-    <el-table-column label="详情">
-      <template #default="{ row }">
-        <el-button type="success" plain @click="viewDetail(row.upload_id)"
-          >查看</el-button
-        >
-      </template>
-    </el-table-column>
-  </el-table>
-  <el-row class="flex default_margin flex_justify_content_center">
-    <el-pagination
-      background
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="pageParams.page"
-      :page-sizes="[10, 15, 20, 25]"
-      :page-size="pageParams.pageSize"
-      layout="total, sizes, prev, next, jumper"
-      :total="tableData.length"
+  <div id="ranklist">
+    <el-row class="text-h4 pa-10">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        "
+      >
+        <span>榜单展示</span>
+        <div>
+          <el-button type="success" @click="toggleExpandAll">
+            {{ allExpanded ? "折叠所有" : "展开所有" }}
+          </el-button>
+          <el-button type="primary" @click="get_ranklist(200)">刷新</el-button>
+        </div>
+      </div>
+      <el-text style="margin-left: auto; margin-top: 10px">
+        <el-icon>
+          <InfoFilled/>
+        </el-icon>
+        榜单数据将自动刷新
+      </el-text>
+    </el-row>
+    <el-empty
+      v-if="!totalTableData.length"
+      description="当前暂无榜单数据"
+    ></el-empty>
+    <el-table
+      v-else
+      ref="tableRef"
+      v-loading="loading"
+      :data="
+        totalTableData.slice(
+          (pageParams.page - 1) * pageParams.pageSize,
+          pageParams.page * pageParams.pageSize
+        )
+      "
+      :header-cell-style="{ 'text-align': 'center' }"
+      :cell-style="{ textAlign: 'center' }"
+      @sort-change="sortTableFun"
+      style="width: 100%; margin: auto"
+      @expand-change="handleExpandChange"
+      row-key="upload_id"
     >
-    </el-pagination>
-  </el-row>
+      <el-table-column type="expand">
+        <template #default="props">
+          <div class="expanded-content">
+            <task-detail-table
+              :ref="
+                (el) => {
+                  if (el) taskDetailRefs[props.row.upload_id] = el;
+                }
+              "
+              :upload_id="props.row.upload_id"
+            />
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="编号" type="index" width="60" :index="indexAdd">
+      </el-table-column>
+      <el-table-column prop="username" label="用户名"></el-table-column>
+      <el-table-column
+        prop="algorithm"
+        label="算法"
+        min-width="150"
+      ></el-table-column>
+      <el-table-column prop="formatted_time" label="上传时间" min-width="150">
+      </el-table-column>
+      <el-table-column
+        prop="task_score"
+        sortable="custom"
+        label="总分"
+        :sort-orders="['ascending', 'descending']"
+      >
+        <template #default="scope">
+          {{ scope.row.task_score.toFixed(2) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="详情" min-width="90">
+        <template #default="{ row }">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+            "
+          >
+            <el-button type="success" plain @click="toggleExpand(row)"
+            >查看
+            </el-button>
+            <el-icon
+              class="link-icon"
+              style="cursor: pointer; font-size: 16px; color: #409eff"
+              @click="viewDetail(row.upload_id)"
+            >
+              <Link/>
+            </el-icon>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-row class="flex default_margin flex_justify_content_center">
+      <el-pagination
+        background
+        v-model:current-page="pageParams.page"
+        :page-sizes="[5, 10, 25, 50, 100]"
+        :page-size="pageParams.pageSize"
+        layout="total, sizes, prev, next, jumper"
+        :total="totalTableData.length"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      >
+      </el-pagination>
+    </el-row>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
-// import { axios } from '@/utils/request';
-import { APIS } from "@/config.js";
-import { useAppStore } from "@/store/app.js";
-import { formatDateTime, request } from "@/utility.js";
-import { useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
+import {onBeforeUnmount, onMounted, ref} from "vue";
+import {APIS} from "@/config.js";
+import {formatDateTime, request} from "@/utility.js";
+import {useRouter} from "vue-router";
+import {InfoFilled, Link} from "@element-plus/icons-vue";
+import TaskDetailTable from "@/components/TaskDetailTable.vue";
+
 const router = useRouter();
-const store = useAppStore();
-const tableData = ref([]);
+const totalTableData = ref([]);
 const pageParams = ref({
   page: 1,
-  pageSize: 20,
+  pageSize: 25,
 });
-const pages = ref(1);
-const isDestroyed = ref(true);
+const expandedRows = ref([]);
+const tableRef = ref(null);
+const taskDetailRefs = ref({});
+const allExpanded = ref(false);
+const loading = ref(false);
+let autoRefreshTimer = null;
 
-const sortTableFun = ({ prop, order }) => {
-  tableData.value.sort((a, b) => {
+// 从 localStorage 加载分页状态
+const loadPageState = () => {
+  const savedState = localStorage.getItem("ranklistPageState");
+  if (savedState) {
+    const {page, pageSize} = JSON.parse(savedState);
+    pageParams.value = {page, pageSize};
+  }
+};
+
+// 保存分页状态到 localStorage
+const savePageState = () => {
+  localStorage.setItem(
+    "ranklistPageState",
+    JSON.stringify({
+      page: pageParams.value.page,
+      pageSize: pageParams.value.pageSize,
+    })
+  );
+};
+
+const sortTableFun = ({prop, order}) => {
+  totalTableData.value.sort((a, b) => {
     if (order === "ascending") {
       return a[prop] - b[prop];
     } else {
@@ -77,33 +170,165 @@ const sortTableFun = ({ prop, order }) => {
   });
 };
 
-const rankList = async () => {
-  try {
-    const data = await request(APIS.get_ranks, {
-      body: JSON.stringify({
-        user_id: store.user_id,
-        cname: store.cname,
-      }),
+// Toggle expand all rows functions
+async function toggleExpandAll() {
+  if (allExpanded.value) {
+    // Collapse all rows
+    expandedRows.value = [];
+    taskDetailRefs.value = {};
+    // Use tableRef to collapse all rows in the table
+    if (tableRef.value) {
+      const currentPageData = totalTableData.value.slice(
+        (pageParams.value.page - 1) * pageParams.value.pageSize,
+        pageParams.value.page * pageParams.value.pageSize
+      );
+      currentPageData.forEach((row) => {
+        tableRef.value.toggleRowExpansion(row, false);
+      });
+    }
+    allExpanded.value = false;
+  } else {
+    // Expand all rows on the current page
+    const currentPageData = totalTableData.value.slice(
+      (pageParams.value.page - 1) * pageParams.value.pageSize,
+      pageParams.value.page * pageParams.value.pageSize
+    );
+
+    currentPageData.forEach((row) => {
+      if (!expandedRows.value.includes(row.upload_id)) {
+        expandedRows.value.push(row.upload_id);
+      }
+      if (tableRef.value) {
+        tableRef.value.toggleRowExpansion(row, true);
+      }
     });
-    console.log(data);
-    tableData.value = data.rank.map((record) => {
-      const formatted_time = formatDateTime(record.upload_time);
-      return { ...record, formatted_time };
-    });
-  } catch (error) {
-    console.log(error);
+    allExpanded.value = true;
   }
-};
+}
+
+async function handleExpandChange(row, expandedRowsParam) {
+  // expandedRowsParam 是一个数组，包含当前所有展开的行
+  const isExpanded =
+    Array.isArray(expandedRowsParam) &&
+    expandedRowsParam.some(
+      (expandedRow) => expandedRow.upload_id === row.upload_id
+    );
+
+  if (isExpanded) {
+    // Row is expanded
+    if (!expandedRows.value.includes(row.upload_id)) {
+      expandedRows.value = [...expandedRows.value, row.upload_id];
+    }
+  } else {
+    // The Row is collapsed
+    expandedRows.value = expandedRows.value.filter(
+      (id) => id !== row.upload_id
+    );
+    // Clean up the corresponding component reference
+    if (taskDetailRefs.value[row.upload_id]) {
+      delete taskDetailRefs.value[row.upload_id];
+    }
+  }
+
+  // Update allExpanded status based on current page data
+  updateAllExpandedStatus();
+}
+
+async function get_ranklist(loading_delay = 0) {
+  loading.value = true;
+  try {
+    const res = await request(APIS.get_ranks, {
+      method: "GET",
+    });
+    let temp = res.rank;
+
+    totalTableData.value = temp.map((record) => {
+      const formatted_time = formatDateTime(record.upload_time);
+      return {
+        ...record,
+        formatted_time,
+      };
+    });
+
+    // No need to refresh the expanded rows, because rank list row item is static.
+  } catch (error) {
+    console.error("获取榜单数据失败:", error);
+  } finally {
+    if (loading_delay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, loading_delay));
+    }
+    loading.value = false;
+  }
+}
+
+// 启动自动刷新
+function startAutoRefresh() {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+  }
+  autoRefreshTimer = setInterval(() => {
+    get_ranklist();
+  }, 10000); // 每10秒刷新一次
+}
+
+// 停止自动刷新
+function stopAutoRefresh() {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
+  }
+}
 
 const handleSizeChange = (size) => {
   pageParams.value.pageSize = size;
-  console.log(pageParams.value.pageSize, "size");
+  pageParams.value.page = 1;
+  savePageState();
+  cleanupInvisibleComponents();
+  updateAllExpandedStatus();
 };
 
 const handleCurrentChange = (currentPage) => {
   pageParams.value.page = currentPage;
-  console.log(pageParams.value.page, "page");
+  savePageState();
+  cleanupInvisibleComponents();
+  updateAllExpandedStatus();
 };
+
+// Clean up component references that are not visible on current page
+function cleanupInvisibleComponents() {
+  const currentPageData = totalTableData.value.slice(
+    (pageParams.value.page - 1) * pageParams.value.pageSize,
+    pageParams.value.page * pageParams.value.pageSize
+  );
+  const currentPageIds = currentPageData.map((item) => item.upload_id);
+
+  // Remove component references that are not on current page
+  Object.keys(taskDetailRefs.value).forEach((uploadId) => {
+    if (!currentPageIds.includes(uploadId)) {
+      delete taskDetailRefs.value[uploadId];
+    }
+  });
+
+  // Update expandedRows to only include items on current page
+  expandedRows.value = expandedRows.value.filter((uploadId) =>
+    currentPageIds.includes(uploadId)
+  );
+}
+
+// Update allExpanded status based on current page data
+function updateAllExpandedStatus() {
+  const currentPageData = totalTableData.value.slice(
+    (pageParams.value.page - 1) * pageParams.value.pageSize,
+    pageParams.value.page * pageParams.value.pageSize
+  );
+  const currentPageIds = currentPageData.map((item) => item.upload_id);
+  const expandedInCurrentPage = currentPageIds.filter((id) =>
+    expandedRows.value.includes(id)
+  );
+  allExpanded.value =
+    expandedInCurrentPage.length === currentPageData.length &&
+    currentPageData.length > 0;
+}
 
 const indexAdd = (index) => {
   const page = pageParams.value.page;
@@ -111,18 +336,27 @@ const indexAdd = (index) => {
   return index + 1 + (page - 1) * pageSize;
 };
 
+function toggleExpand(row) {
+  // 使用 el-table 的方法来切换展开状态，确保状态同步
+  if (tableRef.value) {
+    tableRef.value.toggleRowExpansion(row);
+  }
+}
+
+function viewDetail(upload_id) {
+  router.push({name: "Detail", params: {upload_id}});
+}
+
 onMounted(() => {
-  rankList();
+  loadPageState();
+  get_ranklist();
+  startAutoRefresh(); // 启动自动刷新
 });
 
 onBeforeUnmount(() => {
-  console.log("destroy");
-  isDestroyed.value = false;
+  savePageState();
+  stopAutoRefresh(); // 清理定时器
 });
-
-function viewDetail(upload_id) {
-  router.push({ name: "Detail", params: { upload_id } });
-}
 </script>
 
 <style scoped>
@@ -138,22 +372,8 @@ function viewDetail(upload_id) {
   margin-top: 20px;
   margin-bottom: 40px;
 }
-.demo-image {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.view-wrapper {
-  padding-top: 1.22667rem;
-}
-.view-wrapper /deep/ .van-nav-bar .van-icon {
-  color: #333;
-  font-size: 18px;
-  margin-right: 3px;
-}
-.view-wrapper /deep/ .van-loading {
-  position: absolute;
-  top: 50%;
-  left: 46%;
+
+.expanded-content {
+  padding: 20px;
 }
 </style>
