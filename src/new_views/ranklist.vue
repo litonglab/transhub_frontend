@@ -1,8 +1,7 @@
 <template>
   <div id="ranklist">
-    <el-row>
+    <el-row class="text-h4 pa-10">
       <div
-        class="text-h4 pa-10"
         style="
           display: flex;
           justify-content: space-between;
@@ -18,6 +17,12 @@
           <el-button type="primary" @click="get_ranklist(200)">刷新</el-button>
         </div>
       </div>
+      <el-text style="margin-left: auto; margin-top: 10px">
+        <el-icon>
+          <InfoFilled/>
+        </el-icon>
+        榜单数据将自动刷新
+      </el-text>
     </el-row>
     <el-empty
       v-if="!totalTableData.length"
@@ -115,11 +120,11 @@
 </template>
 
 <script setup>
-import {nextTick, onBeforeUnmount, onMounted, ref} from "vue";
+import {onBeforeUnmount, onMounted, ref} from "vue";
 import {APIS} from "@/config.js";
 import {formatDateTime, request} from "@/utility.js";
 import {useRouter} from "vue-router";
-import {Link} from "@element-plus/icons-vue";
+import {InfoFilled, Link} from "@element-plus/icons-vue";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 
 const router = useRouter();
@@ -133,6 +138,7 @@ const tableRef = ref(null);
 const taskDetailRefs = ref({});
 const allExpanded = ref(false);
 const loading = ref(false);
+let autoRefreshTimer = null;
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -235,8 +241,6 @@ async function get_ranklist(loading_delay = 0) {
       method: "GET",
     });
     let temp = res.rank;
-    // 保存当前真正展开的行的upload_id列表
-    const currentExpandedIds = [...expandedRows.value];
 
     totalTableData.value = temp.map((record) => {
       const formatted_time = formatDateTime(record.upload_time);
@@ -246,26 +250,7 @@ async function get_ranklist(loading_delay = 0) {
       };
     });
 
-    // Don't force re-render TaskDetailTable components, let them reuse existing instances
-    // Refresh data of expanded components in the next tick
-    await nextTick(() => {
-      const validExpandedIds = currentExpandedIds.filter((id) =>
-        totalTableData.value.some((record) => record.upload_id === id)
-      );
-
-      // Refresh data of expanded components
-      for (const uploadId of validExpandedIds) {
-        const taskDetailRef = taskDetailRefs.value[uploadId];
-        if (taskDetailRef && taskDetailRef.fetchTasks) {
-          taskDetailRef.fetchTasks(uploadId, 200).catch((error) => {
-            console.error(
-              `Failed to refresh task details (${uploadId}):`,
-              error
-            );
-          });
-        }
-      }
-    });
+    // No need to refresh the expanded rows, because rank list row item is static.
   } catch (error) {
     console.error("获取榜单数据失败:", error);
   } finally {
@@ -273,6 +258,24 @@ async function get_ranklist(loading_delay = 0) {
       await new Promise((resolve) => setTimeout(resolve, loading_delay));
     }
     loading.value = false;
+  }
+}
+
+// 启动自动刷新
+function startAutoRefresh() {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+  }
+  autoRefreshTimer = setInterval(() => {
+    get_ranklist();
+  }, 10000); // 每10秒刷新一次
+}
+
+// 停止自动刷新
+function stopAutoRefresh() {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
   }
 }
 
@@ -347,10 +350,12 @@ function viewDetail(upload_id) {
 onMounted(() => {
   loadPageState();
   get_ranklist();
+  startAutoRefresh(); // 启动自动刷新
 });
 
 onBeforeUnmount(() => {
   savePageState();
+  stopAutoRefresh(); // 清理定时器
 });
 </script>
 

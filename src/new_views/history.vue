@@ -1,8 +1,7 @@
 <template>
   <div id="historyRecord">
-    <el-row>
+    <el-row class="text-h4 pa-10">
       <div
-        class="text-h4 pa-10"
         style="
           display: flex;
           justify-content: space-between;
@@ -20,6 +19,12 @@
           </el-button>
         </div>
       </div>
+      <el-text style="margin-left: auto; margin-top: 10px">
+        <el-icon>
+          <InfoFilled/>
+        </el-icon>
+        历史记录数据将自动刷新
+      </el-text>
     </el-row>
     <el-empty
       v-if="!totalTableData.length"
@@ -135,7 +140,7 @@ import {useRouter} from "vue-router";
 import {APIS} from "@/config";
 import {ElMessage} from "element-plus";
 import {formatDateTime, request} from "@/utility.js";
-import {Link} from "@element-plus/icons-vue";
+import {InfoFilled, Link} from "@element-plus/icons-vue";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 
 const router = useRouter();
@@ -149,6 +154,7 @@ const tableRef = ref(null);
 const taskDetailRefs = ref({});
 const allExpanded = ref(false);
 const loading = ref(false);
+let autoRefreshTimer = null;
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -219,6 +225,24 @@ async function get_history_records(loading_delay = 0) {
       await new Promise((resolve) => setTimeout(resolve, loading_delay));
     }
     loading.value = false;
+  }
+}
+
+// 启动自动刷新
+function startAutoRefresh() {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+  }
+  autoRefreshTimer = setInterval(() => {
+    get_history_records();
+  }, 10000); // 每10秒刷新一次
+}
+
+// 停止自动刷新
+function stopAutoRefresh() {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
   }
 }
 
@@ -409,10 +433,12 @@ function toggleExpand(row) {
 onMounted(() => {
   loadPageState();
   get_history_records();
+  startAutoRefresh(); // 启动自动刷新
 });
 
 onBeforeUnmount(() => {
   savePageState();
+  stopAutoRefresh(); // 清理定时器
 });
 </script>
 
