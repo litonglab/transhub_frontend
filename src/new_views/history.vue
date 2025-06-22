@@ -208,7 +208,12 @@ async function get_history_records(loading_delay = 0) {
       // Refresh data of expanded components
       for (const uploadId of validExpandedIds) {
         const taskDetailRef = taskDetailRefs.value[uploadId];
-        if (taskDetailRef && taskDetailRef.fetchTasks) {
+        if (
+          taskDetailRef &&
+          taskDetailRef.checkTaskStatus &&
+          taskDetailRef.checkTaskStatus() &&
+          taskDetailRef.fetchTasks
+        ) {
           taskDetailRef.fetchTasks(uploadId, 200).catch((error) => {
             console.error(
               `Failed to refresh task details (${uploadId}):`,
