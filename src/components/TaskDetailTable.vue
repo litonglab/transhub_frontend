@@ -222,8 +222,41 @@ function showLog(logContent) {
   dialogVisible.value = true;
 }
 
+// Check task status to determine whether to refresh or stop auto-refresh, used in parent component.
+function checkTaskStatus() {
+  if (!internalTasks.value || internalTasks.value.length === 0) {
+    return true; // If no task data, continue refreshing
+  }
+
+  const tasks = internalTasks.value;
+
+  // Check if any task has compile_failed status
+  const hasCompileFailed = tasks.some(
+    (task) => task.task_status === "compile_failed"
+  );
+  console.debug("Has compile failed task:", hasCompileFailed);
+  if (hasCompileFailed) {
+    console.debug("Found compile failed task, stopping auto-refresh");
+    return false;
+  }
+
+  // Check if all tasks are finished or error
+  const allFinishedOrError = tasks.every(
+    (task) => task.task_status === "finished" || task.task_status === "error"
+  );
+  console.debug("All tasks finished or error:", allFinishedOrError);
+
+  if (allFinishedOrError && tasks.length > 0) {
+    console.debug("All tasks completed or failed, stopping auto-refresh");
+    return false;
+  }
+
+  return true; // Continue auto-refresh
+}
+
 defineExpose({
   fetchTasks,
+  checkTaskStatus,
 });
 </script>
 

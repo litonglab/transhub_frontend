@@ -1,7 +1,6 @@
 <template>
-  <el-row>
+  <el-row class="text-h4 pa-10">
     <div
-      class="text-h4 pa-10"
       style="
         display: flex;
         justify-content: space-between;
@@ -15,6 +14,12 @@
         <el-button type="primary" @click="refreshTasks">刷新</el-button>
       </div>
     </div>
+    <el-text style="margin-left: auto; margin-top: 10px">
+      <el-icon>
+        <InfoFilled/>
+      </el-icon>
+      任务完成前其状态将自动刷新
+    </el-text>
   </el-row>
   <div class="record-detail-container">
     <div class="table-container">
@@ -24,9 +29,10 @@
 </template>
 
 <script setup>
-import {defineProps, ref} from "vue";
+import {defineProps, nextTick, onBeforeUnmount, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
+import {InfoFilled} from "@element-plus/icons-vue";
 
 const props = defineProps({
   upload_id: {
@@ -37,6 +43,7 @@ const props = defineProps({
 
 const router = useRouter();
 const taskDetailTableRef = ref(null);
+let autoRefreshTimer = null;
 
 function goBack() {
   router.back();
@@ -48,6 +55,14 @@ function refreshTasks() {
     taskDetailTableRef.value
       .fetchTasks(props.upload_id, 100)
       .then(() => {
+        // Check task status after refresh
+        if (
+          autoRefreshTimer &&
+          taskDetailTableRef.value &&
+          !taskDetailTableRef.value.checkTaskStatus()
+        ) {
+          stopAutoRefresh();
+        }
       })
       .catch((error) => {
         console.error("Failed to refresh task details:", error);
@@ -59,6 +74,48 @@ function refreshTasks() {
     );
   }
 }
+
+// Start auto-refresh
+function startAutoRefresh() {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+  }
+  autoRefreshTimer = setInterval(() => {
+    refreshTasks();
+  }, 5000); // Refresh every 5 seconds
+}
+
+// Stop auto-refresh
+function stopAutoRefresh() {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
+  }
+}
+
+onMounted(async () => {
+  // Wait for component to be fully mounted and data to be loaded
+  await nextTick();
+
+  // Give the TaskDetailTable component a moment to load initial data
+  setTimeout(() => {
+    // Check task status after initial load
+    if (
+      taskDetailTableRef.value &&
+      taskDetailTableRef.value.checkTaskStatus()
+    ) {
+      startAutoRefresh(); // Only start auto-refresh if needed
+    } else {
+      console.debug(
+        "Tasks already completed or failed, no need for auto-refresh"
+      );
+    }
+  }, 2000); // Wait 2 second for initial data load
+});
+
+onBeforeUnmount(() => {
+  stopAutoRefresh(); // Clean up timer
+});
 </script>
 
 <style scoped>
