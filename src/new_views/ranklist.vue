@@ -41,6 +41,7 @@
       :header-cell-style="{ 'text-align': 'center' }"
       :cell-style="{ textAlign: 'center' }"
       @sort-change="sortTableFun"
+      :default-sort="{ prop: 'task_score', order: 'descending' }"
       style="width: 100%; margin: auto"
       @expand-change="handleExpandChange"
       row-key="upload_id"
@@ -139,6 +140,8 @@ const taskDetailRefs = ref({});
 const allExpanded = ref(false);
 const loading = ref(false);
 let autoRefreshTimer = null;
+// Keep track of current sort state for data refresh
+let currentTableSort = {prop: "task_score", order: "descending"};
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -161,7 +164,19 @@ const savePageState = () => {
 };
 
 const sortTableFun = ({prop, order}) => {
-  totalTableData.value.sort((a, b) => {
+  // Update our tracking variable when user changes sort
+  currentTableSort = {prop, order};
+
+  // Apply sorting to the entire dataset
+  totalTableData.value = applySorting(totalTableData.value);
+};
+
+// 应用排序到整个数据集
+const applySorting = (data) => {
+  if (!currentTableSort.prop) return data;
+
+  return [...data].sort((a, b) => {
+    const {prop, order} = currentTableSort;
     if (order === "ascending") {
       return a[prop] - b[prop];
     } else {
@@ -242,13 +257,16 @@ async function get_ranklist(loading_delay = 0) {
     });
     let temp = res.rank;
 
-    totalTableData.value = temp.map((record) => {
+    const formattedData = temp.map((record) => {
       const formatted_time = formatDateTime(record.upload_time);
       return {
         ...record,
         formatted_time,
       };
     });
+
+    // Apply current sorting to the entire dataset
+    totalTableData.value = applySorting(formattedData);
 
     // No need to refresh the expanded rows, because rank list row item is static.
   } catch (error) {

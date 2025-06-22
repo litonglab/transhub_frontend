@@ -76,6 +76,7 @@
         label="上传时间"
         width="180"
         sortable="custom"
+        :sort-orders="['ascending', 'descending']"
       >
       </el-table-column>
       <el-table-column
@@ -83,7 +84,8 @@
         label="状态"
         min-width="120"
       ></el-table-column>
-      <el-table-column prop="score" label="总分" sortable="custom">
+      <el-table-column prop="score" label="总分" sortable="custom"
+                       :sort-orders="['ascending', 'descending']">
         <template #default="scope">
           {{ scope.row.score.toFixed(2) }}
         </template>
@@ -155,6 +157,8 @@ const taskDetailRefs = ref({});
 const allExpanded = ref(false);
 const loading = ref(false);
 let autoRefreshTimer = null;
+// Keep track of current sort state for data refresh
+let currentTableSort = {prop: "formatted_time", order: "descending"};
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -176,6 +180,26 @@ const savePageState = () => {
   );
 };
 
+// 应用排序到整个数据集
+const applySorting = (data) => {
+  if (!currentTableSort.prop) return data;
+
+  return [...data].sort((a, b) => {
+    const {prop, order} = currentTableSort;
+    if (order === "ascending") {
+      if (prop === "formatted_time") {
+        return new Date(a.created_time) - new Date(b.created_time);
+      }
+      return a[prop] > b[prop] ? 1 : -1;
+    } else {
+      if (prop === "formatted_time") {
+        return new Date(b.created_time) - new Date(a.created_time);
+      }
+      return a[prop] < b[prop] ? 1 : -1;
+    }
+  });
+};
+
 async function get_history_records(loading_delay = 0) {
   loading.value = true;
   try {
@@ -186,17 +210,16 @@ async function get_history_records(loading_delay = 0) {
     // Save the upload_id list of currently expanded rows
     const currentExpandedIds = [...expandedRows.value];
 
-    totalTableData.value = temp
-      .map((record) => {
-        const formatted_time = formatDateTime(record.created_time);
-        return {
-          ...record,
-          formatted_time,
-        };
-      })
-      .sort((a, b) => {
-        return new Date(b.created_time) - new Date(a.created_time);
-      });
+    const formattedData = temp.map((record) => {
+      const formatted_time = formatDateTime(record.created_time);
+      return {
+        ...record,
+        formatted_time,
+      };
+    });
+
+    // Apply current sorting to the entire dataset
+    totalTableData.value = applySorting(formattedData);
 
     // Don't force re-render TaskDetailTable components, let them reuse existing instances
     // Refresh data of expanded components in the next tick
@@ -293,19 +316,11 @@ async function checkCode(upload_id) {
 }
 
 const handleSortChange = ({column, prop, order}) => {
-  totalTableData.value.sort((a, b) => {
-    if (order === "ascending") {
-      if (prop === "formatted_time") {
-        return new Date(a.created_time) - new Date(b.created_time);
-      }
-      return a[prop] > b[prop] ? 1 : -1;
-    } else {
-      if (prop === "formatted_time") {
-        return new Date(b.created_time) - new Date(a.created_time);
-      }
-      return a[prop] < b[prop] ? 1 : -1;
-    }
-  });
+  // Update our tracking variable when user changes sort
+  currentTableSort = {prop, order};
+
+  // Apply sorting to the entire dataset
+  totalTableData.value = applySorting(totalTableData.value);
 };
 
 const indexAdd = (index) => {
