@@ -108,7 +108,6 @@
 import {ref, watch} from "vue";
 import {APIS} from "@/config.js";
 import {request} from "@/utility.js";
-import {ElMessage} from "element-plus";
 import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
 
 const props = defineProps({
@@ -180,13 +179,16 @@ watch(
 
 async function showImage(type, task_id) {
   try {
+    const params = new URLSearchParams();
+    params.append("task_id", task_id);
+    params.append("graph_type", type);
+
+    const url = `${APIS.get_graph}?${params.toString()}`;
+
     const response = await request(
-      APIS.get_graph,
+      url,
       {
-        body: JSON.stringify({
-          task_id: task_id,
-          graph_type: type,
-        }),
+        method: "GET",
       },
       {raw: true}
     );
@@ -212,7 +214,8 @@ async function showImage(type, task_id) {
     dialogType.value = "image";
     dialogVisible.value = true;
   } catch (error) {
-    ElMessage.error("获取图片失败");
+    console.error("Failed to get image:", error);
+    // ElMessage.error("获取图片失败");
   }
 }
 

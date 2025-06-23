@@ -84,8 +84,12 @@
         label="状态"
         min-width="120"
       ></el-table-column>
-      <el-table-column prop="score" label="总分" sortable="custom"
-                       :sort-orders="['ascending', 'descending']">
+      <el-table-column
+        prop="score"
+        label="总分"
+        sortable="custom"
+        :sort-orders="['ascending', 'descending']"
+      >
         <template #default="scope">
           {{ scope.row.score.toFixed(2) }}
         </template>
@@ -280,12 +284,15 @@ function viewDetail(upload_id) {
 
 async function checkCode(upload_id) {
   try {
+    const params = new URLSearchParams();
+    params.append("upload_id", upload_id);
+
+    const url = `${APIS.get_code}?${params.toString()}`;
+
     const response = await request(
-      APIS.get_code,
+      url,
       {
-        body: JSON.stringify({
-          upload_id: upload_id,
-        }),
+        method: "GET",
       },
       {raw: true}
     );
