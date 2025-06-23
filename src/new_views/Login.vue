@@ -1,30 +1,36 @@
 <template>
-  <v-app>
+  <v-app class="bg-container">
     <v-app-bar flat elevation="2" color="error">
       <v-container class="fill-height d-flex">
         <v-app-bar-title>
           Transhub：中国人民大学“一人一栈”打榜平台
         </v-app-bar-title>
+      
+      
+        <!-- litonglab超链接图标 -->
+        <a href="https://www.litonglab.com/" target="_blank" rel="noopener noreferrer">
+        <img src="@/assets/litonglab-logo-long.png" height="40px" class="mr-3"> 
+        </a>
       </v-container>
     </v-app-bar>
+    
     <v-container class="fill-height">
-      <v-row no-gutters>
-        <v-col cols="7" class="hidden-sm-and-down">
-          <el-card class="box-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
-                <span>平台介绍</span>
-              </div>
-            </template>
-            <div style="line-height: 40px" class="text item">
+      <v-row justify="center" align="start" dense>
+        <v-col cols="12" md="6">
+          <v-card height="350" elevation="4" class="pa-6 frosted-card">
+          <v-card-title class="text-h6 font-weight-medium mb-4" >平台介绍</v-card-title>
+            <v-card-text class="text-body-1 text-dark" style="line-height: 1.8;">
+              <div>
               用户态协议框架Transhub基于UDP协议进行实现，提供传输协议基本的功能模块，如序号、包类型、确认机制等，并提供如发送、接收等预制的接口API。
               同学们需要在该框架上，修改controller.cc代码中的内容，实现一个拥塞控制算法，尽可能地提高网络性能。平台通过模拟真实的动态变化网络环境，
               针对P95排队时延和平均吞吐量两个指标，对参赛者提供的拥塞控制算法进行评估，并打出综合评分。
-            </div>
-          </el-card>
+              </div>
+            </v-card-text>
+        </v-card>
         </v-col>
+        
         <v-col>
-          <v-sheet width="300" class="my-login">
+          <v-sheet  height="350" width="300" class="my-login frosted-card">
             <v-form validate-on="submit" @submit.prevent="login">
               <v-text-field
                 v-model="userId"
@@ -49,11 +55,15 @@
               >
               </v-select>
 
-              <v-btn type="submit" class="mb-6" block>登录</v-btn>
-              <v-btn class="mb-6" @click="dialogVisible = true" block
-              >注册
-              </v-btn
-              >
+               <!-- 登录和注册按钮设置 -->
+              <div class="d-flex justify-center">
+                <v-btn type="submit" style="width: 80%;" color="error" class="mb-4">登录</v-btn>
+              </div>
+            
+              <div class="d-flex justify-center">
+                <v-btn style="width: 80%;" color="error" class="mb-4"  @click="dialogVisible = true">注册</v-btn>
+              </div>
+
               <v-alert class="mt-2" v-if="showAlert" type="error">
                 {{ statement }}
               </v-alert>
@@ -247,4 +257,19 @@ onMounted(async () => {
   position: relative;
   top: 30%;
 }
+
+.bg-container {
+  background: url('@/assets/人大背景照片.jpg') center/cover no-repeat;
+}/* 主页背景照片*/
+
+.frosted-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(15px);          /* 关键：模糊背景 */
+  backdrop-filter: blur(15px);          /* 关键：模糊背景 */
+  -webkit-backdrop-filter: blur(10px);  /* 兼容 Safari */
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); /* 可选美化阴影 */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* 可选边框美化 */
+}
+/* 平台介绍和登录卡片模糊背景设置*/
 </style>
