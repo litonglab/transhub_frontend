@@ -91,7 +91,7 @@
           v-if="dialogType === 'image'"
           :src="dialogContent"
           style="width: 100%"
-        />
+          alt=""/>
         <div v-else>
           <textarea
             v-model="dialogContent"

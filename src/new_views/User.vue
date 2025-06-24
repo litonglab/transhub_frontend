@@ -247,19 +247,6 @@ onMounted(async () => {
   font-size: 24px;
 }
 
-.pa-10 {
-  padding: 10px;
-}
-
-.card-header {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.content {
-  white-space: pre-wrap;
-}
-
 .mx-2 {
   margin: 8px;
 }
