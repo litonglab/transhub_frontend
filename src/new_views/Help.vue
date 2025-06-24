@@ -54,6 +54,5 @@ onMounted(() => {
 <style scoped>
 .markdown-body {
   box-sizing: border-box;
-  margin: 15px 25px;
 }
 </style>

@@ -1,8 +1,19 @@
 <template>
-  <el-row>
-    <div class="text-h4 pa-10">个人中心</div>
-  </el-row>
-  <el-card class="box-card" style="margin: 15px 25px">
+  <v-row class="flex-grow-0">
+    <v-col>
+      <div
+        style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+          "
+      >
+        <span class="text-h4">个人中心</span>
+      </div>
+    </v-col>
+  </v-row>
+  <el-card style="margin: 25px 0">
     <v-row>
       <v-col cols="12">
         <v-sheet>
