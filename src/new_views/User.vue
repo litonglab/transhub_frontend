@@ -3,11 +3,11 @@
     <v-col>
       <div
         style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-          "
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        "
       >
         <span class="text-h4">个人中心</span>
       </div>
@@ -74,11 +74,19 @@
         <v-card-text>
           <v-form ref="pwdFormRef">
             <v-text-field
+              label="用户名"
+              v-model="name"
+              prepend-icon="mdi-account"
+              readonly
+              autocomplete="username"
+            ></v-text-field>
+            <v-text-field
               label="旧密码"
               v-model="formLabelAlign.oldpwd"
               prepend-icon="mdi-lock"
               type="password"
               :rules="rules.oldpwd"
+              autocomplete="current-password"
             ></v-text-field>
             <v-text-field
               label="新密码"
@@ -86,6 +94,7 @@
               prepend-icon="mdi-lock"
               type="password"
               :rules="rules.newpwd"
+              autocomplete="new-password"
             ></v-text-field>
             <v-text-field
               label="确认密码"
@@ -93,6 +102,7 @@
               prepend-icon="mdi-lock"
               type="password"
               :rules="rules.confirmpwd"
+              autocomplete="new-password"
             ></v-text-field>
           </v-form>
         </v-card-text>
@@ -172,8 +182,7 @@ const pwdFormRef = ref(null); // 声明表单引用
 const change_pwd = async () => {
   const {valid} = await pwdFormRef.value.validate({force: true});
   if (!valid) return; // 验证失败则阻止提交
-  console.log(pwdFormRef.value);
-  console.log("change_pwd：", valid);
+  console.debug(pwdFormRef.value);
   try {
     await request(APIS.changepwd, {
       body: JSON.stringify({
