@@ -1,25 +1,22 @@
 <template>
   <v-app class="bg-container">
     <v-app-bar flat elevation="2" color="error">
-      <v-container class="fill-height d-flex">
-        <v-app-bar-title>
-          Transhub：中国人民大学“一人一栈”打榜平台
-        </v-app-bar-title>
-        <!-- litonglab超链接图标 -->
-        <a
-          href="https://www.litonglab.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="header-logo-link"
-        >
-          <img
-            src="@/assets/litonglab-logo-long.png"
-            height="100%"
-            class="header-logo"
-            alt="LitongLab Logo"
-          />
-        </a>
-      </v-container>
+      <v-app-bar-title>
+        Transhub：中国人民大学“一人一栈”打榜平台
+      </v-app-bar-title>
+      <!-- litonglab超链接图标 -->
+      <a
+        href="https://www.litonglab.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="header-logo-link"
+      >
+        <img
+          src="@/assets/litonglab-logo-long.png"
+          class="header-logo"
+          alt="LitongLab Logo"
+        />
+      </a>
     </v-app-bar>
 
     <v-container class="fill-height main-container">
@@ -326,7 +323,7 @@ onMounted(async () => {
 
 .header-logo {
   object-fit: contain;
-  height: 100%;
+  height: 60%;
   width: auto;
   max-height: none;
 }
@@ -365,7 +362,7 @@ onMounted(async () => {
   }
 
   .header-logo {
-    height: 100%;
+    height: 60%;
     max-height: none;
   }
 
