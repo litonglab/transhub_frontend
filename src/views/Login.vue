@@ -95,41 +95,44 @@
           </v-sheet>
         </v-col>
       </v-row>
-      <el-dialog v-model="dialogVisible" title="注册" width="30%">
-        <v-form validate-on="submit" @submit.prevent="register">
-          <v-text-field
-            v-model="userId"
-            label="账户"
-            :rules="userIdRules"
-            autocomplete="username"
-          ></v-text-field>
-          <v-text-field
-            v-model="password"
-            label="密码"
-            :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :rules="passwordRules"
-            :type="showPassword ? 'text' : 'password'"
-            counter
-            autocomplete="new-password"
-            @click:append-inner="showPassword = !showPassword"
-          ></v-text-field>
-          <v-text-field
-            v-model="Name"
-            label="真实姓名"
-            :rules="NameRules"
-            autocomplete="name"
-          ></v-text-field>
-          <v-text-field
-            v-model="sno"
-            label="学号"
-            :rules="snoRules"
-            autocomplete="off"
-          ></v-text-field>
-          <br/>
-          <br/>
-          <v-btn type="submit" class="mb-6" block>提交</v-btn>
-        </v-form>
-      </el-dialog>
+      <v-dialog v-model="dialogVisible" max-width="600px">
+        <v-card>
+          <v-card-title>注册</v-card-title>
+          <v-card-text>
+            <v-form validate-on="submit" @submit.prevent="register">
+              <v-text-field
+                v-model="userId"
+                label="账户"
+                :rules="userIdRules"
+                autocomplete="username"
+              ></v-text-field>
+              <v-text-field
+                v-model="password"
+                label="密码"
+                :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                :rules="passwordRules"
+                :type="showPassword ? 'text' : 'password'"
+                counter
+                autocomplete="new-password"
+                @click:append-inner="showPassword = !showPassword"
+              ></v-text-field>
+              <v-text-field
+                v-model="Name"
+                label="真实姓名"
+                :rules="NameRules"
+                autocomplete="name"
+              ></v-text-field>
+              <v-text-field
+                v-model="sno"
+                label="学号"
+                :rules="snoRules"
+                autocomplete="off"
+              ></v-text-field>
+              <v-btn type="submit" class="mb-6" block>提交</v-btn>
+            </v-form>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
     </v-container>
   </v-app>
 </template>

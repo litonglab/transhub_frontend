@@ -81,25 +81,29 @@
         </el-table-column>
       </el-table>
 
-      <el-dialog
-        v-model="dialogVisible"
-        :lock-scroll="true"
-        :modal-append-to-body="true"
-        :append-to-body="true"
-      >
-        <img
-          v-if="dialogType === 'image'"
-          :src="dialogContent"
-          style="width: 100%"
-          alt=""/>
-        <div v-else>
-          <textarea
-            v-model="dialogContent"
-            style="width: 100%; height: 500px; white-space: pre-wrap"
-            readonly
-          ></textarea>
-        </div>
-      </el-dialog>
+      <v-dialog v-model="dialogVisible" class="responsive-dialog">
+        <v-card>
+          <v-card-title>{{
+              dialogType === "image" ? "性能图" : "日志信息"
+            }}
+          </v-card-title>
+          <div style="padding: 5px 15px">
+            <img
+              v-if="dialogType === 'image'"
+              :src="dialogContent"
+              style="width: 100%"
+              alt=""
+            />
+            <div v-else>
+              <textarea
+                v-model="dialogContent"
+                style="width: 100%; height: 500px; white-space: pre-wrap"
+                readonly
+              ></textarea>
+            </div>
+          </div>
+        </v-card>
+      </v-dialog>
     </div>
   </el-card>
 </template>
@@ -298,5 +302,17 @@ defineExpose({
 
 .task-detail-table :deep(.el-table__body-wrapper) {
   overflow-y: auto;
+}
+
+.responsive-dialog {
+  max-width: 70%;
+  max-height: 95%;
+}
+
+@media (max-width: 600px) {
+  .responsive-dialog {
+    max-width: 100%;
+    max-height: 80%;
+  }
 }
 </style>
