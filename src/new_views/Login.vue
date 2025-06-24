@@ -5,37 +5,51 @@
         <v-app-bar-title>
           Transhub：中国人民大学“一人一栈”打榜平台
         </v-app-bar-title>
-      
-      
+
         <!-- litonglab超链接图标 -->
-        <a href="https://www.litonglab.com/" target="_blank" rel="noopener noreferrer">
-        <img src="@/assets/litonglab-logo-long.png" height="40px" class="mr-3"> 
+        <a
+          href="https://www.litonglab.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="@/assets/litonglab-logo-long.png"
+            height="40px"
+            class="mr-3"
+            alt=""/>
         </a>
       </v-container>
     </v-app-bar>
-    
-    <v-container class="fill-height">
-      <v-row justify="center" align="start" dense>
-        <v-col cols="12" md="6">
-          <v-card height="350" elevation="4" class="pa-6 frosted-card">
-          <v-card-title class="text-h6 font-weight-medium mb-4" >平台介绍</v-card-title>
-            <v-card-text class="text-body-1 text-dark" style="line-height: 1.8;">
+
+    <v-container class="fill-height main-container">
+      <v-row justify="center" align="center" dense class="content-row">
+        <v-col cols="12" md="6" class="mobile-col">
+          <v-card elevation="4" class="pa-6 frosted-card mobile-card">
+            <v-card-title class="text-h6 font-weight-medium mb-4"
+            >平台介绍
+            </v-card-title
+            >
+            <v-card-text
+              class="text-body-1 text-dark mobile-text-content"
+              style="line-height: 1.8"
+            >
               <div>
-              用户态协议框架Transhub基于UDP协议进行实现，提供传输协议基本的功能模块，如序号、包类型、确认机制等，并提供如发送、接收等预制的接口API。
-              同学们需要在该框架上，修改controller.cc代码中的内容，实现一个拥塞控制算法，尽可能地提高网络性能。平台通过模拟真实的动态变化网络环境，
-              针对P95排队时延和平均吞吐量两个指标，对参赛者提供的拥塞控制算法进行评估，并打出综合评分。
+                用户态协议框架Transhub基于UDP协议进行实现，提供传输协议基本的功能模块，如序号、包类型、确认机制等，并提供如发送、接收等预制的接口API。
+                同学们需要在该框架上，修改controller.cc代码中的内容，实现一个拥塞控制算法，尽可能地提高网络性能。平台通过模拟真实的动态变化网络环境，
+                针对P95排队时延和平均吞吐量两个指标，对参赛者提供的拥塞控制算法进行评估，并打出综合评分。
               </div>
             </v-card-text>
-        </v-card>
+          </v-card>
         </v-col>
-        
-        <v-col>
-          <v-sheet  height="350" width="300" class="my-login frosted-card">
+
+        <v-col class="mobile-col">
+          <v-sheet class="my-login frosted-card mobile-login-card">
             <v-form validate-on="submit" @submit.prevent="login">
               <v-text-field
                 v-model="userId"
                 label="账户"
                 :rules="userIdRules"
+                autocomplete="username"
               ></v-text-field>
               <v-text-field
                 v-model="password"
@@ -44,6 +58,7 @@
                 :rules="passwordRules"
                 :type="showPassword ? 'text' : 'password'"
                 counter
+                autocomplete="current-password"
                 @click:append-inner="showPassword = !showPassword"
               ></v-text-field>
 
@@ -55,13 +70,27 @@
               >
               </v-select>
 
-               <!-- 登录和注册按钮设置 -->
+              <!-- 登录和注册按钮设置 -->
               <div class="d-flex justify-center">
-                <v-btn type="submit" style="width: 80%;" color="error" class="mb-4">登录</v-btn>
+                <v-btn
+                  type="submit"
+                  style="width: 80%"
+                  color="error"
+                  class="mb-4"
+                >登录
+                </v-btn
+                >
               </div>
-            
+
               <div class="d-flex justify-center">
-                <v-btn style="width: 80%;" color="error" class="mb-4"  @click="dialogVisible = true">注册</v-btn>
+                <v-btn
+                  style="width: 80%"
+                  color="error"
+                  class="mb-4"
+                  @click="dialogVisible = true"
+                >注册
+                </v-btn
+                >
               </div>
 
               <v-alert class="mt-2" v-if="showAlert" type="error">
@@ -77,6 +106,7 @@
             v-model="userId"
             label="账户"
             :rules="userIdRules"
+            autocomplete="username"
           ></v-text-field>
           <v-text-field
             v-model="password"
@@ -85,17 +115,20 @@
             :rules="passwordRules"
             :type="showPassword ? 'text' : 'password'"
             counter
+            autocomplete="new-password"
             @click:append-inner="showPassword = !showPassword"
           ></v-text-field>
           <v-text-field
             v-model="Name"
             label="真实姓名"
             :rules="NameRules"
+            autocomplete="name"
           ></v-text-field>
           <v-text-field
             v-model="sno"
             label="学号"
             :rules="snoRules"
+            autocomplete="off"
           ></v-text-field>
           <br/>
           <br/>
@@ -158,13 +191,13 @@ let showAlert = ref(false);
 let statement = ref("");
 let dialogVisible = ref(false);
 
-const countdown = ref(60)
-let timer = null
+const countdown = ref(60);
+let timer = null;
 
 const openCountdownBox = (msg) => {
-  countdown.value = 15 // 重置倒计时为15秒
+  countdown.value = 15; // 重置倒计时为15秒
   ElMessageBox({
-    title: '提示',
+    title: "提示",
     message: () => `登录中...`,
     showClose: false,
     closeOnClickModal: false,
@@ -176,22 +209,24 @@ const openCountdownBox = (msg) => {
     center: true,
     beforeClose: (action, instance, done) => {
       // 倒计时未结束时禁止关闭
-      if (countdown.value > 0) return
-      done()
-    }
-  })
+      if (countdown.value > 0) return;
+      done();
+    },
+  });
 
   timer = setInterval(() => {
-    countdown.value--
+    countdown.value--;
     // 通过ElMessageBox实例更新内容
-    document.querySelector('.el-message-box__message').innerText = `${msg}\n请等待 ${countdown.value} 秒...`
+    document.querySelector(
+      ".el-message-box__message"
+    ).innerText = `${msg}\n请等待 ${countdown.value} 秒...`;
     if (countdown.value <= 0) {
-      clearInterval(timer)
+      clearInterval(timer);
       // 允许关闭，显示按钮
-      ElMessageBox.close()
+      ElMessageBox.close();
     }
-  }, 1000)
-}
+  }, 1000);
+};
 
 async function register() {
   const formData = new FormData();
@@ -200,7 +235,11 @@ async function register() {
   formData.append("real_name", Name.value);
   formData.append("sno", sno.value);
   try {
-    await request(APIS.register, {body: formData, headers: {}, isFormData: true});
+    await request(APIS.register, {
+      body: formData,
+      headers: {},
+      isFormData: true,
+    });
     ElMessage({type: "success", message: "注册成功！请返回登录页面"});
     dialogVisible.value = false;
   } catch (error) {
@@ -224,20 +263,16 @@ async function login() {
     } else {
       ElMessage({type: "error", message: "登录过程发生未知错误，请稍后再试"});
     }
-
   } catch (error) {
   }
 }
 
 onMounted(async () => {
   try {
-    const result = await request(
-      APIS.get_pantheon,
-      {
-        method: "GET"
-      },
-    );
-    pantheons.value = result['pantheon'] || [];
+    const result = await request(APIS.get_pantheon, {
+      method: "GET",
+    });
+    pantheons.value = result["pantheon"] || [];
   } catch (error) {
     pantheons.value = [];
   }
@@ -259,17 +294,104 @@ onMounted(async () => {
 }
 
 .bg-container {
-  background: url('@/assets/人大背景照片.jpg') center/cover no-repeat;
-}/* 主页背景照片*/
+  background: url("@/assets/ruc_background.jpg") center/cover no-repeat;
+}
+
+/* 主页背景照片*/
+
+.main-container {
+  padding-top: 80px; /* 为header留出空间 */
+}
+
+.content-row {
+  min-height: calc(100vh - 80px); /* 减去header高度 */
+}
 
 .frosted-card {
   background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(15px);          /* 关键：模糊背景 */
-  backdrop-filter: blur(15px);          /* 关键：模糊背景 */
-  -webkit-backdrop-filter: blur(10px);  /* 兼容 Safari */
+  backdrop-filter: blur(15px); /* 关键：模糊背景 */
+  -webkit-backdrop-filter: blur(10px); /* 兼容 Safari */
   border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); /* 可选美化阴影 */
   border: 1px solid rgba(255, 255, 255, 0.3); /* 可选边框美化 */
 }
+
+/* 移动端适配 */
+.mobile-card {
+  height: 350px; /* 桌面端保持固定高度 */
+}
+
+.mobile-login-card {
+  height: 350px;
+  width: 300px;
+}
+
+.mobile-text-content {
+  max-height: 250px; /* 限制文本区域最大高度 */
+  overflow-y: auto; /* 允许垂直滚动 */
+  -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
+}
+
+/* 移动设备适配 */
+@media (max-width: 768px) {
+  .main-container {
+    padding-top: 100px !important; /* 移动端增加更多顶部间距 */
+    padding-bottom: 20px; /* 底部留出空间 */
+  }
+
+  .content-row {
+    min-height: calc(100vh - 100px) !important; /* 移动端减去更多header高度 */
+    align-items: flex-start !important; /* 移动端改为顶部对齐 */
+  }
+
+  .mobile-col {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 16px;
+  }
+
+  .mobile-card {
+    height: auto; /* 移动端使用自适应高度 */
+    min-height: 300px; /* 设置最小高度 */
+    max-height: 65vh; /* 稍微减少最大高度以避免遮挡 */
+    width: 100% !important; /* 移动端宽度100% */
+  }
+
+  .mobile-login-card {
+    height: auto !important;
+    width: 100% !important; /* 移动端宽度100% */
+    min-height: 350px;
+    position: relative !important;
+    top: 0 !important;
+    margin: 0 !important;
+  }
+
+  .mobile-text-content {
+    max-height: 35vh; /* 移动端文本区域稍微减少高度 */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 8px; /* 为滚动条留出空间 */
+  }
+
+  /* 自定义滚动条样式（移动端可能不显示，但桌面端会更美观） */
+  .mobile-text-content::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .mobile-text-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+  }
+
+  .mobile-text-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+  }
+
+  .mobile-text-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
 /* 平台介绍和登录卡片模糊背景设置*/
 </style>
