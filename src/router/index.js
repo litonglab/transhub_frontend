@@ -1,5 +1,5 @@
 // Composables
-import { createRouter, createWebHistory } from "vue-router";
+import {createRouter, createWebHistory} from "vue-router";
 
 const routes = [
   {
@@ -9,45 +9,45 @@ const routes = [
   {
     path: "/login",
     name: "login",
-    meta: { requiresAuth: false },
+    meta: {requiresAuth: false},
     component: () => import("@/new_views/Login.vue"),
   },
   {
     path: "/transhub",
     name: "home",
-    meta: { requiresAuth: true },
+    meta: {requiresAuth: true},
     component: () => import("@/new_views/Home.vue"),
     children: [
       {
         path: "help",
         name: "help",
-        component: () => import("@/new_views/help.vue"),
+        component: () => import("@/new_views/Help.vue"),
       },
       {
         path: "history",
         name: "history",
-        component: () => import("@/new_views/history.vue"),
+        component: () => import("@/new_views/History.vue"),
       },
       {
         path: '/transhub/history/:upload_id',
         name: 'Detail',
-        component: () => import('@/new_views/record_detail.vue'),
+        component: () => import('@/new_views/RecordDetail.vue'),
         props: true,
       },
       {
         path: "user",
         name: "user",
-        component: () => import("@/new_views/user.vue"),
+        component: () => import("@/new_views/User.vue"),
       },
       {
         path: "upload",
         name: "upload",
-        component: () => import("@/new_views/upload.vue"),
+        component: () => import("@/new_views/Upload.vue"),
       },
       {
         path: "ranklist",
         name: "ranklist",
-        component: () => import("@/new_views/ranklist.vue"),
+        component: () => import("@/new_views/RankList.vue"),
       },
       {
         path: "/404",
