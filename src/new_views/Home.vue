@@ -1,16 +1,16 @@
 <template>
   <v-app>
-    <v-app-bar color="error">
+    <v-app-bar flat elevation="2" color="error">
       <v-container class="fill-height d-flex">
         <v-app-bar-title>
           Transhub：中国人民大学“一人一栈”打榜平台
         </v-app-bar-title>
 
         <v-spacer></v-spacer>
-        <v-btn>
+        <v-btn class="fill-height">
           {{ user_name }}
         </v-btn>
-        <v-btn @click="logout">
+        <v-btn @click="logout" class="fill-height">
           退出登录
         </v-btn>
 

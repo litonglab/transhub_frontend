@@ -5,18 +5,19 @@
         <v-app-bar-title>
           Transhub：中国人民大学“一人一栈”打榜平台
         </v-app-bar-title>
-
         <!-- litonglab超链接图标 -->
         <a
           href="https://www.litonglab.com/"
           target="_blank"
           rel="noopener noreferrer"
+          class="header-logo-link"
         >
           <img
             src="@/assets/litonglab-logo-long.png"
-            height="40px"
-            class="mr-3"
-            alt=""/>
+            height="100%"
+            class="header-logo"
+            alt="LitongLab Logo"
+          />
         </a>
       </v-container>
     </v-app-bar>
@@ -27,8 +28,7 @@
           <v-card elevation="4" class="pa-6 frosted-card mobile-card">
             <v-card-title class="text-h6 font-weight-medium mb-4"
             >平台介绍
-            </v-card-title
-            >
+            </v-card-title>
             <v-card-text
               class="text-body-1 text-dark mobile-text-content"
               style="line-height: 1.8"
@@ -78,8 +78,7 @@
                   color="error"
                   class="mb-4"
                 >登录
-                </v-btn
-                >
+                </v-btn>
               </div>
 
               <div class="d-flex justify-center">
@@ -89,8 +88,7 @@
                   class="mb-4"
                   @click="dialogVisible = true"
                 >注册
-                </v-btn
-                >
+                </v-btn>
               </div>
 
               <v-alert class="mt-2" v-if="showAlert" type="error">
@@ -316,6 +314,23 @@ onMounted(async () => {
   border: 1px solid rgba(255, 255, 255, 0.3); /* 可选边框美化 */
 }
 
+/* Header logo 样式 */
+.header-logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  margin-left: auto;
+  height: 100%;
+  padding: 0 12px;
+}
+
+.header-logo {
+  object-fit: contain;
+  height: 100%;
+  width: auto;
+  max-height: none;
+}
+
 /* 移动端适配 */
 .mobile-card {
   height: 350px; /* 桌面端保持固定高度 */
@@ -342,6 +357,16 @@ onMounted(async () => {
   .content-row {
     min-height: calc(100vh - 100px) !important; /* 移动端减去更多header高度 */
     align-items: flex-start !important; /* 移动端改为顶部对齐 */
+  }
+
+  .header-logo-link {
+    padding: 0 8px;
+    height: 100%;
+  }
+
+  .header-logo {
+    height: 100%;
+    max-height: none;
   }
 
   .mobile-col {
