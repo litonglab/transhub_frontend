@@ -20,7 +20,7 @@
     </v-app-bar>
 
     <v-container class="fill-height main-container">
-      <v-row justify="center" align="center" dense class="content-row">
+      <v-row justify="center" align="center" dense>
         <v-col cols="12" md="6" class="mobile-col">
           <v-card elevation="4" class="pa-6 frosted-card mobile-card">
             <v-card-title class="text-h6 font-weight-medium mb-4"
@@ -301,9 +301,6 @@ onMounted(async () => {
   padding-top: 80px; /* 为header留出空间 */
 }
 
-.content-row {
-  min-height: calc(100vh - 80px); /* 减去header高度 */
-}
 
 .frosted-card {
   background: rgba(255, 255, 255, 0.75);
@@ -353,11 +350,6 @@ onMounted(async () => {
   .main-container {
     padding-top: 100px !important; /* 移动端增加更多顶部间距 */
     padding-bottom: 20px; /* 底部留出空间 */
-  }
-
-  .content-row {
-    min-height: calc(100vh - 100px) !important; /* 移动端减去更多header高度 */
-    align-items: flex-start !important; /* 移动端改为顶部对齐 */
   }
 
   .header-logo-link {
