@@ -348,7 +348,8 @@ onMounted(async () => {
 }
 
 /* 移动设备适配 */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
+  /* 960px only used in this login page, to make login card width the same as content card. */
   .main-container {
     padding-top: 100px !important; /* 移动端增加更多顶部间距 */
     padding-bottom: 20px; /* 底部留出空间 */
