@@ -13,7 +13,7 @@
       </div>
     </v-col>
   </v-row>
-  <el-card style="margin: 25px 0">
+  <el-card style="margin: 25px 0; overflow-y: auto">
     <v-row>
       <v-col cols="12">
         <v-sheet>
