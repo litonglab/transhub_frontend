@@ -138,7 +138,7 @@ onUnmounted(() => {
   margin: 0 auto;
   width: 100%;
   position: relative;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .content-card {
@@ -155,7 +155,7 @@ onUnmounted(() => {
 
 /* 确保 v-main 和 container 占满全高 */
 .v-main {
-  height: 100vh !important; /* 减去 app-bar 的高度 */
+  height: 100dvh !important; /* 减去 app-bar 的高度 */
   display: flex !important;
   flex-direction: column;
 }
