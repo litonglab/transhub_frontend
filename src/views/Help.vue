@@ -33,12 +33,12 @@ async function fetchMarkdown() {
       {
         method: "GET",
       },
-      {raw: true}
+      {raw: true, showError: false}
     );
     const text = await markdowns.text();
     markdownContent.value = md.render(text);
   } catch (error) {
-    markdownContent.value = md.render("### 加载失败，请稍后再试。");
+    markdownContent.value = md.render("### 加载失败，请稍后再试。原因：" + error.message);
   }
 }
 
