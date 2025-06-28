@@ -54,6 +54,33 @@ onMounted(() => {
 <style scoped>
 .markdown-body {
   box-sizing: border-box;
-  margin: 15px 25px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.markdown-body :deep(img) {
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  display: block;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.markdown-body :deep(table) {
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+  white-space: nowrap;
+}
+
+.markdown-body :deep(pre) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.markdown-body :deep(code) {
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 </style>

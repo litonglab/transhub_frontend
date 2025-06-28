@@ -1,78 +1,98 @@
 <!--课程管理-->
 <template>
-  <div class="upload-container">
-    <el-row>
-      <div class="text-h4 pa-10">算法提交</div>
-    </el-row>
-    <!--  <detail :task_ID="task_id"></detail>-->
-    <el-card class="box-card">
-      <template #header>
-        <div class="card-header">
-          <span>使用指南</span>
-        </div>
-      </template>
-      <div style="line-height: 36px" class="text item">
-        1. 文件名仅可由字母、下划线、数字组成，且必须以字母开头。
-        <br/>
-        2.
-        文件名必须包含参赛选手的学号信息，否则成绩无效，建议命名为：姓名首字母缩写_学号.cc，如：xyz_2021123456.cc。
-        <br/>
-        3.
-        运行结束后，排行榜将更新个人最高分数及对应算法，可在排行榜或个人中心中查看得分和性能图。
-        <br/>
-        4.
-        文件提交后需等待运行完成后才能查看结果，等待时间由并发提交的文件数量决定，但最多不会超过三小时，超过该时间请与工作人员联系。
-        <br/>
-        5.
-        截止时间以服务器接收文件时间为准，页面倒计时仅供参考。截止后将不再接受新的提交，已提交的算法将继续运行并更新排行榜。
-        <br/>
-        6.
-        利用漏洞取得的不当成绩视为无效，打榜结束后，将对每个同学的最终代码进行审查。
-        <br/>
-        7. 如需切换课程（比赛），请退出登录后再重新登录。
-        <br/>
-      </div>
-      <el-upload
-        class="upload-demo"
-        action=""
-        drag
-        :http-request="uploadFile"
-        :on-preview="handlePreview"
-        :on-remove="handleRemove"
-        :before-remove="beforeRemove"
-        :multiple="false"
-        :on-exceed="handleExceed"
-        :on-change="handleChange"
-        :data="{ url: upload.url }"
-        :on-success="handleSuccess"
-        :file-list="fileList"
-        :accept="'.cc,.c,.cxx,.cpp,.c++'"
-        :disabled="upload_loading"
+  <!-- Header -->
+  <v-row class="flex-grow-0">
+    <v-col>
+      <div
+        style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+          "
       >
-        <el-icon class="el-icon--upload" style="height: 0">
-          <upload-filled/>
-        </el-icon>
-        <div class="el-upload__text"></div>
-        <el-button
-          plain
-          link
-          type="primary"
-          :disabled="upload_loading"
-          :loading="upload_loading"
-        >
-          将代码文件拖入此处或点击上传
-        </el-button>
-        <br/>
-        <el-text class="mx-1" type="info">竞赛时间：{{ time_range_str }}</el-text>
-        <template #tip>
-          <div class="el-upload__tip">代码文件以“算法名称.cc”的格式命名</div>
-        </template>
-      </el-upload>
-      <div class="countdown-timer-card">
-        <span class="countdown-timer">剩余：{{ countdownDisplay }}</span>
+        <span class="text-h4">算法提交</span>
       </div>
-    </el-card>
-  </div>
+    </v-col>
+  </v-row>
+  <!-- Scrollable Content -->
+  <v-row class="flex-grow-1" style="overflow-y: auto; min-height: 0">
+    <v-col>
+      <!--  <detail :task_ID="task_id"></detail>-->
+      <el-card class="box-card">
+        <template #header>
+          <div class="card-header">
+            <span>使用指南</span>
+          </div>
+        </template>
+        <div style="line-height: 36px" class="text item">
+          1. 文件名可由字母、下划线和数字组成。
+          <br/>
+          2.
+          文件名推荐命名为参赛选手的姓名和学号信息：姓名首字母缩写_学号.cc，如：xyz_2021123456.cc。
+          <br/>
+          3.
+          运行结束后，排行榜将更新个人最高分数及对应算法，可在排行榜或历史记录中查看得分和性能图。
+          <br/>
+          4.
+          代码提交后需等待评测运行完成后才能查看结果，等待时间由并发提交的文件数量决定，但最多不超过两小时，超过该时间请与工作人员联系。
+          <br/>
+          5.
+          截止时间以服务器接收文件时间为准，页面倒计时仅供参考。截止后不再接受新的提交，已提交的算法将继续运行并更新排行榜。
+          <br/>
+          6.
+          利用漏洞取得的不当成绩视为无效，打榜结束后，将对每个同学的最终代码进行审查。
+          <br/>
+          7. 如需切换课程（比赛），请退出登录后再重新选择相应课程登录。
+          <br/>
+        </div>
+        <el-upload
+          class="upload-demo"
+          action=""
+          drag
+          :http-request="uploadFile"
+          :on-preview="handlePreview"
+          :on-remove="handleRemove"
+          :before-remove="beforeRemove"
+          :multiple="false"
+          :on-exceed="handleExceed"
+          :on-change="handleChange"
+          :data="{ url: upload.url }"
+          :on-success="handleSuccess"
+          :file-list="fileList"
+          :accept="'.cc,.c,.cxx,.cpp,.c++'"
+          :disabled="upload_loading"
+        >
+          <el-icon class="el-icon--upload" style="height: 0">
+            <upload-filled/>
+          </el-icon>
+          <div class="el-upload__text"></div>
+          <el-button
+            plain
+            link
+            type="primary"
+            :disabled="upload_loading"
+            :loading="upload_loading"
+          >
+            将代码文件拖入此处或点击上传
+          </el-button>
+          <br/>
+          <el-text class="mx-1" type="info"
+          >竞赛时间：{{ time_range_str }}
+          </el-text
+          >
+          <template #tip>
+            <div class="el-upload__tip">
+              代码文件以“算法名称.cc”的格式命名
+            </div>
+          </template>
+        </el-upload>
+        <div class="countdown-timer-card">
+          <span class="countdown-timer">剩余：{{ countdownDisplay }}</span>
+        </div>
+      </el-card>
+    </v-col>
+  </v-row>
 </template>
 
 <script setup>
@@ -234,14 +254,6 @@ const handleSuccess = (response, file, fileList) => {
 </script>
 
 <style scoped>
-.upload-container {
-  height: 100%;
-  overflow-y: auto;
-  padding-bottom: 20px;
-  /* 确保在移动端有足够的滚动空间 */
-  -webkit-overflow-scrolling: touch;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -254,7 +266,7 @@ const handleSuccess = (response, file, fileList) => {
 }
 
 .item {
-  margin-bottom: 0px;
+  margin-bottom: 0;
   margin-top: 10px;
 }
 
@@ -262,8 +274,7 @@ const handleSuccess = (response, file, fileList) => {
   position: relative;
   left: 0;
   right: 0;
-  margin: auto;
-  margin: 15px 25px;
+  margin: 1px 0;
   padding-bottom: 10px;
 }
 

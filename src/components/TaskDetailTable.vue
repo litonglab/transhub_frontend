@@ -81,25 +81,29 @@
         </el-table-column>
       </el-table>
 
-      <el-dialog
-        v-model="dialogVisible"
-        :lock-scroll="true"
-        :modal-append-to-body="true"
-        :append-to-body="true"
-      >
-        <img
-          v-if="dialogType === 'image'"
-          :src="dialogContent"
-          style="width: 100%"
-        />
-        <div v-else>
-          <textarea
-            v-model="dialogContent"
-            style="width: 100%; height: 500px; white-space: pre-wrap"
-            readonly
-          ></textarea>
-        </div>
-      </el-dialog>
+      <v-dialog v-model="dialogVisible" class="responsive-dialog">
+        <v-card>
+          <v-card-title>{{
+              dialogType === "image" ? "性能图" : "日志信息"
+            }}
+          </v-card-title>
+          <div style="padding: 5px 15px">
+            <img
+              v-if="dialogType === 'image'"
+              :src="dialogContent"
+              style="width: 100%"
+              alt=""
+            />
+            <div v-else>
+              <textarea
+                v-model="dialogContent"
+                style="width: 100%; height: 500px; white-space: pre-wrap"
+                readonly
+              ></textarea>
+            </div>
+          </div>
+        </v-card>
+      </v-dialog>
     </div>
   </el-card>
 </template>
@@ -108,7 +112,6 @@
 import {ref, watch} from "vue";
 import {APIS} from "@/config.js";
 import {request} from "@/utility.js";
-import {ElMessage} from "element-plus";
 import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
 
 const props = defineProps({
@@ -180,13 +183,16 @@ watch(
 
 async function showImage(type, task_id) {
   try {
+    const params = new URLSearchParams();
+    params.append("task_id", task_id);
+    params.append("graph_type", type);
+
+    const url = `${APIS.get_graph}?${params.toString()}`;
+
     const response = await request(
-      APIS.get_graph,
+      url,
       {
-        body: JSON.stringify({
-          task_id: task_id,
-          graph_type: type,
-        }),
+        method: "GET",
       },
       {raw: true}
     );
@@ -212,7 +218,8 @@ async function showImage(type, task_id) {
     dialogType.value = "image";
     dialogVisible.value = true;
   } catch (error) {
-    ElMessage.error("获取图片失败");
+    console.error("Failed to get image:", error);
+    // ElMessage.error("获取图片失败");
   }
 }
 
@@ -222,8 +229,41 @@ function showLog(logContent) {
   dialogVisible.value = true;
 }
 
+// Check task status to determine whether to refresh or stop auto-refresh, used in parent component.
+function checkTaskStatus() {
+  if (!internalTasks.value || internalTasks.value.length === 0) {
+    return true; // If no task data, continue refreshing
+  }
+
+  const tasks = internalTasks.value;
+
+  // Check if any task has compile_failed status
+  const hasCompileFailed = tasks.some(
+    (task) => task.task_status === "compile_failed"
+  );
+  console.debug("Has compile failed task:", hasCompileFailed);
+  if (hasCompileFailed) {
+    console.debug("Found compile failed task, stopping auto-refresh");
+    return false;
+  }
+
+  // Check if all tasks are finished or error
+  const allFinishedOrError = tasks.every(
+    (task) => task.task_status === "finished" || task.task_status === "error"
+  );
+  console.debug("All tasks finished or error:", allFinishedOrError);
+
+  if (allFinishedOrError && tasks.length > 0) {
+    console.debug("All tasks completed or failed, stopping auto-refresh");
+    return false;
+  }
+
+  return true; // Continue auto-refresh
+}
+
 defineExpose({
   fetchTasks,
+  checkTaskStatus,
 });
 </script>
 
@@ -262,5 +302,17 @@ defineExpose({
 
 .task-detail-table :deep(.el-table__body-wrapper) {
   overflow-y: auto;
+}
+
+.responsive-dialog {
+  max-width: 70%;
+  max-height: 95%;
+}
+
+@media (max-width: 600px) {
+  .responsive-dialog {
+    max-width: 100%;
+    max-height: 80%;
+  }
 }
 </style>

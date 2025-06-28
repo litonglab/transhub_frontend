@@ -20,7 +20,7 @@
     </v-app-bar>
 
     <v-container class="fill-height main-container">
-      <v-row justify="center" align="center" dense class="content-row">
+      <v-row justify="center" align="center" dense>
         <v-col cols="12" md="6" class="mobile-col">
           <v-card elevation="4" class="pa-6 frosted-card mobile-card">
             <v-card-title class="text-h6 font-weight-medium mb-4"
@@ -95,41 +95,44 @@
           </v-sheet>
         </v-col>
       </v-row>
-      <el-dialog v-model="dialogVisible" title="注册" width="30%">
-        <v-form validate-on="submit" @submit.prevent="register">
-          <v-text-field
-            v-model="userId"
-            label="账户"
-            :rules="userIdRules"
-            autocomplete="username"
-          ></v-text-field>
-          <v-text-field
-            v-model="password"
-            label="密码"
-            :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :rules="passwordRules"
-            :type="showPassword ? 'text' : 'password'"
-            counter
-            autocomplete="new-password"
-            @click:append-inner="showPassword = !showPassword"
-          ></v-text-field>
-          <v-text-field
-            v-model="Name"
-            label="真实姓名"
-            :rules="NameRules"
-            autocomplete="name"
-          ></v-text-field>
-          <v-text-field
-            v-model="sno"
-            label="学号"
-            :rules="snoRules"
-            autocomplete="off"
-          ></v-text-field>
-          <br/>
-          <br/>
-          <v-btn type="submit" class="mb-6" block>提交</v-btn>
-        </v-form>
-      </el-dialog>
+      <v-dialog v-model="dialogVisible" max-width="600px">
+        <v-card>
+          <v-card-title>注册</v-card-title>
+          <v-card-text>
+            <v-form validate-on="submit" @submit.prevent="register">
+              <v-text-field
+                v-model="userId"
+                label="账户"
+                :rules="userIdRules"
+                autocomplete="username"
+              ></v-text-field>
+              <v-text-field
+                v-model="password"
+                label="密码"
+                :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                :rules="passwordRules"
+                :type="showPassword ? 'text' : 'password'"
+                counter
+                autocomplete="new-password"
+                @click:append-inner="showPassword = !showPassword"
+              ></v-text-field>
+              <v-text-field
+                v-model="Name"
+                label="真实姓名"
+                :rules="NameRules"
+                autocomplete="name"
+              ></v-text-field>
+              <v-text-field
+                v-model="sno"
+                label="学号"
+                :rules="snoRules"
+                autocomplete="off"
+              ></v-text-field>
+              <v-btn type="submit" class="mb-6" block>提交</v-btn>
+            </v-form>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
     </v-container>
   </v-app>
 </template>
@@ -298,9 +301,6 @@ onMounted(async () => {
   padding-top: 80px; /* 为header留出空间 */
 }
 
-.content-row {
-  min-height: calc(100vh - 80px); /* 减去header高度 */
-}
 
 .frosted-card {
   background: rgba(255, 255, 255, 0.75);
@@ -345,15 +345,11 @@ onMounted(async () => {
 }
 
 /* 移动设备适配 */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
+  /* 960px only used in this login page, to make login card width the same as content card. */
   .main-container {
     padding-top: 100px !important; /* 移动端增加更多顶部间距 */
     padding-bottom: 20px; /* 底部留出空间 */
-  }
-
-  .content-row {
-    min-height: calc(100vh - 100px) !important; /* 移动端减去更多header高度 */
-    align-items: flex-start !important; /* 移动端改为顶部对齐 */
   }
 
   .header-logo-link {

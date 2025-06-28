@@ -1,58 +1,61 @@
 <template>
   <v-app>
-    <!-- 应用栏 -->
-    <v-app-bar flat elevation="2" color="error">
-      <!-- 移动端菜单按钮 -->
-      <v-app-bar-nav-icon
-        @click="drawer = !drawer"
-        class="d-md-none"
-      ></v-app-bar-nav-icon>
+    <div class="app-container">
+      <!-- 应用栏 -->
+      <v-app-bar flat elevation="2" color="error">
+        <!-- 移动端菜单按钮 -->
+        <v-app-bar-nav-icon
+          @click="drawer = !drawer"
+          class="d-md-none"
+        ></v-app-bar-nav-icon>
 
-      <v-app-bar-title>
-        Transhub：中国人民大学“一人一栈”打榜平台
-      </v-app-bar-title>
+        <v-app-bar-title>
+          Transhub：中国人民大学“一人一栈”打榜平台
+        </v-app-bar-title>
 
-      <v-spacer></v-spacer>
+        <v-spacer></v-spacer>
 
-      <v-btn class="fill-height">
-        {{ user_name }}
-      </v-btn>
-      <v-btn @click="logout" class="fill-height"> 退出登录</v-btn>
-    </v-app-bar>
-    <!-- 导航抽屉 -->
-    <v-navigation-drawer
-      v-model="drawer"
-      :permanent="!isMobile"
-      :temporary="isMobile"
-      color="white"
-      width="280"
-    >
-      <v-list nav dense>
-        <v-list-item
-          v-for="power in powers.array"
-          :key="power.id_name"
-          :to="{ name: power.id_name }"
-          @click="handleNavigation(power.id_name)"
-          link
-          color="success"
-          rounded="lg"
-          class="ma-2"
-        >
-          <v-list-item-title class="text-subtitle-1">
-            {{ power.power_info }}
-          </v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
+        <v-btn class="fill-height">
+          {{ user_name }}
+        </v-btn>
+        <v-btn @click="logout" class="fill-height"> 退出登录</v-btn>
+      </v-app-bar>
+      <!-- 导航抽屉 -->
+      <v-navigation-drawer
+        v-model="drawer"
+        :permanent="!isMobile"
+        :temporary="isMobile"
+        color="white"
+        width="280"
+        :absolute="!isMobile"
+      >
+        <v-list nav dense>
+          <v-list-item
+            v-for="power in powers.array"
+            :key="power.id_name"
+            :to="{ name: power.id_name }"
+            @click="handleNavigation(power.id_name)"
+            link
+            color="success"
+            rounded="lg"
+            class="ma-2"
+          >
+            <v-list-item-title class="text-subtitle-1">
+              {{ power.power_info }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-navigation-drawer>
 
-    <!-- 主要内容区域 -->
-    <v-main class="bg-grey-lighten-3 d-flex">
-      <v-container fluid class="pa-0 d-flex flex-column full-height">
-        <v-card class="content-card flex-grow-1" rounded="lg">
-          <router-view/>
-        </v-card>
-      </v-container>
-    </v-main>
+      <!-- 主要内容区域 -->
+      <v-main class="bg-grey-lighten-3 d-flex">
+        <v-container fluid class="pa-0 d-flex flex-column full-height">
+          <v-card class="content-card flex-grow-1" rounded="lg">
+            <router-view/>
+          </v-card>
+        </v-container>
+      </v-main>
+    </div>
   </v-app>
 </template>
 
@@ -129,13 +132,21 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 应用容器样式 - 设置最大宽度并居中 */
+.app-container {
+  max-width: 2000px; /* 页面的最大宽度 */
+  margin: 0 auto;
+  width: 100%;
+  position: relative;
+  min-height: 100dvh;
+}
+
 .content-card {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: auto;
+  padding: 20px;
 }
 
 .full-height {
@@ -144,15 +155,16 @@ onUnmounted(() => {
 
 /* 确保 v-main 和 container 占满全高 */
 .v-main {
-  height: calc(100vh - 64px); /* 减去 app-bar 的高度 */
+  height: 100dvh !important; /* 减去 app-bar 的高度 */
   display: flex !important;
   flex-direction: column;
 }
 
 /* 移动端样式调整 */
 @media (max-width: 768px) {
-  .v-main {
-    height: calc(100vh - 56px); /* 移动端 app-bar 高度通常为 56px */
+  /* 移动端可以使用更小的最大宽度或不限制 */
+  .app-container {
+    max-width: none;
   }
 }
 

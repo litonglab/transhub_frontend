@@ -1,5 +1,5 @@
 // Composables
-import { createRouter, createWebHistory } from "vue-router";
+import {createRouter, createWebHistory} from "vue-router";
 
 const routes = [
   {
@@ -9,50 +9,50 @@ const routes = [
   {
     path: "/login",
     name: "login",
-    meta: { requiresAuth: false },
-    component: () => import("@/new_views/Login.vue"),
+    meta: {requiresAuth: false},
+    component: () => import("@/views/Login.vue"),
   },
   {
     path: "/transhub",
     name: "home",
-    meta: { requiresAuth: true },
-    component: () => import("@/new_views/Home.vue"),
+    meta: {requiresAuth: true},
+    component: () => import("@/views/Home.vue"),
     children: [
       {
         path: "help",
         name: "help",
-        component: () => import("@/new_views/help.vue"),
+        component: () => import("@/views/Help.vue"),
       },
       {
         path: "history",
         name: "history",
-        component: () => import("@/new_views/history.vue"),
+        component: () => import("@/views/History.vue"),
       },
       {
         path: '/transhub/history/:upload_id',
         name: 'Detail',
-        component: () => import('@/new_views/record_detail.vue'),
+        component: () => import('@/views/RecordDetail.vue'),
         props: true,
       },
       {
         path: "user",
         name: "user",
-        component: () => import("@/new_views/user.vue"),
+        component: () => import("@/views/User.vue"),
       },
       {
         path: "upload",
         name: "upload",
-        component: () => import("@/new_views/upload.vue"),
+        component: () => import("@/views/Upload.vue"),
       },
       {
         path: "ranklist",
         name: "ranklist",
-        component: () => import("@/new_views/ranklist.vue"),
+        component: () => import("@/views/RankList.vue"),
       },
       {
         path: "/404",
         name: "NotFound",
-        component: () => import("@/new_views/NotFound.vue"),
+        component: () => import("@/views/NotFound.vue"),
       },
       // 所有未定义路由，全部重定向到404页
       {

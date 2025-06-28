@@ -1,8 +1,19 @@
 <template>
-  <el-row>
-    <div class="text-h4 pa-10">个人中心</div>
-  </el-row>
-  <el-card class="box-card" style="margin: 15px 25px">
+  <v-row class="flex-grow-0">
+    <v-col>
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        "
+      >
+        <span class="text-h4">个人中心</span>
+      </div>
+    </v-col>
+  </v-row>
+  <el-card style="margin: 25px 0; overflow-y: auto">
     <v-row>
       <v-col cols="12">
         <v-sheet>
@@ -63,11 +74,19 @@
         <v-card-text>
           <v-form ref="pwdFormRef">
             <v-text-field
+              label="用户名"
+              v-model="name"
+              prepend-icon="mdi-account"
+              readonly
+              autocomplete="username"
+            ></v-text-field>
+            <v-text-field
               label="旧密码"
               v-model="formLabelAlign.oldpwd"
               prepend-icon="mdi-lock"
               type="password"
               :rules="rules.oldpwd"
+              autocomplete="current-password"
             ></v-text-field>
             <v-text-field
               label="新密码"
@@ -75,6 +94,7 @@
               prepend-icon="mdi-lock"
               type="password"
               :rules="rules.newpwd"
+              autocomplete="new-password"
             ></v-text-field>
             <v-text-field
               label="确认密码"
@@ -82,6 +102,7 @@
               prepend-icon="mdi-lock"
               type="password"
               :rules="rules.confirmpwd"
+              autocomplete="new-password"
             ></v-text-field>
           </v-form>
         </v-card-text>
@@ -161,8 +182,7 @@ const pwdFormRef = ref(null); // 声明表单引用
 const change_pwd = async () => {
   const {valid} = await pwdFormRef.value.validate({force: true});
   if (!valid) return; // 验证失败则阻止提交
-  console.log(pwdFormRef.value);
-  console.log("change_pwd：", valid);
+  console.debug(pwdFormRef.value);
   try {
     await request(APIS.changepwd, {
       body: JSON.stringify({
@@ -234,19 +254,6 @@ onMounted(async () => {
 <style scoped>
 .text-h4 {
   font-size: 24px;
-}
-
-.pa-10 {
-  padding: 10px;
-}
-
-.card-header {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.content {
-  white-space: pre-wrap;
 }
 
 .mx-2 {

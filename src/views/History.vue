@@ -1,125 +1,154 @@
 <template>
-  <div id="historyRecord">
-    <el-row class="text-h4 pa-10">
+  <!-- Header -->
+  <v-row class="flex-grow-0">
+    <v-col>
       <div
         style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          width: 100%;
-        "
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+          "
       >
-        <span>历史记录</span>
+        <span class="text-h4">历史记录</span>
         <div>
           <el-button type="success" @click="toggleExpandAll">
             {{ allExpanded ? "折叠所有" : "展开所有" }}
           </el-button>
-          <el-button type="primary" @click="get_history_records(200)"
-          >刷新
+          <el-button type="primary" @click="get_history_records(200)">
+            刷新
           </el-button>
         </div>
       </div>
-      <el-text style="margin-left: auto; margin-top: 10px">
-        <el-icon>
-          <InfoFilled/>
-        </el-icon>
-        历史记录数据将自动刷新
-      </el-text>
-    </el-row>
-    <el-empty
-      v-if="!totalTableData.length"
-      description="当前暂无历史记录"
-    ></el-empty>
-    <el-table
-      v-else
-      ref="tableRef"
-      v-loading="loading"
-      :data="
-        totalTableData.slice(
-          (pageParams.page - 1) * pageParams.pageSize,
-          pageParams.page * pageParams.pageSize
-        )
-      "
-      :header-cell-style="{ 'text-align': 'center' }"
-      :cell-style="{ textAlign: 'center' }"
-      style="width: 100%; margin: auto"
-      @sort-change="handleSortChange"
-      :default-sort="{ prop: 'formatted_time', order: 'descending' }"
-      @expand-change="handleExpandChange"
-      row-key="upload_id"
-    >
-      <el-table-column type="expand">
-        <template #default="props">
-          <div class="expanded-content">
-            <task-detail-table
-              :ref="
-                (el) => {
-                  if (el) taskDetailRefs[props.row.upload_id] = el;
-                }
-              "
-              :upload_id="props.row.upload_id"
-            />
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="编号" type="index" :index="indexAdd" width="60">
-      </el-table-column>
-      <el-table-column prop="cname" label="比赛名称" min-width="100">
-      </el-table-column>
-      <el-table-column
-        prop="algorithm"
-        label="算法"
-        min-width="150"
-      ></el-table-column>
-      <el-table-column
-        prop="formatted_time"
-        label="上传时间"
-        width="180"
-        sortable="custom"
+      <div style="text-align: right">
+        <el-text style="margin-top: 10px">
+          <el-icon>
+            <InfoFilled/>
+          </el-icon>
+          历史记录数据将自动刷新
+        </el-text>
+      </div>
+    </v-col>
+  </v-row>
+
+  <!-- Table -->
+  <v-row
+    class="flex-grow-1"
+    style="min-height: 0; margin-top: 10px; margin-bottom: 10px"
+  >
+    <v-col style="height: 100%; padding: 0">
+      <el-empty
+        v-if="!totalTableData.length"
+        description="当前暂无历史记录"
+        style="height: 100%"
+      ></el-empty>
+      <el-table
+        v-else
+        ref="tableRef"
+        v-loading="loading"
+        :data="
+            totalTableData.slice(
+              (pageParams.page - 1) * pageParams.pageSize,
+              pageParams.page * pageParams.pageSize
+            )
+          "
+        :header-cell-style="{ 'text-align': 'center' }"
+        :cell-style="{ textAlign: 'center' }"
+        style="width: 100%"
+        height="100%"
+        @sort-change="handleSortChange"
+        :default-sort="{ prop: 'formatted_time', order: 'descending' }"
+        @expand-change="handleExpandChange"
+        row-key="upload_id"
       >
-      </el-table-column>
-      <el-table-column
-        prop="status"
-        label="状态"
-        min-width="120"
-      ></el-table-column>
-      <el-table-column prop="score" label="总分" sortable="custom">
-        <template #default="scope">
-          {{ scope.row.score.toFixed(2) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="详情" min-width="90">
-        <template #default="{ row }">
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 4px;
-            "
-          >
-            <el-button type="success" plain @click="toggleExpand(row)"
-            >查看
-            </el-button>
-            <el-icon
-              class="link-icon"
-              style="cursor: pointer; font-size: 16px; color: #409eff"
-              @click="viewDetail(row.upload_id)"
+        <el-table-column type="expand">
+          <template #default="props">
+            <div class="expanded-content">
+              <task-detail-table
+                :ref="
+                    (el) => {
+                      if (el) taskDetailRefs[props.row.upload_id] = el;
+                    }
+                  "
+                :upload_id="props.row.upload_id"
+              />
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="编号"
+          type="index"
+          :index="indexAdd"
+          width="60"
+        >
+        </el-table-column>
+        <el-table-column prop="cname" label="比赛名称" min-width="100">
+        </el-table-column>
+        <el-table-column
+          prop="algorithm"
+          label="算法"
+          min-width="150"
+        ></el-table-column>
+        <el-table-column
+          prop="formatted_time"
+          label="上传时间"
+          width="180"
+          sortable="custom"
+          :sort-orders="['ascending', 'descending']"
+        >
+        </el-table-column>
+        <el-table-column
+          prop="status"
+          label="状态"
+          min-width="120"
+        ></el-table-column>
+        <el-table-column
+          prop="score"
+          label="总分"
+          sortable="custom"
+          :sort-orders="['ascending', 'descending']"
+        >
+          <template #default="scope">
+            {{ scope.row.score.toFixed(2) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="详情" min-width="90">
+          <template #default="{ row }">
+            <div
+              style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 4px;
+                "
             >
-              <Link/>
-            </el-icon>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="代码">
-        <template #default="{ row }">
-          <el-button type="success" plain @click="checkCode(row.upload_id)"
-          >下载
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-row class="flex default_margin flex_justify_content_center">
+              <el-button type="success" plain @click="toggleExpand(row)"
+              >查看
+              </el-button>
+              <el-icon
+                class="link-icon"
+                style="cursor: pointer; font-size: 16px; color: #409eff"
+                @click="viewDetail(row.upload_id)"
+              >
+                <Link/>
+              </el-icon>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="代码">
+          <template #default="{ row }">
+            <el-button type="success" plain @click="checkCode(row.upload_id)"
+            >下载
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </v-col>
+  </v-row>
+
+  <!-- Pagination -->
+  <v-row class="flex-grow-0">
+    <v-col class="d-flex justify-center">
       <el-pagination
         v-model:current-page="pageParams.page"
         :page-sizes="[5, 10, 25, 50, 100]"
@@ -130,8 +159,8 @@
         @current-change="handleCurrentChange"
       >
       </el-pagination>
-    </el-row>
-  </div>
+    </v-col>
+  </v-row>
 </template>
 
 <script setup>
@@ -155,6 +184,8 @@ const taskDetailRefs = ref({});
 const allExpanded = ref(false);
 const loading = ref(false);
 let autoRefreshTimer = null;
+// Keep track of current sort state for data refresh
+let currentTableSort = {prop: "formatted_time", order: "descending"};
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -176,6 +207,26 @@ const savePageState = () => {
   );
 };
 
+// 应用排序到整个数据集
+const applySorting = (data) => {
+  if (!currentTableSort.prop) return data;
+
+  return [...data].sort((a, b) => {
+    const {prop, order} = currentTableSort;
+    if (order === "ascending") {
+      if (prop === "formatted_time") {
+        return new Date(a.created_time) - new Date(b.created_time);
+      }
+      return a[prop] > b[prop] ? 1 : -1;
+    } else {
+      if (prop === "formatted_time") {
+        return new Date(b.created_time) - new Date(a.created_time);
+      }
+      return a[prop] < b[prop] ? 1 : -1;
+    }
+  });
+};
+
 async function get_history_records(loading_delay = 0) {
   loading.value = true;
   try {
@@ -186,17 +237,16 @@ async function get_history_records(loading_delay = 0) {
     // Save the upload_id list of currently expanded rows
     const currentExpandedIds = [...expandedRows.value];
 
-    totalTableData.value = temp
-      .map((record) => {
-        const formatted_time = formatDateTime(record.created_time);
-        return {
-          ...record,
-          formatted_time,
-        };
-      })
-      .sort((a, b) => {
-        return new Date(b.created_time) - new Date(a.created_time);
-      });
+    const formattedData = temp.map((record) => {
+      const formatted_time = formatDateTime(record.created_time);
+      return {
+        ...record,
+        formatted_time,
+      };
+    });
+
+    // Apply current sorting to the entire dataset
+    totalTableData.value = applySorting(formattedData);
 
     // Don't force re-render TaskDetailTable components, let them reuse existing instances
     // Refresh data of expanded components in the next tick
@@ -208,7 +258,12 @@ async function get_history_records(loading_delay = 0) {
       // Refresh data of expanded components
       for (const uploadId of validExpandedIds) {
         const taskDetailRef = taskDetailRefs.value[uploadId];
-        if (taskDetailRef && taskDetailRef.fetchTasks) {
+        if (
+          taskDetailRef &&
+          taskDetailRef.checkTaskStatus &&
+          taskDetailRef.checkTaskStatus() &&
+          taskDetailRef.fetchTasks
+        ) {
           taskDetailRef.fetchTasks(uploadId, 200).catch((error) => {
             console.error(
               `Failed to refresh task details (${uploadId}):`,
@@ -252,12 +307,15 @@ function viewDetail(upload_id) {
 
 async function checkCode(upload_id) {
   try {
+    const params = new URLSearchParams();
+    params.append("upload_id", upload_id);
+
+    const url = `${APIS.get_code}?${params.toString()}`;
+
     const response = await request(
-      APIS.get_code,
+      url,
       {
-        body: JSON.stringify({
-          upload_id: upload_id,
-        }),
+        method: "GET",
       },
       {raw: true}
     );
@@ -288,19 +346,11 @@ async function checkCode(upload_id) {
 }
 
 const handleSortChange = ({column, prop, order}) => {
-  totalTableData.value.sort((a, b) => {
-    if (order === "ascending") {
-      if (prop === "formatted_time") {
-        return new Date(a.created_time) - new Date(b.created_time);
-      }
-      return a[prop] > b[prop] ? 1 : -1;
-    } else {
-      if (prop === "formatted_time") {
-        return new Date(b.created_time) - new Date(a.created_time);
-      }
-      return a[prop] < b[prop] ? 1 : -1;
-    }
-  });
+  // Update our tracking variable when user changes sort
+  currentTableSort = {prop, order};
+
+  // Apply sorting to the entire dataset
+  totalTableData.value = applySorting(totalTableData.value);
 };
 
 const indexAdd = (index) => {
