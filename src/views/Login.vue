@@ -253,7 +253,15 @@ async function login() {
   try {
     const result = await request(APIS.login, {body: JSON.stringify(data)});
     if (result.code === 200) {
+      // 设置用户基本信息
       store.set_name(data.username);
+
+      // 如果后端返回了用户角色信息，设置到store中
+      if (result && result.role) {
+        store.set_role(result.role);
+      } else {
+        store.set_role("student"); // 默认为学生角色
+      }
       await router.push({name: "help"});
     } else if (result.code === 201) {
       // 使用ElMessageBox弹出一个对话框，并显示一个60秒的倒计时，倒计时结束前，不能关闭对话框
@@ -300,7 +308,6 @@ onMounted(async () => {
 .main-container {
   padding-top: 80px; /* 为header留出空间 */
 }
-
 
 .frosted-card {
   background: rgba(255, 255, 255, 0.75);

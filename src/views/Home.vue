@@ -14,7 +14,13 @@
         </v-app-bar-title>
 
         <v-spacer></v-spacer>
-
+        <v-chip
+          :color="getRoleColor(store.role)"
+          size="small"
+          variant="elevated"
+        >
+          {{ getRoleText(store.role) }}
+        </v-chip>
         <v-btn class="fill-height">
           {{ user_name }}
         </v-btn>
@@ -40,6 +46,12 @@
             rounded="lg"
             class="ma-2"
           >
+            <template v-slot:prepend>
+              <v-icon
+                :icon="getIconByName(power.id_name)"
+                class="me-3"
+              ></v-icon>
+            </template>
             <v-list-item-title class="text-subtitle-1">
               {{ power.power_info }}
             </v-list-item-title>
@@ -85,8 +97,12 @@ const info = [
   {id_name: "history", power_info: "历史记录"},
 ];
 
+// 管理员菜单项
+const adminInfo = {id_name: "admin", power_info: "管理员面板"};
+const taskQueueInfo = {id_name: "taskqueue", power_info: "任务队列"};
+
 const powers = reactive({
-  array: info,
+  array: store.is_admin ? [...info, adminInfo, taskQueueInfo] : info,
 });
 
 // 检测屏幕尺寸
@@ -107,6 +123,20 @@ const handleNavigation = (componentName) => {
   router.push({name: componentName});
 };
 
+// 根据页面名称获取对应的图标
+const getIconByName = (idName) => {
+  const iconMap = {
+    taskqueue: "mdi-monitor-dashboard",
+    admin: "mdi-shield-account",
+    help: "mdi-help-circle",
+    upload: "mdi-upload",
+    ranklist: "mdi-trophy",
+    user: "mdi-account",
+    history: "mdi-history",
+  };
+  return iconMap[idName] || "mdi-circle";
+};
+
 // 登出功能
 async function logout() {
   try {
@@ -114,7 +144,7 @@ async function logout() {
       method: "GET",
     });
     ElMessage({type: "success", message: "注销成功"});
-    store.set_name("");
+    store.clear_user_info();
     await router.push({name: "login"});
   } catch (error) {
   }
@@ -125,6 +155,29 @@ onMounted(() => {
   checkMobile();
   window.addEventListener("resize", checkMobile);
 });
+
+const getRoleColor = (role) => {
+  switch (role) {
+    case "super_admin":
+      return "purple";
+    case "admin":
+      return "primary";
+    default:
+      return "green";
+  }
+};
+
+const getRoleText = (role) => {
+  switch (role) {
+    case "super_admin":
+      return "超级管理员";
+    case "admin":
+      return "管理员";
+    default:
+      return "学生";
+  }
+};
+
 
 onUnmounted(() => {
   window.removeEventListener("resize", checkMobile);
