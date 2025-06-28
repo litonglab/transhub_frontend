@@ -4,21 +4,18 @@
     <v-col>
       <div
         style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-          "
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        "
       >
         <span class="text-h4">榜单展示</span>
         <div>
           <el-button type="success" @click="toggleExpandAll">
             {{ allExpanded ? "折叠所有" : "展开所有" }}
           </el-button>
-          <el-button type="primary" @click="get_ranklist(200)"
-          >刷新
-          </el-button
-          >
+          <el-button type="primary" @click="get_ranklist(200)">刷新</el-button>
         </div>
       </div>
       <div style="text-align: right">
@@ -48,11 +45,11 @@
         ref="tableRef"
         v-loading="loading"
         :data="
-            totalTableData.slice(
-              (pageParams.page - 1) * pageParams.pageSize,
-              pageParams.page * pageParams.pageSize
-            )
-          "
+          totalTableData.slice(
+            (pageParams.page - 1) * pageParams.pageSize,
+            pageParams.page * pageParams.pageSize
+          )
+        "
         :header-cell-style="{ 'text-align': 'center' }"
         :cell-style="{ textAlign: 'center' }"
         @sort-change="sortTableFun"
@@ -67,21 +64,16 @@
             <div class="expanded-content">
               <task-detail-table
                 :ref="
-                    (el) => {
-                      if (el) taskDetailRefs[props.row.upload_id] = el;
-                    }
-                  "
+                  (el) => {
+                    if (el) taskDetailRefs[props.row.upload_id] = el;
+                  }
+                "
                 :upload_id="props.row.upload_id"
               />
             </div>
           </template>
         </el-table-column>
-        <el-table-column
-          label="编号"
-          type="index"
-          width="60"
-          :index="indexAdd"
-        >
+        <el-table-column label="编号" type="index" width="60" :index="indexAdd">
         </el-table-column>
         <el-table-column prop="username" label="用户名"></el-table-column>
         <el-table-column
@@ -89,11 +81,7 @@
           label="算法"
           min-width="150"
         ></el-table-column>
-        <el-table-column
-          prop="formatted_time"
-          label="上传时间"
-          min-width="150"
-        >
+        <el-table-column prop="formatted_time" label="上传时间" min-width="150">
         </el-table-column>
         <el-table-column
           prop="task_score"
@@ -109,11 +97,11 @@
           <template #default="{ row }">
             <div
               style="
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  gap: 4px;
-                "
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+              "
             >
               <el-button type="success" plain @click="toggleExpand(row)"
               >查看
@@ -125,6 +113,29 @@
               >
                 <Link/>
               </el-icon>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="store.is_admin" label="代码">
+          <template #default="{ row }">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+              "
+            >
+              <el-button type="success" plain @click="viewCode(row.upload_id)"
+              >查看
+              </el-button>
+              <v-icon
+                class="download-icon"
+                style="cursor: pointer; font-size: 16px; color: #409eff"
+                @click="handleDownloadCode(row.upload_id)"
+              >
+                mdi-download
+              </v-icon>
             </div>
           </template>
         </el-table-column>
@@ -148,6 +159,13 @@
       </el-pagination>
     </v-col>
   </v-row>
+
+  <!-- Code View Dialog -->
+  <code-view-dialog
+    ref="codeDialogRef"
+    v-model:visible="codeDialogVisible"
+    :upload-id="currentUploadId"
+  />
 </template>
 
 <script setup>
@@ -157,8 +175,11 @@ import {formatDateTime, request} from "@/utility.js";
 import {useRouter} from "vue-router";
 import {InfoFilled, Link} from "@element-plus/icons-vue";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
+import CodeViewDialog from "@/components/CodeViewDialog.vue";
+import {useAppStore} from "@/store/app.js";
 
 const router = useRouter();
+const store = useAppStore();
 const totalTableData = ref([]);
 const pageParams = ref({
   page: 1,
@@ -169,6 +190,9 @@ const tableRef = ref(null);
 const taskDetailRefs = ref({});
 const allExpanded = ref(false);
 const loading = ref(false);
+const codeDialogVisible = ref(false);
+const currentUploadId = ref("");
+const codeDialogRef = ref(null);
 let autoRefreshTimer = null;
 // Keep track of current sort state for data refresh
 let currentTableSort = {prop: "task_score", order: "descending"};
@@ -395,6 +419,18 @@ function viewDetail(upload_id) {
   router.push({name: "Detail", params: {upload_id}});
 }
 
+async function viewCode(upload_id) {
+  currentUploadId.value = upload_id;
+  codeDialogVisible.value = true;
+}
+
+// 处理代码下载，调用组件的方法
+function handleDownloadCode(upload_id) {
+  if (codeDialogRef.value) {
+    codeDialogRef.value.downloadCode(upload_id);
+  }
+}
+
 onMounted(() => {
   loadPageState();
   get_ranklist();
@@ -423,5 +459,11 @@ onBeforeUnmount(() => {
 
 .expanded-content {
   padding: 20px;
+}
+
+.download-icon:hover {
+  color: #409eff !important;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
 }
 </style>
