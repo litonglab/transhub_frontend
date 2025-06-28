@@ -193,7 +193,7 @@ const countdown = ref(60);
 let timer = null;
 
 const openCountdownBox = (msg) => {
-  countdown.value = 15; // 重置倒计时为15秒
+  countdown.value = 10; // 重置倒计时为10秒
   ElMessageBox({
     title: "提示",
     message: () => `登录中...`,
