@@ -186,73 +186,6 @@
       </v-col>
     </v-row>
 
-    <!-- 相关进程信息 -->
-    <v-row
-      v-if="
-        systemInfo.process?.related_processes &&
-        systemInfo.process.related_processes.length > 0
-      "
-    >
-      <v-col cols="12">
-        <v-card>
-          <v-card-title> 相关进程信息</v-card-title>
-          <v-card-text>
-            <v-data-table
-              :headers="processHeaders"
-              :items="systemInfo.process.related_processes"
-              :items-per-page="10"
-              class="elevation-1"
-              dense
-              v-model:sort-by="processSortBy"
-            >
-              <template v-slot:item.pid="{ item }">
-                <v-chip
-                  :color="
-                    item.pid === systemInfo.process.current_process?.current_pid
-                      ? 'primary'
-                      : 'default'
-                  "
-                  size="small"
-                  variant="outlined"
-                >
-                  {{ item.pid }}
-                  <v-icon
-                    v-if="
-                      item.pid ===
-                      systemInfo.process.current_process?.current_pid
-                    "
-                    class="ml-1"
-                    size="small"
-                  >
-                    mdi-star
-                  </v-icon>
-                </v-chip>
-              </template>
-              <template v-slot:item.name="{ item }">
-                <v-chip size="small" variant="tonal" color="info">
-                  {{ item.name }}
-                </v-chip>
-              </template>
-              <template v-slot:item.uptime_formatted="{ item }">
-                <v-chip
-                  size="small"
-                  variant="tonal"
-                  :color="getUptimeColor(item.uptime_seconds)"
-                >
-                  {{ item.uptime_formatted }}
-                </v-chip>
-              </template>
-              <template v-slot:item.cmdline="{ item }">
-                <div class="cmdline-text">
-                  {{ item.cmdline }}
-                </div>
-              </template>
-            </v-data-table>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
     <!-- 课程详细配置 -->
     <v-row v-if="systemInfo.config?.course_detail">
       <v-col cols="12">
@@ -474,11 +407,78 @@
         </v-card>
       </v-col>
     </v-row>
-
+    
     <v-row v-else>
       <v-col cols="12" class="text-center">
         <v-progress-circular indeterminate size="64"></v-progress-circular>
         <div class="mt-4">加载系统信息中...</div>
+      </v-col>
+    </v-row>
+
+    <!-- 相关进程信息 -->
+    <v-row
+      v-if="
+        systemInfo.process?.related_processes &&
+        systemInfo.process.related_processes.length > 0
+      "
+    >
+      <v-col cols="12">
+        <v-card>
+          <v-card-title> 相关进程信息</v-card-title>
+          <v-card-text>
+            <v-data-table
+              :headers="processHeaders"
+              :items="systemInfo.process.related_processes"
+              :items-per-page="10"
+              class="elevation-1"
+              dense
+              v-model:sort-by="processSortBy"
+            >
+              <template v-slot:item.pid="{ item }">
+                <v-chip
+                  :color="
+                    item.pid === systemInfo.process.current_process?.current_pid
+                      ? 'primary'
+                      : 'default'
+                  "
+                  size="small"
+                  variant="outlined"
+                >
+                  {{ item.pid }}
+                  <v-icon
+                    v-if="
+                      item.pid ===
+                      systemInfo.process.current_process?.current_pid
+                    "
+                    class="ml-1"
+                    size="small"
+                  >
+                    mdi-star
+                  </v-icon>
+                </v-chip>
+              </template>
+              <template v-slot:item.name="{ item }">
+                <v-chip size="small" variant="tonal" color="info">
+                  {{ item.name }}
+                </v-chip>
+              </template>
+              <template v-slot:item.uptime_formatted="{ item }">
+                <v-chip
+                  size="small"
+                  variant="tonal"
+                  :color="getUptimeColor(item.uptime_seconds)"
+                >
+                  {{ item.uptime_formatted }}
+                </v-chip>
+              </template>
+              <template v-slot:item.cmdline="{ item }">
+                <div class="cmdline-text">
+                  {{ item.cmdline }}
+                </div>
+              </template>
+            </v-data-table>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
 

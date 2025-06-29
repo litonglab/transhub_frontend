@@ -15,7 +15,7 @@
           </v-chip-group>
         </div>
         <v-row>
-          <v-col cols="12" md="3">
+          <v-col cols="12" md="2">
             <v-card>
               <v-card-text class="text-center">
                 <v-icon
@@ -30,7 +30,7 @@
                 <div class="text-subtitle-2 d-flex align-center justify-center">
                   总用户数
                   <v-tooltip location="top">
-                    <template v-slot:activator="{ props }">
+                    <template #activator="{ props }">
                       <v-icon
                         v-bind="props"
                         icon="mdi-information-outline"
@@ -49,11 +49,11 @@
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col cols="12" md="2">
             <v-card>
               <v-card-text class="text-center">
                 <v-icon
-                  icon="mdi-file-document-multiple"
+                  icon="mdi-format-list-bulleted-square"
                   size="48"
                   color="info"
                   class="mb-2"
@@ -65,7 +65,7 @@
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col cols="12" md="2">
             <v-card>
               <v-card-text class="text-center">
                 <v-icon
@@ -81,7 +81,39 @@
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col cols="12" md="2">
+            <v-card>
+              <v-card-text class="text-center">
+                <v-icon
+                  icon="mdi-rocket-launch"
+                  size="48"
+                  color="primary"
+                  class="mb-2"
+                ></v-icon>
+                <div class="text-h4 font-weight-bold">
+                  {{ displayedTaskStats.running || 0 }}
+                </div>
+                <div class="text-subtitle-2">运行中任务</div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="2">
+            <v-card>
+              <v-card-text class="text-center">
+                <v-icon
+                  icon="mdi-timer-sand"
+                  size="48"
+                  color="warning"
+                  class="mb-2"
+                ></v-icon>
+                <div class="text-h4 font-weight-bold">
+                  {{ displayedTaskStats.queued || 0 }}
+                </div>
+                <div class="text-subtitle-2">队列中任务</div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="2">
             <v-card>
               <v-card-text class="text-center">
                 <v-icon
@@ -110,22 +142,22 @@
         </v-card>
       </v-col>
 
-      <!-- 角色分布统计 -->
-      <v-col cols="12" md="6">
-        <v-card>
-          <v-card-title>用户角色分布</v-card-title>
-          <v-card-text>
-            <div ref="roleStatsChart" style="height: 300px"></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
       <!-- 近7日提交统计 -->
       <v-col cols="12" md="6">
         <v-card>
           <v-card-title>近7日提交统计</v-card-title>
           <v-card-text>
             <div ref="dailySubmissionsChart" style="height: 300px"></div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- 角色分布统计 -->
+      <v-col cols="12" md="6">
+        <v-card>
+          <v-card-title>用户角色分布</v-card-title>
+          <v-card-text>
+            <div ref="roleStatsChart" style="height: 300px"></div>
           </v-card-text>
         </v-card>
       </v-col>
