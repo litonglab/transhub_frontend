@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import {ref} from "vue";
+import {onMounted, ref, watch} from "vue";
 import {useAppStore} from "@/store/app";
 import AdminUserManagement from "@/components/AdminUserManagement.vue";
 import AdminTaskManagement from "@/components/AdminTaskManagement.vue";
@@ -82,6 +82,19 @@ import AdminSystemLogs from "@/components/AdminSystemLogs.vue";
 
 const store = useAppStore();
 const activeTab = ref("stats");
+
+// Restore active tab from session storage on component mount
+onMounted(() => {
+  const savedTab = sessionStorage.getItem("adminActiveTab");
+  if (savedTab) {
+    activeTab.value = savedTab;
+  }
+});
+
+// Save active tab to session storage whenever it changes
+watch(activeTab, (newTab) => {
+  sessionStorage.setItem("adminActiveTab", newTab);
+});
 </script>
 
 <style scoped>
