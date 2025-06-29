@@ -11,6 +11,18 @@
           density="compact"
         ></v-text-field>
       </v-col>
+      <v-col cols="12" sm="6" md="3">
+        <v-select
+          v-model="cnameFilter"
+          label="课程筛选"
+          :items="pantheons"
+          @update:model-value="searchUsers"
+          :loading="coursesLoading"
+          clearable
+          density="compact"
+          no-data-text="没有可用的课程"
+        ></v-select>
+      </v-col>
       <v-col cols="12" sm="6" md="2">
         <v-select
           v-model="roleFilter"
@@ -39,18 +51,6 @@
           @update:model-value="searchUsers"
           clearable
           density="compact"
-        ></v-select>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-select
-          v-model="cnameFilter"
-          label="课程筛选"
-          :items="pantheons"
-          @update:model-value="searchUsers"
-          :loading="coursesLoading"
-          clearable
-          density="compact"
-          no-data-text="没有可用的课程"
         ></v-select>
       </v-col>
     </v-row>

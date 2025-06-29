@@ -130,10 +130,10 @@
         </v-card>
       </v-col>
 
-      <!-- 比赛参与统计 -->
+      <!-- 课程参与统计 -->
       <v-col cols="12" md="6">
         <v-card>
-          <v-card-title>比赛参与统计</v-card-title>
+          <v-card-title>课程参与统计</v-card-title>
           <v-card-text>
             <div ref="competitionStatsChart" style="height: 300px"></div>
           </v-card-text>
