@@ -31,6 +31,7 @@
       >
         <v-tab value="stats">统计分析</v-tab>
         <v-tab value="system">系统信息</v-tab>
+        <v-tab value="logs">系统日志</v-tab>
         <v-tab value="users">用户管理</v-tab>
         <v-tab value="tasks">任务管理</v-tab>
       </v-tabs>
@@ -52,12 +53,17 @@
 
           <!-- 统计分析 -->
           <v-window-item value="stats">
-            <AdminStatistics/>
+            <AdminStatistics :is-active="activeTab === 'stats'"/>
           </v-window-item>
 
           <!-- 系统信息 -->
           <v-window-item value="system">
-            <AdminSystemInfo/>
+            <AdminSystemInfo :is-active="activeTab === 'system'"/>
+          </v-window-item>
+
+          <!-- 系统日志 -->
+          <v-window-item value="logs">
+            <AdminSystemLogs :is-active="activeTab === 'logs'"/>
           </v-window-item>
         </v-window>
       </v-card>
@@ -72,6 +78,7 @@ import AdminUserManagement from "@/components/AdminUserManagement.vue";
 import AdminTaskManagement from "@/components/AdminTaskManagement.vue";
 import AdminStatistics from "@/components/AdminStatistics.vue";
 import AdminSystemInfo from "@/components/AdminSystemInfo.vue";
+import AdminSystemLogs from "@/components/AdminSystemLogs.vue";
 
 const store = useAppStore();
 const activeTab = ref("stats");
@@ -85,7 +92,7 @@ const activeTab = ref("stats");
 .admin-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100vh;
   overflow: hidden;
 }
 
