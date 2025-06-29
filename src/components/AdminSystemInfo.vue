@@ -9,16 +9,14 @@
             <v-list>
               <v-list-item>
                 <v-list-item-title>操作系统</v-list-item-title>
-                <v-list-item-subtitle>{{
-                    systemInfo.system?.platform || "-"
-                  }}
+                <v-list-item-subtitle
+                >{{ systemInfo.system?.platform || "-" }}
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
                 <v-list-item-title>Python版本</v-list-item-title>
-                <v-list-item-subtitle>{{
-                    systemInfo.system?.python_version || "-"
-                  }}
+                <v-list-item-subtitle
+                >{{ systemInfo.system?.python_version || "-" }}
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
@@ -60,16 +58,14 @@
               <v-divider style="margin: 10px 0"></v-divider>
               <v-list-item>
                 <v-list-item-title>进程ID</v-list-item-title>
-                <v-list-item-subtitle>{{
-                    systemInfo.process?.current_pid || "-"
-                  }}
+                <v-list-item-subtitle
+                >{{ systemInfo.process?.current_pid || "-" }}
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
                 <v-list-item-title>启动时间</v-list-item-title>
-                <v-list-item-subtitle>{{
-                    systemInfo.process?.start_time || "-"
-                  }}
+                <v-list-item-subtitle
+                >{{ systemInfo.process?.start_time || "-" }}
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
@@ -103,13 +99,6 @@
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
-                <v-list-item-title>日志级别</v-list-item-title>
-                <v-list-item-subtitle>{{
-                    systemInfo.config?.log_level || "-"
-                  }}
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item>
                 <v-list-item-title>运行环境</v-list-item-title>
                 <v-list-item-subtitle>
                   <v-chip
@@ -126,14 +115,27 @@
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
-                <v-list-item-title>支持的课程</v-list-item-title>
+                <v-list-item-title>日志级别</v-list-item-title>
+                <v-list-item-subtitle>
+                  <v-chip
+                    :color="getLogLevelColor(systemInfo.config?.log_level)"
+                    size="small"
+                    variant="elevated"
+                  >
+                    {{ systemInfo.config?.log_level || "-" }}
+                  </v-chip>
+                </v-list-item-subtitle>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>课程列表</v-list-item-title>
                 <v-list-item-subtitle>
                   <v-chip
                     v-for="course in systemInfo.config?.courses || []"
                     :key="course"
                     size="small"
                     class="mr-1 mb-1"
-                    variant="outlined"
+                    variant="elevated"
+                    color="info"
                   >
                     {{ course }}
                   </v-chip>
@@ -156,8 +158,7 @@
                     >允许注册的学生名单为所有课程学生名单总和，若总名单为空，则允许任何人注册。</span
                     >
                   </v-tooltip>
-                </v-list-item-title
-                >
+                </v-list-item-title>
                 <v-list-item-subtitle>
                   <v-chip
                     size="small"
@@ -261,14 +262,31 @@
                   <div class="d-flex align-center">
                     <v-icon class="mr-2" color="primary"
                     >mdi-book-outline
-                    </v-icon
-                    >
+                    </v-icon>
                     <span class="font-weight-medium">{{ courseName }}</span>
                     <v-spacer></v-spacer>
                     <v-chip
+                      :color="
+                        getCourseStatus(
+                          courseConfig.start_time,
+                          courseConfig.end_time
+                        ).color
+                      "
+                      size="small"
+                      variant="flat"
+                      class="mr-2"
+                    >
+                      {{
+                        getCourseStatus(
+                          courseConfig.start_time,
+                          courseConfig.end_time
+                        ).text
+                      }}
+                    </v-chip>
+                    <v-chip
                       :color="courseConfig.allow_login ? 'success' : 'error'"
                       size="small"
-                      variant="outlined"
+                      variant="flat"
                       class="mr-2"
                     >
                       {{ courseConfig.allow_login ? "允许登录" : "禁止登录" }}
@@ -281,23 +299,20 @@
                       <v-list dense>
                         <v-list-item>
                           <v-list-item-title>课程名称</v-list-item-title>
-                          <v-list-item-subtitle>{{
-                              courseConfig.name || "-"
-                            }}
+                          <v-list-item-subtitle
+                          >{{ courseConfig.name || "-" }}
                           </v-list-item-subtitle>
                         </v-list-item>
                         <v-list-item>
                           <v-list-item-title>开始时间</v-list-item-title>
-                          <v-list-item-subtitle>{{
-                              courseConfig.start_time || "-"
-                            }}
+                          <v-list-item-subtitle
+                          >{{ courseConfig.start_time || "-" }}
                           </v-list-item-subtitle>
                         </v-list-item>
                         <v-list-item>
                           <v-list-item-title>结束时间</v-list-item-title>
-                          <v-list-item-subtitle>{{
-                              courseConfig.end_time || "-"
-                            }}
+                          <v-list-item-subtitle
+                          >{{ courseConfig.end_time || "-" }}
                           </v-list-item-subtitle>
                         </v-list-item>
                         <v-list-item v-if="courseConfig.student_list">
@@ -313,12 +328,9 @@
                                   class="ml-1"
                                 ></v-icon>
                               </template>
-                              <span
-                              >未设置学生名单时，任何人可登录。</span
-                              >
+                              <span>未设置学生名单时，任何人可登录。</span>
                             </v-tooltip>
-                          </v-list-item-title
-                          >
+                          </v-list-item-title>
                           <v-list-item-subtitle>
                             <v-chip
                               size="small"
@@ -360,30 +372,26 @@
                       <v-list dense>
                         <v-list-item>
                           <v-list-item-title>课程路径</v-list-item-title>
-                          <v-list-item-subtitle class="text-caption">{{
-                              courseConfig.path || "-"
-                            }}
+                          <v-list-item-subtitle class="text-caption"
+                          >{{ courseConfig.path || "-" }}
                           </v-list-item-subtitle>
                         </v-list-item>
                         <v-list-item>
                           <v-list-item-title>上行目录</v-list-item-title>
-                          <v-list-item-subtitle class="text-caption">{{
-                              courseConfig.uplink_dir || "-"
-                            }}
+                          <v-list-item-subtitle class="text-caption"
+                          >{{ courseConfig.uplink_dir || "-" }}
                           </v-list-item-subtitle>
                         </v-list-item>
                         <v-list-item>
                           <v-list-item-title>下行目录</v-list-item-title>
-                          <v-list-item-subtitle class="text-caption">{{
-                              courseConfig.downlink_dir || "-"
-                            }}
+                          <v-list-item-subtitle class="text-caption"
+                          >{{ courseConfig.downlink_dir || "-" }}
                           </v-list-item-subtitle>
                         </v-list-item>
                         <v-list-item>
                           <v-list-item-title>指南路径</v-list-item-title>
-                          <v-list-item-subtitle class="text-caption">{{
-                              courseConfig.zhinan_path || "-"
-                            }}
+                          <v-list-item-subtitle class="text-caption"
+                          >{{ courseConfig.zhinan_path || "-" }}
                           </v-list-item-subtitle>
                         </v-list-item>
                       </v-list>
@@ -405,8 +413,7 @@
                           <v-card-title class="text-subtitle-1 py-2">
                             <v-icon class="mr-2" size="small"
                             >mdi-network
-                            </v-icon
-                            >
+                            </v-icon>
                             {{ traceName }}
                             <v-spacer></v-spacer>
                             <v-chip
@@ -557,7 +564,7 @@ const studentSearchText = ref("");
 const processHeaders = [
   {title: "PID", key: "pid", width: "100px"},
   {title: "进程名", key: "name", width: "120px"},
-  {title: "启动时间", key: "start_time", width: "180px"},
+  {title: "启动时间", key: "start_time", width: "200px"},
   {title: "运行时长", key: "uptime_formatted", width: "120px"},
   {title: "命令行", key: "cmdline", width: "auto"},
 ];
@@ -578,6 +585,16 @@ const getDiskColor = (percent) => {
   if (percent > 90) return "error";
   if (percent > 80) return "warning";
   return "success";
+};
+
+const getLogLevelColor = (level) => {
+  if (!level) return "default";
+  const lowerLevel = level.toLowerCase();
+  if (lowerLevel === "error" || lowerLevel === "critical") return "error";
+  if (lowerLevel === "warning") return "warning";
+  if (lowerLevel === "info") return "success";
+  if (lowerLevel === "debug") return "primary";
+  return "default";
 };
 
 const getUptimeColor = (seconds) => {
@@ -673,6 +690,23 @@ watch(
   },
   {immediate: false}
 );
+
+const getCourseStatus = (startTime, endTime) => {
+  if (!startTime || !endTime) {
+    return {text: "时间未定", color: "grey"};
+  }
+  const now = new Date();
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+
+  if (now < start) {
+    return {text: "比赛未开始", color: "warning"};
+  } else if (now > end) {
+    return {text: "比赛已结束", color: "error"};
+  } else {
+    return {text: "比赛进行中", color: "success"};
+  }
+};
 </script>
 
 <style scoped>
