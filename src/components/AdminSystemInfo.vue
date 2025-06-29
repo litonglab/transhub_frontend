@@ -516,7 +516,7 @@
               variant="outlined"
               color="primary"
             >
-              {{ index + 1 }}. {{ student }}
+              {{ student }}
             </v-chip>
           </div>
           <div v-else class="text-center text-grey pa-4">
