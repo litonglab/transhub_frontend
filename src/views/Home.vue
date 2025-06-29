@@ -102,7 +102,7 @@ const adminInfo = {id_name: "admin", power_info: "管理员面板"};
 const taskQueueInfo = {id_name: "taskqueue", power_info: "任务队列"};
 
 const powers = reactive({
-  array: store.is_admin ? [...info, adminInfo, taskQueueInfo] : info,
+  array: store.is_admin ? [...info, taskQueueInfo, adminInfo] : info,
 });
 
 // 检测屏幕尺寸

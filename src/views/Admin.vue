@@ -1,6 +1,6 @@
 <template>
   <div class="admin-container">
-    <v-row class="flex-grow-0 mb-4">
+    <!-- <v-row class="flex-grow-0 mb-4">
       <v-col>
         <div
           style="
@@ -19,7 +19,7 @@
           </v-chip>
         </div>
       </v-col>
-    </v-row>
+    </v-row> -->
 
     <!-- 导航标签容器 -->
     <div class="tabs-container">
