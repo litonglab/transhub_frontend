@@ -4,58 +4,92 @@
     <div class="filter-section">
       <v-card elevation="0" class="pa-4">
         <v-row align="center">
-          <v-col cols="12" sm="6" md="3">
-            <v-text-field
-              v-model="searchKeyword"
-              label="搜索用户 (用户名、姓名、学号)"
-              prepend-inner-icon="mdi-magnify"
-              @input="debouncedSearch"
-              clearable
-              density="compact"
-            ></v-text-field>
+          <v-col
+            v-if="isMobile && !showAllFilters"
+            cols="12"
+            class="d-flex justify-end"
+            style="margin-bottom: 0"
+          >
+            <v-btn
+              size="small"
+              variant="text"
+              @click="showAllFilters = true"
+              class="toggle-filter-btn"
+            >
+              展开筛选
+              <v-icon icon="mdi-chevron-down" size="18"/>
+            </v-btn>
           </v-col>
-          <v-col cols="12" sm="6" md="3">
-            <v-select
-              v-model="cnameFilter"
-              label="课程筛选"
-              :items="pantheons"
-              @update:model-value="searchUsers"
-              :loading="coursesLoading"
-              clearable
-              density="compact"
-              no-data-text="没有可用的课程"
-            ></v-select>
-          </v-col>
-          <v-col cols="12" sm="6" md="2">
-            <v-select
-              v-model="roleFilter"
-              label="角色筛选"
-              :items="roleOptions"
-              @update:model-value="searchUsers"
-              clearable
-              density="compact"
-            ></v-select>
-          </v-col>
-          <v-col cols="12" sm="4" md="2">
-            <v-select
-              v-model="activeFilter"
-              label="锁定状态"
-              :items="activeOptions"
-              @update:model-value="searchUsers"
-              clearable
-              density="compact"
-            ></v-select>
-          </v-col>
-          <v-col cols="12" sm="4" md="2">
-            <v-select
-              v-model="deletedFilter"
-              label="删除状态"
-              :items="deletedOptions"
-              @update:model-value="searchUsers"
-              clearable
-              density="compact"
-            ></v-select>
-          </v-col>
+          <template v-if="!isMobile || showAllFilters">
+            <v-col cols="12" sm="6" md="3">
+              <v-text-field
+                v-model="searchKeyword"
+                label="搜索用户 (用户名、姓名、学号)"
+                prepend-inner-icon="mdi-magnify"
+                @input="debouncedSearch"
+                clearable
+                density="compact"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+              <v-select
+                v-model="cnameFilter"
+                label="课程筛选"
+                :items="pantheons"
+                @update:model-value="searchUsers"
+                :loading="coursesLoading"
+                clearable
+                density="compact"
+                no-data-text="没有可用的课程"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" sm="6" md="2">
+              <v-select
+                v-model="roleFilter"
+                label="角色筛选"
+                :items="roleOptions"
+                @update:model-value="searchUsers"
+                clearable
+                density="compact"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" sm="4" md="2">
+              <v-select
+                v-model="activeFilter"
+                label="锁定状态"
+                :items="activeOptions"
+                @update:model-value="searchUsers"
+                clearable
+                density="compact"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" sm="4" md="2">
+              <v-select
+                v-model="deletedFilter"
+                label="删除状态"
+                :items="deletedOptions"
+                @update:model-value="searchUsers"
+                clearable
+                density="compact"
+              ></v-select>
+            </v-col>
+            <v-col
+              v-if="isMobile"
+              cols="12"
+              class="d-flex justify-end"
+              style="margin-bottom: 0"
+            >
+              <v-btn
+                size="small"
+                variant="text"
+                @click="showAllFilters = false"
+                class="toggle-filter-btn"
+              >
+                收起筛选
+                <v-icon icon="mdi-chevron-up" size="18"/>
+              </v-btn>
+            </v-col>
+          </template>
         </v-row>
       </v-card>
     </div>
@@ -604,8 +638,15 @@ const confirmResetPassword = async () => {
   }
 };
 
+const isMobile = ref(false);
+const showAllFilters = ref(false);
+
 onMounted(async () => {
-  // loadUsers will be called by v-data-table-server's @update:options on mount
+  isMobile.value = window.innerWidth <= 768;
+  window.addEventListener("resize", () => {
+    isMobile.value = window.innerWidth <= 768;
+    if (!isMobile.value) showAllFilters.value = false;
+  });
   coursesLoading.value = true;
   try {
     const result = await request(APIS.get_pantheon, {
@@ -653,5 +694,58 @@ onMounted(async () => {
 .table-container :deep(.v-data-table-footer) {
   flex-shrink: 0;
   border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.toggle-filter-btn {
+  margin-top: 0;
+  margin-bottom: 0;
+  min-width: 0;
+  font-size: 14px;
+  color: #1976d2;
+  align-items: center;
+  display: inline-flex;
+}
+
+@media (max-width: 768px) {
+  .filter-section .pa-4 {
+    padding: 6px !important;
+  }
+
+  .filter-section .v-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .filter-section .v-col {
+    margin-bottom: 2px !important;
+    padding: 0 1px !important;
+  }
+
+  .filter-section .v-text-field,
+  .filter-section .v-select {
+    font-size: 14px !important;
+    min-height: 32px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .filter-section label {
+    font-size: 13px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .table-container :deep(.v-data-table__wrapper) {
+    font-size: 13px !important;
+  }
+
+  .table-container :deep(.v-data-table__wrapper tr) {
+    height: 32px !important;
+  }
+
+  .table-container :deep(.v-data-table__wrapper td),
+  .table-container :deep(.v-data-table__wrapper th) {
+    padding: 2px 4px !important;
+  }
 }
 </style>
