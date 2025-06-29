@@ -46,8 +46,7 @@
         <div v-else class="d-flex flex-column align-center justify-center pa-8">
           <v-icon size="64" color="grey-lighten-1" class="mb-4"
           >mdi-file-alert
-          </v-icon
-          >
+          </v-icon>
           <v-card-subtitle>无法获取代码内容</v-card-subtitle>
         </div>
       </v-card-text>
@@ -124,6 +123,18 @@ async function requestCode(upload_id) {
   return {response, fileName};
 }
 
+// 通用文件下载函数
+function downloadFile(blob, fileName) {
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = downloadUrl;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(downloadUrl);
+}
+
 // 获取代码内容
 async function fetchCode(upload_id) {
   codeLoading.value = true;
@@ -146,20 +157,27 @@ async function fetchCode(upload_id) {
 }
 
 // 下载代码
-async function downloadCode(upload_id) {
+async function downloadCode(upload_id, filePrefix = "") {
   try {
     const {response, fileName} = await requestCode(upload_id);
 
     ElMessage.success(`代码下载成功`);
     const blob = await response.blob();
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = downloadUrl;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(downloadUrl);
+
+    // 如果提供了前缀，添加到文件名前
+    let finalFileName = fileName;
+    if (filePrefix) {
+      const nameParts = fileName.split(".");
+      if (nameParts.length > 1) {
+        const ext = nameParts.pop();
+        const name = nameParts.join(".");
+        finalFileName = `${filePrefix}_${name}.${ext}`;
+      } else {
+        finalFileName = `${filePrefix}_${fileName}`;
+      }
+    }
+
+    downloadFile(blob, finalFileName);
   } catch (error) {
     console.error("Failed to download code:", error);
     ElMessage.error("代码下载失败");
@@ -170,6 +188,96 @@ async function downloadCode(upload_id) {
 async function downloadCurrentCode() {
   if (currentUploadId.value) {
     await downloadCode(currentUploadId.value);
+  }
+}
+
+// 批量下载代码并打包成ZIP
+async function downloadCodesAsZip(
+  uploadIds,
+  zipFileName = "codes.zip",
+  filePrefixes = []
+) {
+  if (!uploadIds || uploadIds.length === 0) {
+    ElMessage.warning("没有可下载的代码文件");
+    return;
+  }
+
+  try {
+    // 动态导入JSZip
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
+
+    let successCount = 0;
+    let failCount = 0;
+
+    // 并发获取所有代码文件
+    const promises = uploadIds.map(async (uploadId, index) => {
+      try {
+        const {response, fileName} = await requestCode(uploadId);
+        const text = await response.text();
+
+        // 确定最终文件名
+        let finalFileName = fileName;
+
+        // 首先应用文件前缀（如果有）
+        if (filePrefixes && filePrefixes[index]) {
+          const nameParts = fileName.split(".");
+          if (nameParts.length > 1) {
+            const ext = nameParts.pop();
+            const name = nameParts.join(".");
+            finalFileName = `${filePrefixes[index]}_${name}.${ext}`;
+          } else {
+            finalFileName = `${filePrefixes[index]}_${fileName}`;
+          }
+        }
+
+        // 处理文件名冲突，添加序号
+        if (zip.file(finalFileName)) {
+          const nameParts = finalFileName.split(".");
+          if (nameParts.length > 1) {
+            const ext = nameParts.pop();
+            const name = nameParts.join(".");
+            finalFileName = `${name}_${index + 1}.${ext}`;
+          } else {
+            finalFileName = `${finalFileName}_${index + 1}`;
+          }
+        }
+
+        zip.file(finalFileName, text);
+        successCount++;
+        return {success: true, fileName: finalFileName};
+      } catch (error) {
+        console.error(`Failed to fetch code for ${uploadId}:`, error);
+        failCount++;
+        return {success: false, uploadId};
+      }
+    });
+
+    // 等待所有请求完成
+    await Promise.all(promises);
+
+    if (successCount === 0) {
+      ElMessage.error("所有代码文件获取失败");
+      return;
+    }
+
+    // 生成ZIP文件
+    const content = await zip.generateAsync({type: "blob"});
+
+    // 下载ZIP文件
+    downloadFile(content, zipFileName);
+
+    // 显示结果消息
+    if (failCount === 0) {
+      ElMessage.success(`成功打包下载 ${successCount} 个代码文件`);
+    } else {
+      ElMessage.warning(
+        `成功打包 ${successCount} 个文件，${failCount} 个文件获取失败`
+      );
+    }
+  } catch (error) {
+    console.error("Failed to create zip:", error);
+    ElMessage.error("打包下载失败");
   }
 }
 
@@ -184,6 +292,7 @@ function handleDialogClose() {
 defineExpose({
   fetchCode,
   downloadCode,
+  downloadCodesAsZip,
 });
 </script>
 

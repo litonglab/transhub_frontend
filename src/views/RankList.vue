@@ -12,18 +12,53 @@
       >
         <span class="text-h4">榜单展示</span>
         <div>
+          <!-- 管理员批量操作区域 -->
+          <el-button
+            v-if="store.is_admin"
+            type="primary"
+            :disabled="selectedRows.length === 0"
+            @click="batchDownloadCodes"
+            :loading="batchDownloading"
+          >
+            批量下载选中代码 ({{ selectedRows.length }})
+          </el-button>
+          <el-button
+            v-if="store.is_admin"
+            type="success"
+            :disabled="selectedRows.length === 0"
+            @click="batchDownloadCodesAsZip"
+            :loading="batchDownloading"
+            style="margin-left: 8px"
+          >
+            打包下载代码为ZIP ({{ selectedRows.length }})
+          </el-button>
+          <el-button
+            v-if="store.is_admin"
+            type="warning"
+            @click="exportToExcel"
+          >
+            <el-icon>
+              <Download/>
+            </el-icon>
+            导出Excel
+          </el-button>
+          <!-- 普通用户区域 -->
           <el-button type="success" @click="toggleExpandAll">
             {{ allExpanded ? "折叠所有" : "展开所有" }}
           </el-button>
           <el-button type="primary" @click="get_ranklist(200)">刷新</el-button>
         </div>
       </div>
+
       <div style="text-align: right">
         <el-text style="margin-top: 10px">
           <el-icon>
             <InfoFilled/>
           </el-icon>
-          榜单数据将自动刷新
+          <span v-if="selectedRows.length > 0">
+            已选择 {{ selectedRows.length }} 项数据，自动刷新已暂停
+          </span>
+          <span v-else> 榜单数据将自动刷新 </span>
         </el-text>
       </div>
     </v-col>
@@ -57,6 +92,7 @@
         style="width: 100%"
         height="100%"
         @expand-change="handleExpandChange"
+        @selection-change="handleSelectionChange"
         row-key="upload_id"
       >
         <el-table-column type="expand">
@@ -73,9 +109,36 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column
+          v-if="store.is_admin"
+          type="selection"
+          width="55"
+          :selectable="() => true"
+        >
+        </el-table-column>
         <el-table-column label="编号" type="index" width="60" :index="indexAdd">
         </el-table-column>
         <el-table-column prop="username" label="用户名"></el-table-column>
+        <el-table-column
+          v-if="store.is_admin"
+          prop="real_name"
+          label="姓名"
+          min-width="100"
+        >
+          <template #default="scope">
+            {{ scope.row.to_admin?.real_name || "-" }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-if="store.is_admin"
+          prop="sno"
+          label="学号"
+          min-width="120"
+        >
+          <template #default="scope">
+            {{ scope.row.to_admin?.sno || "-" }}
+          </template>
+        </el-table-column>
         <el-table-column
           prop="algorithm"
           label="算法"
@@ -173,10 +236,12 @@ import {onBeforeUnmount, onMounted, ref} from "vue";
 import {APIS} from "@/config.js";
 import {formatDateTime, request} from "@/utility.js";
 import {useRouter} from "vue-router";
-import {InfoFilled, Link} from "@element-plus/icons-vue";
+import {Download, InfoFilled, Link} from "@element-plus/icons-vue";
+import {ElMessage, ElMessageBox} from "element-plus";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 import CodeViewDialog from "@/components/CodeViewDialog.vue";
 import {useAppStore} from "@/store/app.js";
+import * as XLSX from "xlsx";
 
 const router = useRouter();
 const store = useAppStore();
@@ -193,9 +258,23 @@ const loading = ref(false);
 const codeDialogVisible = ref(false);
 const currentUploadId = ref("");
 const codeDialogRef = ref(null);
+const selectedRows = ref([]);
+const batchDownloading = ref(false);
 let autoRefreshTimer = null;
 // Keep track of current sort state for data refresh
 let currentTableSort = {prop: "task_score", order: "descending"};
+
+// 封装生成文件前缀的函数
+const generateFilePrefix = (row) => {
+  if (!store.is_admin || !row?.to_admin) {
+    return "";
+  }
+
+  const sno = row.to_admin.sno || "";
+  const realName = row.to_admin.real_name || "";
+  const username = row.username || "";
+  return `${sno}_${realName}_${username}`;
+};
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -339,6 +418,10 @@ function startAutoRefresh() {
     clearInterval(autoRefreshTimer);
   }
   autoRefreshTimer = setInterval(() => {
+    // 如果有选择的内容，跳过自动刷新
+    if (selectedRows.value.length > 0) {
+      return;
+    }
     get_ranklist();
   }, 10000); // 每10秒刷新一次
 }
@@ -357,6 +440,8 @@ const handleSizeChange = (size) => {
   savePageState();
   cleanupInvisibleComponents();
   updateAllExpandedStatus();
+  // 清空选择
+  selectedRows.value = [];
 };
 
 const handleCurrentChange = (currentPage) => {
@@ -364,6 +449,8 @@ const handleCurrentChange = (currentPage) => {
   savePageState();
   cleanupInvisibleComponents();
   updateAllExpandedStatus();
+  // 清空选择
+  selectedRows.value = [];
 };
 
 // Clean up component references that are not visible on current page
@@ -427,7 +514,191 @@ async function viewCode(upload_id) {
 // 处理代码下载，调用组件的方法
 function handleDownloadCode(upload_id) {
   if (codeDialogRef.value) {
-    codeDialogRef.value.downloadCode(upload_id);
+    // 如果是管理员，生成文件前缀
+    const row = totalTableData.value.find(
+      (item) => item.upload_id === upload_id
+    );
+    const filePrefix = generateFilePrefix(row);
+
+    codeDialogRef.value.downloadCode(upload_id, filePrefix);
+  }
+}
+
+// 处理表格选择变化
+function handleSelectionChange(selection) {
+  selectedRows.value = selection;
+}
+
+// 批量下载代码
+async function batchDownloadCodes() {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning("请先选择要下载的记录");
+    return;
+  }
+
+  // 确认对话框
+  try {
+    await ElMessageBox.confirm(
+      `确定要下载选中的 ${selectedRows.value.length} 个代码文件吗？`,
+      "批量下载确认",
+      {
+        confirmButtonText: "确定下载",
+        cancelButtonText: "取消",
+        type: "info",
+      }
+    );
+  } catch {
+    return; // 用户取消
+  }
+
+  batchDownloading.value = true;
+  let successCount = 0;
+  let failCount = 0;
+
+  try {
+    // 串行下载，避免同时发起太多请求
+    for (const row of selectedRows.value) {
+      try {
+        if (codeDialogRef.value) {
+          // 如果是管理员，生成文件前缀
+          const filePrefix = generateFilePrefix(row);
+          await codeDialogRef.value.downloadCode(row.upload_id, filePrefix);
+          successCount++;
+        }
+        // 添加短暂延迟，避免请求过于频繁
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(`Failed to download code for ${row.upload_id}:`, error);
+        failCount++;
+      }
+    }
+
+    // 显示下载结果
+    if (successCount > 0 && failCount === 0) {
+      ElMessage.success(`成功下载 ${successCount} 个代码文件`);
+    } else if (successCount > 0 && failCount > 0) {
+      ElMessage.warning(
+        `成功下载 ${successCount} 个，失败 ${failCount} 个代码文件`
+      );
+    } else {
+      ElMessage.error("所有代码文件下载失败");
+    }
+  } finally {
+    batchDownloading.value = false;
+  }
+}
+
+// 批量下载代码并打包为ZIP
+async function batchDownloadCodesAsZip() {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning("请先选择要下载的记录");
+    return;
+  }
+
+  // 确认对话框
+  try {
+    await ElMessageBox.confirm(
+      `确定要将选中的 ${selectedRows.value.length} 个代码文件打包下载吗？`,
+      "批量打包下载确认",
+      {
+        confirmButtonText: "确定下载",
+        cancelButtonText: "取消",
+        type: "info",
+      }
+    );
+  } catch {
+    return; // 用户取消
+  }
+
+  batchDownloading.value = true;
+
+  try {
+    const uploadIds = selectedRows.value.map((row) => row.upload_id);
+
+    // 如果是管理员，生成文件前缀数组
+    const filePrefixes = store.is_admin
+      ? selectedRows.value.map((row) => generateFilePrefix(row))
+      : [];
+
+    const timestamp = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:-]/g, "");
+    const zipFileName = `ranklist_codes_${timestamp}.zip`;
+
+    if (codeDialogRef.value) {
+      await codeDialogRef.value.downloadCodesAsZip(
+        uploadIds,
+        zipFileName,
+        filePrefixes
+      );
+    }
+  } catch (error) {
+    console.error("Failed to download codes as zip:", error);
+    ElMessage.error("打包下载失败");
+  } finally {
+    batchDownloading.value = false;
+  }
+}
+
+// 导出Excel
+async function exportToExcel() {
+  if (totalTableData.value.length === 0) {
+    ElMessage.warning("当前没有数据可导出");
+    return;
+  }
+
+  try {
+    // 准备导出数据
+    const exportData = totalTableData.value.map((row, index) => {
+      const baseData = {
+        "序号": index + 1,
+        "用户名": row.username,
+        "算法": row.algorithm,
+        "上传时间": row.formatted_time,
+        "总分": row.task_score?.toFixed(2) || "0.00",
+      };
+
+      // 如果是管理员，添加学号和姓名字段
+      if (store.is_admin && row.to_admin) {
+        return {
+          ...baseData,
+          "姓名": row.to_admin.real_name || "-",
+          "学号": row.to_admin.sno || "-",
+        };
+      }
+
+      return baseData;
+    });
+
+    // 创建工作簿
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+
+    // 设置列宽
+    worksheet["!cols"] = store.is_admin
+      ? [{wch: 8}, {wch: 15}, {wch: 12}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 10},
+      ]
+      : [{wch: 8}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 10}];
+
+    // 添加工作表到工作簿
+    XLSX.utils.book_append_sheet(workbook, worksheet, "榜单数据");
+
+    // 生成文件名
+    const timestamp = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:-]/g, "")
+      .replace("T", "_");
+    const fileName = `榜单数据_${timestamp}.xlsx`;
+
+    // 导出文件
+    XLSX.writeFile(workbook, fileName);
+
+    ElMessage.success(`成功导出 ${exportData.length} 条记录到 ${fileName}`);
+  } catch (error) {
+    console.error("导出Excel失败:", error);
+    ElMessage.error("导出Excel失败");
   }
 }
 
@@ -444,19 +715,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.flex {
-  display: flex;
-}
-
-.flex_justify_content_center {
-  justify-content: center;
-}
-
-.default_margin {
-  margin-top: 20px;
-  margin-bottom: 40px;
-}
-
 .expanded-content {
   padding: 20px;
 }
