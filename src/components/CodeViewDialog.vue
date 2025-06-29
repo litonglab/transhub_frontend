@@ -146,8 +146,7 @@ async function fetchCode(upload_id) {
     const {response, fileName} = await requestCode(upload_id);
 
     currentCodeFilename.value = fileName;
-    const text = await response.text();
-    currentCode.value = text;
+    currentCode.value = await response.text();
   } catch (error) {
     console.error("Failed to fetch code:", error);
     // ElMessage.error("获取代码失败");
