@@ -1,13 +1,10 @@
 <template>
-  <div class="logs-container">
+  <div class="logs-container" style="padding: 5px 0 2px">
     <v-row v-if="!loading" class="h-100 no-gutters">
       <!-- 日志文件列表 -->
       <v-col cols="12" md="2" class="h-100">
         <v-card class="h-100 d-flex flex-column">
           <v-card-title>
-            <v-icon class="mr-2" color="primary"
-            >mdi-file-document-outline
-            </v-icon>
             日志文件列表
           </v-card-title>
           <v-card-text class="flex-grow-1 overflow-auto">
@@ -52,7 +49,6 @@
       <v-col cols="12" md="10" class="h-100">
         <v-card class="h-100 d-flex flex-column">
           <v-card-title>
-            <v-icon class="mr-2" color="primary">mdi-text-box-outline</v-icon>
             日志内容
             <v-spacer></v-spacer>
             <div class="d-flex align-center">
@@ -388,8 +384,6 @@ watch(
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding-top: 5px;
-  padding-bottom: 3px;
 }
 
 .no-gutters {

@@ -1,11 +1,17 @@
 <template>
-  <v-card-text>
+  <v-card-text style="padding: 5px 5px 0">
     <v-row>
       <!-- 概览统计 -->
       <v-col cols="12">
         <div class="d-flex justify-space-between align-center mb-4">
-          <h3 class="">系统概览</h3>
+          <h3 style="font-size: 1.25rem">系统概览</h3>
           <v-chip-group v-model="taskStatsScope" mandatory density="compact">
+            <el-text style="margin-right: 10px">
+              <el-icon>
+                <InfoFilled/>
+              </el-icon>
+              统计数据每30秒自动刷新
+            </el-text>
             <v-chip value="current" variant="outlined" size="small"
             >当前课程
             </v-chip>
@@ -180,6 +186,7 @@ import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import {APIS} from "@/config";
 import {request} from "@/utility.js";
 import * as echarts from "echarts";
+import {InfoFilled} from "@element-plus/icons-vue";
 
 // 接收父组件传递的激活状态
 const props = defineProps({

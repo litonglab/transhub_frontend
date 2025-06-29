@@ -1,5 +1,5 @@
 <template>
-  <v-card-text>
+  <v-card-text style="padding: 5px 5px 0">
     <v-row v-if="!loading">
       <!-- 系统信息 -->
       <v-col cols="12" md="6">
@@ -407,7 +407,7 @@
         </v-card>
       </v-col>
     </v-row>
-    
+
     <v-row v-else>
       <v-col cols="12" class="text-center">
         <v-progress-circular indeterminate size="64"></v-progress-circular>

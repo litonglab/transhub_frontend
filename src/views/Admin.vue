@@ -73,14 +73,12 @@
 
 <script setup>
 import {onMounted, ref, watch} from "vue";
-import {useAppStore} from "@/store/app";
 import AdminUserManagement from "@/components/AdminUserManagement.vue";
 import AdminTaskManagement from "@/components/AdminTaskManagement.vue";
 import AdminStatistics from "@/components/AdminStatistics.vue";
 import AdminSystemInfo from "@/components/AdminSystemInfo.vue";
 import AdminSystemLogs from "@/components/AdminSystemLogs.vue";
 
-const store = useAppStore();
 const activeTab = ref("stats");
 
 // Restore active tab from session storage on component mount
