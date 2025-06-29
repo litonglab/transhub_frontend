@@ -148,10 +148,10 @@
         </v-card>
       </v-col>
 
-      <!-- 近7日提交统计 -->
+      <!-- 近10日提交统计 -->
       <v-col cols="12" md="6">
         <v-card>
-          <v-card-title>近7日提交统计</v-card-title>
+          <v-card-title>近10日提交统计</v-card-title>
           <v-card-text>
             <div ref="dailySubmissionsChart" style="height: 300px"></div>
           </v-card-text>
@@ -429,7 +429,7 @@ const renderDailySubmissionsChart = () => {
     },
     series: [
       {
-        name: "提交次数",
+        name: "提交数",
         data: counts,
         type: "line",
         smooth: true,
