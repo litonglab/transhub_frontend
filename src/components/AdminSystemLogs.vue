@@ -261,7 +261,7 @@ const loadLogFiles = async () => {
     }
   } catch (error) {
     console.error("加载日志文件列表失败:", error);
-    ElMessage.error("加载日志文件列表失败");
+    // ElMessage.error("加载日志文件列表失败");
   } finally {
     loading.value = false;
   }

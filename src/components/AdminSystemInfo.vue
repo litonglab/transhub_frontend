@@ -543,7 +543,6 @@
 import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import {APIS} from "@/config";
 import {request} from "@/utility.js";
-import {ElMessage} from "element-plus";
 
 // 接收父组件传递的激活状态
 const props = defineProps({
@@ -642,7 +641,7 @@ const loadSystemInfo = async () => {
     }
   } catch (error) {
     console.error("加载系统信息失败:", error);
-    ElMessage.error("加载系统信息失败");
+    // ElMessage.error("加载系统信息失败");
   } finally {
     loading.value = false;
   }

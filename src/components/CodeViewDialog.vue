@@ -150,7 +150,7 @@ async function fetchCode(upload_id) {
     currentCode.value = text;
   } catch (error) {
     console.error("Failed to fetch code:", error);
-    ElMessage.error("获取代码失败");
+    // ElMessage.error("获取代码失败");
   } finally {
     codeLoading.value = false;
   }
@@ -180,7 +180,7 @@ async function downloadCode(upload_id, filePrefix = "") {
     downloadFile(blob, finalFileName);
   } catch (error) {
     console.error("Failed to download code:", error);
-    ElMessage.error("代码下载失败");
+    // ElMessage.error("代码下载失败");
   }
 }
 

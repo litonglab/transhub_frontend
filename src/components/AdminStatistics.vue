@@ -147,7 +147,6 @@
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import {APIS} from "@/config";
 import {request} from "@/utility.js";
-import {ElMessage} from "element-plus";
 import * as echarts from "echarts";
 
 // 接收父组件传递的激活状态
@@ -221,7 +220,7 @@ const loadStats = async () => {
     }
   } catch (error) {
     console.error("加载统计数据失败:", error);
-    ElMessage.error("加载统计数据失败");
+    // ElMessage.error("加载统计数据失败");
   } finally {
     loading.value = false;
   }
