@@ -41,6 +41,9 @@ export const APIS = {
   admin_get_tasks: hostname + "/admin/tasks",
   admin_get_stats: hostname + "/admin/stats",
   admin_get_system_info: hostname + "/admin/system/info",
+  admin_get_logs: hostname + "/admin/system/logs",
+  admin_stream_log: hostname + "/admin/system/logs/stream", // 流式日志接口
+  admin_download_log: hostname + "/admin/system/logs/download",
 
   // dashborad
   dramatiq_dashboard: hostname + "/dramatiq",

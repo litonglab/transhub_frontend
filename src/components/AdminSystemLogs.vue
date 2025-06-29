@@ -7,8 +7,7 @@
           <v-card-title>
             <v-icon class="mr-2" color="primary"
             >mdi-file-document-outline
-            </v-icon
-            >
+            </v-icon>
             日志文件列表
           </v-card-title>
           <v-card-text class="flex-grow-1 overflow-auto">
@@ -28,15 +27,13 @@
                   <div class="log-file-size">
                     <v-icon size="x-small" class="mr-1"
                     >mdi-file-outline
-                    </v-icon
-                    >
+                    </v-icon>
                     {{ formatFileSize(logFile.size) }}
                   </div>
                   <div class="log-file-time">
                     <v-icon size="x-small" class="mr-1"
                     >mdi-clock-outline
-                    </v-icon
-                    >
+                    </v-icon>
                     {{ logFile.modified_time }}
                   </div>
                 </div>
@@ -68,6 +65,17 @@
               >
                 {{ selectedLog }}
               </v-chip>
+              <v-btn
+                v-if="selectedLog"
+                size="small"
+                variant="outlined"
+                color="primary"
+                @click="downloadLog"
+                class="mr-2"
+              >
+                <v-icon size="small" class="mr-1">mdi-download</v-icon>
+                下载日志
+              </v-btn>
               <v-btn
                 v-if="selectedLog"
                 size="small"
@@ -111,8 +119,7 @@
             >
               <v-icon size="64" color="grey-300"
               >mdi-file-document-outline
-              </v-icon
-              >
+              </v-icon>
               <div class="mt-4">请选择一个日志文件查看内容</div>
             </div>
             <div
@@ -121,8 +128,7 @@
             >
               <v-icon size="64" color="grey-300"
               >mdi-file-document-remove-outline
-              </v-icon
-              >
+              </v-icon>
               <div class="mt-4">暂无日志内容</div>
             </div>
             <div v-else class="log-content flex-grow-1" ref="logContainer">
@@ -268,6 +274,14 @@ const selectLogFile = (filename) => {
   }
   selectedLog.value = filename;
   logContent.value = [];
+};
+
+// 下载日志文件
+const downloadLog = () => {
+  if (!selectedLog.value) return;
+  const url = `${APIS.admin_download_log}/${selectedLog.value}`;
+  window.open(url, "_blank");
+  ElMessage.success(`正在下载日志文件: ${selectedLog.value}`);
 };
 
 // 开始流式读取日志
