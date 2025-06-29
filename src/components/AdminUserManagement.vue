@@ -1,175 +1,184 @@
 <template>
-  <v-card-title>
-    <v-row align="center">
-      <v-col cols="12" sm="6" md="3">
-        <v-text-field
-          v-model="searchKeyword"
-          label="搜索用户 (用户名、姓名、学号)"
-          prepend-inner-icon="mdi-magnify"
-          @input="debouncedSearch"
-          clearable
-          density="compact"
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-select
-          v-model="cnameFilter"
-          label="课程筛选"
-          :items="pantheons"
-          @update:model-value="searchUsers"
-          :loading="coursesLoading"
-          clearable
-          density="compact"
-          no-data-text="没有可用的课程"
-        ></v-select>
-      </v-col>
-      <v-col cols="12" sm="6" md="2">
-        <v-select
-          v-model="roleFilter"
-          label="角色筛选"
-          :items="roleOptions"
-          @update:model-value="searchUsers"
-          clearable
-          density="compact"
-        ></v-select>
-      </v-col>
-      <v-col cols="12" sm="4" md="2">
-        <v-select
-          v-model="activeFilter"
-          label="锁定状态"
-          :items="activeOptions"
-          @update:model-value="searchUsers"
-          clearable
-          density="compact"
-        ></v-select>
-      </v-col>
-      <v-col cols="12" sm="4" md="2">
-        <v-select
-          v-model="deletedFilter"
-          label="删除状态"
-          :items="deletedOptions"
-          @update:model-value="searchUsers"
-          clearable
-          density="compact"
-        ></v-select>
-      </v-col>
-    </v-row>
-  </v-card-title>
+  <div class="user-management-container">
+    <!-- 筛选区域 -->
+    <div class="filter-section">
+      <v-card elevation="0" class="pa-4">
+        <v-row align="center">
+          <v-col cols="12" sm="6" md="3">
+            <v-text-field
+              v-model="searchKeyword"
+              label="搜索用户 (用户名、姓名、学号)"
+              prepend-inner-icon="mdi-magnify"
+              @input="debouncedSearch"
+              clearable
+              density="compact"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-select
+              v-model="cnameFilter"
+              label="课程筛选"
+              :items="pantheons"
+              @update:model-value="searchUsers"
+              :loading="coursesLoading"
+              clearable
+              density="compact"
+              no-data-text="没有可用的课程"
+            ></v-select>
+          </v-col>
+          <v-col cols="12" sm="6" md="2">
+            <v-select
+              v-model="roleFilter"
+              label="角色筛选"
+              :items="roleOptions"
+              @update:model-value="searchUsers"
+              clearable
+              density="compact"
+            ></v-select>
+          </v-col>
+          <v-col cols="12" sm="4" md="2">
+            <v-select
+              v-model="activeFilter"
+              label="锁定状态"
+              :items="activeOptions"
+              @update:model-value="searchUsers"
+              clearable
+              density="compact"
+            ></v-select>
+          </v-col>
+          <v-col cols="12" sm="4" md="2">
+            <v-select
+              v-model="deletedFilter"
+              label="删除状态"
+              :items="deletedOptions"
+              @update:model-value="searchUsers"
+              clearable
+              density="compact"
+            ></v-select>
+          </v-col>
+        </v-row>
+      </v-card>
+    </div>
 
-  <v-card-text>
-    <v-data-table-server
-      :headers="headers"
-      :items="users"
-      :loading="loading"
-      :items-length="pagination.total"
-      v-model:page="pagination.page"
-      v-model:items-per-page="pagination.size"
-      :items-per-page-options="[10, 20, 50, 100]"
-      @update:options="loadUsers"
-      show-current-page
-    >
-      <template v-slot:header.actions>
-        <div
-          class="d-flex justify-space-between align-center"
-          style="width: 100%"
-        >
-          <span>操作</span>
-          <v-btn
-            icon="mdi-refresh"
-            size="small"
-            variant="text"
-            @click="refreshUsers"
-            title="刷新"
-          ></v-btn>
-        </div>
-      </template>
-
-      <template v-slot:item.role="{ item }">
-        <v-chip
-          :color="getRoleColor(item.role)"
-          size="small"
-          variant="elevated"
-        >
-          {{ getRoleText(item.role) }}
-        </v-chip>
-      </template>
-
-      <template v-slot:item.enrolled_courses="{ item }">
-        <div v-if="item.enrolled_courses && item.enrolled_courses.length > 0">
-          <v-chip
-            v-for="course in item.enrolled_courses"
-            :key="course"
-            size="small"
-            class="mr-1 mb-1"
+    <!-- 表格区域 -->
+    <div class="table-section">
+      <v-data-table-server
+        :headers="headers"
+        :items="users"
+        :loading="loading"
+        :items-length="pagination.total"
+        v-model:page="pagination.page"
+        v-model:items-per-page="pagination.size"
+        :items-per-page-options="[10, 20, 50, 100]"
+        @update:options="loadUsers"
+        show-current-page
+        :height="'100%'"
+        fixed-header
+        class="table-container"
+      >
+        <template v-slot:header.actions>
+          <div
+            class="d-flex justify-space-between align-center"
+            style="width: 100%"
           >
-            {{ course }}
+            <span>操作</span>
+            <v-btn
+              icon="mdi-refresh"
+              size="small"
+              variant="text"
+              @click="refreshUsers"
+              title="刷新"
+            ></v-btn>
+          </div>
+        </template>
+
+        <template v-slot:item.role="{ item }">
+          <v-chip
+            :color="getRoleColor(item.role)"
+            size="small"
+            variant="elevated"
+          >
+            {{ getRoleText(item.role) }}
           </v-chip>
-        </div>
-        <span v-else>未加入</span>
-      </template>
-
-      <template v-slot:item.is_locked="{ item }">
-        <v-chip
-          :color="item.is_locked ? 'error' : 'success'"
-          size="small"
-          variant="elevated"
-        >
-          {{ item.is_locked ? "已锁定" : "正常" }}
-        </v-chip>
-      </template>
-
-      <template v-slot:item.deleted_at="{ item }">
-        <v-chip
-          :color="item.deleted_at ? 'secondary' : 'grey'"
-          size="small"
-          variant="elevated"
-        >
-          {{ item.deleted_at ? `已删除` : "未删除" }}
-        </v-chip>
-      </template>
-
-      <template v-slot:item.actions="{ item }">
-        <template v-if="!item.deleted_at">
-          <v-btn
-            icon="mdi-pencil"
-            size="small"
-            @click="editUser(item)"
-            variant="text"
-            class="mr-1"
-            title="编辑"
-          ></v-btn>
-          <v-btn
-            icon="mdi-key-variant"
-            size="small"
-            @click="resetPasswordUser(item)"
-            variant="text"
-            color="warning"
-            :disabled="item.username === store.name"
-            title="重置密码"
-          ></v-btn>
-          <v-btn
-            icon="mdi-delete"
-            size="small"
-            @click="promptDeleteUser(item)"
-            variant="text"
-            color="error"
-            :disabled="item.username === store.name"
-            title="删除"
-          ></v-btn>
         </template>
-        <template v-else>
-          <v-btn
-            icon="mdi-restore"
-            size="small"
-            @click="promptRestoreUser(item)"
-            variant="text"
-            color="success"
-            title="恢复"
-          ></v-btn>
+
+        <template v-slot:item.enrolled_courses="{ item }">
+          <div v-if="item.enrolled_courses && item.enrolled_courses.length > 0">
+            <v-chip
+              v-for="course in item.enrolled_courses"
+              :key="course"
+              size="small"
+              class="mr-1 mb-1"
+            >
+              {{ course }}
+            </v-chip>
+          </div>
+          <span v-else>未加入</span>
         </template>
-      </template>
-    </v-data-table-server>
-  </v-card-text>
+
+        <template v-slot:item.is_locked="{ item }">
+          <v-chip
+            :color="item.is_locked ? 'error' : 'success'"
+            size="small"
+            variant="elevated"
+          >
+            {{ item.is_locked ? "已锁定" : "正常" }}
+          </v-chip>
+        </template>
+
+        <template v-slot:item.deleted_at="{ item }">
+          <v-chip
+            :color="item.deleted_at ? 'secondary' : 'grey'"
+            size="small"
+            variant="elevated"
+          >
+            {{ item.deleted_at ? `已删除` : "未删除" }}
+          </v-chip>
+        </template>
+
+        <template v-slot:item.actions="{ item }">
+          <template v-if="!item.deleted_at">
+            <v-btn
+              icon="mdi-pencil"
+              size="small"
+              @click="editUser(item)"
+              variant="text"
+              class="mr-1"
+              title="编辑"
+            ></v-btn>
+            <v-btn
+              icon="mdi-key-variant"
+              size="small"
+              @click="resetPasswordUser(item)"
+              variant="text"
+              color="warning"
+              :disabled="item.username === store.name"
+              title="重置密码"
+            ></v-btn>
+            <v-btn
+              icon="mdi-delete"
+              size="small"
+              @click="promptDeleteUser(item)"
+              variant="text"
+              color="error"
+              :disabled="item.username === store.name"
+              title="删除"
+            ></v-btn>
+          </template>
+          <template v-else>
+            <v-btn
+              icon="mdi-restore"
+              size="small"
+              @click="promptRestoreUser(item)"
+              variant="text"
+              color="success"
+              title="恢复"
+            ></v-btn>
+          </template>
+        </template>
+      </v-data-table-server>
+    </div>
+  </div>
 
   <!-- 编辑用户对话框 -->
   <v-dialog v-model="editDialog" max-width="500px">
@@ -261,8 +270,7 @@
         <v-btn @click="deleteDialog = false">取消</v-btn>
         <v-btn color="error" @click="confirmDeleteUser" :loading="saving"
         >确认删除
-        </v-btn
-        >
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -279,8 +287,7 @@
         <v-btn @click="restoreDialog = false">取消</v-btn>
         <v-btn color="success" @click="confirmRestoreUser" :loading="saving"
         >确认恢复
-        </v-btn
-        >
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -612,3 +619,39 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+.user-management-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.filter-section {
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: #fafafa;
+}
+
+.table-section {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  height: 100% !important;
+}
+
+.table-container :deep(.v-data-table__wrapper) {
+  height: calc(100% - 64px) !important;
+  overflow-y: auto !important;
+}
+
+.table-container :deep(.v-data-table-footer) {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+</style>

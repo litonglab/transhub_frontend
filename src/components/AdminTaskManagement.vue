@@ -1,110 +1,119 @@
 <template>
-  <v-card-title>
-    <v-row align="center">
-      <v-col cols="12" sm="6" md="3">
-        <v-text-field
-          v-model="usernameFilter"
-          label="用户名"
-          @input="searchTasks"
-          clearable
-          density="compact"
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-text-field
-          v-model="traceNameFilter"
-          label="Trace 名称"
-          @input="searchTasks"
-          clearable
-          density="compact"
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-select
-          v-model="statusFilter"
-          label="状态筛选"
-          :items="statusOptions"
-          @update:model-value="searchTasks"
-          clearable
-          density="compact"
-        ></v-select>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-select
-          v-model="cnameFilter"
-          label="比赛名称"
-          :items="courseList"
-          :loading="courseListLoading"
-          @update:model-value="searchTasks"
-          clearable
-          density="compact"
-          no-data-text="没有可用的课程"
-        ></v-select>
-      </v-col>
-    </v-row>
-  </v-card-title>
+  <div class="task-management-container">
+    <!-- 筛选区域 -->
+    <div class="filter-section">
+      <v-card elevation="0" class="pa-4">
+        <v-row align="center">
+          <v-col cols="12" sm="6" md="3">
+            <v-text-field
+              v-model="usernameFilter"
+              label="用户名"
+              @input="searchTasks"
+              clearable
+              density="compact"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-text-field
+              v-model="traceNameFilter"
+              label="Trace 名称"
+              @input="searchTasks"
+              clearable
+              density="compact"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-select
+              v-model="statusFilter"
+              label="状态筛选"
+              :items="statusOptions"
+              @update:model-value="searchTasks"
+              clearable
+              density="compact"
+            ></v-select>
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-select
+              v-model="cnameFilter"
+              label="比赛名称"
+              :items="courseList"
+              :loading="courseListLoading"
+              @update:model-value="searchTasks"
+              clearable
+              density="compact"
+              no-data-text="没有可用的课程"
+            ></v-select>
+          </v-col>
+        </v-row>
+      </v-card>
+    </div>
 
-  <v-card-text>
-    <v-data-table-server
-      :headers="headers"
-      :items="tasks"
-      :loading="loading"
-      :items-length="pagination.total"
-      v-model:page="pagination.page"
-      v-model:items-per-page="pagination.size"
-      :items-per-page-options="[10, 20, 50, 100]"
-      @update:options="loadTasks"
-      show-current-page
-    >
-      <template v-slot:header.actions>
-        <div
-          class="d-flex justify-space-between align-center"
-          style="width: 100%"
-        >
-          <span>操作</span>
-          <v-btn
-            icon="mdi-refresh"
+    <!-- 表格区域 -->
+    <div class="table-section">
+      <v-data-table-server
+        :headers="headers"
+        :items="tasks"
+        :loading="loading"
+        :items-length="pagination.total"
+        v-model:page="pagination.page"
+        v-model:items-per-page="pagination.size"
+        :items-per-page-options="[10, 20, 50, 100]"
+        @update:options="loadTasks"
+        show-current-page
+        :height="'100%'"
+        fixed-header
+        class="table-container"
+      >
+        <template v-slot:header.actions>
+          <div
+            class="d-flex justify-space-between align-center"
+            style="width: 100%"
+          >
+            <span>操作</span>
+            <v-btn
+              icon="mdi-refresh"
+              size="small"
+              variant="text"
+              @click="refreshTasks"
+              title="刷新"
+            ></v-btn>
+          </div>
+        </template>
+
+        <template v-slot:item.task_status="{ item }">
+          <v-chip
+            :color="getStatusColor(item.task_status)"
             size="small"
+            variant="elevated"
+          >
+            {{ getStatusText(item.task_status) }}
+          </v-chip>
+        </template>
+
+        <template v-slot:item.created_time="{ item }">
+          {{ formatDateTime(item.created_time) }}
+        </template>
+
+        <template v-slot:item.actions="{ item }">
+          <v-btn
+            icon="mdi-eye"
+            size="small"
+            @click="viewTaskDetail(item)"
             variant="text"
-            @click="refreshTasks"
-            title="刷新"
+            title="查看任务运行详情"
           ></v-btn>
-        </div>
-      </template>
-
-      <template v-slot:item.task_status="{ item }">
-        <v-chip
-          :color="getStatusColor(item.task_status)"
-          size="small"
-          variant="elevated"
-        >
-          {{ getStatusText(item.task_status) }}
-        </v-chip>
-      </template>
-
-      <template v-slot:item.created_time="{ item }">
-        {{ formatDateTime(item.created_time) }}
-      </template>
-
-      <template v-slot:item.actions="{ item }">
-        <v-btn
-          icon="mdi-eye"
-          size="small"
-          @click="viewTaskDetail(item)"
-          variant="text"
-          title="查看任务运行详情"
-        ></v-btn>
-        <v-btn
-          v-if="item.upload_id"
-          icon="mdi-file-document-outline"
-          size="small"
-          @click="viewRecordDetail(item.upload_id)"
-          variant="text"
-          title="查看提交记录详情"
-        ></v-btn>
-      </template>
-    </v-data-table-server>
-  </v-card-text>
+          <v-btn
+            v-if="item.upload_id"
+            icon="mdi-file-document-outline"
+            size="small"
+            @click="viewRecordDetail(item.upload_id)"
+            variant="text"
+            title="查看提交记录详情"
+          ></v-btn>
+        </template>
+      </v-data-table-server>
+    </div>
+  </div>
 
   <!-- 任务详情对话框 -->
   <v-dialog v-model="detailDialog" max-width="900px">
@@ -483,3 +492,39 @@ onMounted(() => {
   loadCourseList();
 });
 </script>
+
+<style scoped>
+.task-management-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.filter-section {
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: #fafafa;
+}
+
+.table-section {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  height: 100% !important;
+}
+
+.table-container :deep(.v-data-table__wrapper) {
+  height: calc(100% - 64px) !important;
+  overflow-y: auto !important;
+}
+
+.table-container :deep(.v-data-table-footer) {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+</style>
