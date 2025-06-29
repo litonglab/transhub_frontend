@@ -59,20 +59,20 @@
               <v-list-item>
                 <v-list-item-title>进程ID</v-list-item-title>
                 <v-list-item-subtitle
-                >{{ systemInfo.process?.current_pid || "-" }}
+                >{{ systemInfo.process.current_process?.current_pid || "-" }}
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
                 <v-list-item-title>启动时间</v-list-item-title>
                 <v-list-item-subtitle
-                >{{ systemInfo.process?.start_time || "-" }}
+                >{{ systemInfo.process.current_process?.start_time || "-" }}
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
                 <v-list-item-title>运行时长</v-list-item-title>
                 <v-list-item-subtitle>
                   <v-chip color="success" size="small" variant="elevated">
-                    {{ systemInfo.process?.uptime_formatted || "-" }}
+                    {{ systemInfo.process.current_process?.uptime_formatted || "-" }}
                   </v-chip>
                 </v-list-item-subtitle>
               </v-list-item>
@@ -204,7 +204,7 @@
               <template v-slot:item.pid="{ item }">
                 <v-chip
                   :color="
-                    item.pid === systemInfo.process?.current_pid
+                    item.pid === systemInfo.process.current_process?.current_pid
                       ? 'primary'
                       : 'default'
                   "
@@ -213,7 +213,7 @@
                 >
                   {{ item.pid }}
                   <v-icon
-                    v-if="item.pid === systemInfo.process?.current_pid"
+                    v-if="item.pid === systemInfo.process.current_process?.current_pid"
                     class="ml-1"
                     size="small"
                   >
