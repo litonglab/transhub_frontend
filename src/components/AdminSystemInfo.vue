@@ -72,7 +72,10 @@
                 <v-list-item-title>运行时长</v-list-item-title>
                 <v-list-item-subtitle>
                   <v-chip color="success" size="small" variant="elevated">
-                    {{ systemInfo.process.current_process?.uptime_formatted || "-" }}
+                    {{
+                      systemInfo.process.current_process?.uptime_formatted ||
+                      "-"
+                    }}
                   </v-chip>
                 </v-list-item-subtitle>
               </v-list-item>
@@ -200,6 +203,7 @@
               :items-per-page="10"
               class="elevation-1"
               dense
+              v-model:sort-by="processSortBy"
             >
               <template v-slot:item.pid="{ item }">
                 <v-chip
@@ -213,7 +217,10 @@
                 >
                   {{ item.pid }}
                   <v-icon
-                    v-if="item.pid === systemInfo.process.current_process?.current_pid"
+                    v-if="
+                      item.pid ===
+                      systemInfo.process.current_process?.current_pid
+                    "
                     class="ml-1"
                     size="small"
                   >
@@ -559,6 +566,8 @@ const studentListDialog = ref(false);
 const selectedCourseName = ref("");
 const selectedStudentList = ref([]);
 const studentSearchText = ref("");
+
+const processSortBy = ref([{key: "start_time", order: "asc"}]);
 
 // 进程表格头部定义
 const processHeaders = [
