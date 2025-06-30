@@ -234,7 +234,7 @@
               </v-list-item-subtitle>
             </v-list-item>
           </v-col>
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="4">
             <v-list-item>
               <v-list-item-title>缓冲区大小</v-list-item-title>
               <v-list-item-subtitle
@@ -242,11 +242,19 @@
               </v-list-item-subtitle>
             </v-list-item>
           </v-col>
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="4">
             <v-list-item>
               <v-list-item-title>丢包率</v-list-item-title>
               <v-list-item-subtitle
               >{{ selectedTask.loss_rate }}
+              </v-list-item-subtitle>
+            </v-list-item>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-list-item>
+              <v-list-item-title>往返时延</v-list-item-title>
+              <v-list-item-subtitle
+              >{{ selectedTask.delay }}
               </v-list-item-subtitle>
             </v-list-item>
           </v-col>

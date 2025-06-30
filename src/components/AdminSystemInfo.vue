@@ -408,7 +408,7 @@
                                 }}
                               </v-chip>
                             </div>
-                            <div class="d-flex justify-space-between">
+                            <div class="d-flex justify-space-between mb-1">
                               <span class="text-caption">丢包率:</span>
                               <v-chip
                                 size="x-small"
@@ -418,6 +418,20 @@
                                 {{
                                   traceConfig.loss_rate
                                     ? traceConfig.loss_rate.join(", ")
+                                    : "-"
+                                }}
+                              </v-chip>
+                            </div>
+                            <div class="d-flex justify-space-between">
+                              <span class="text-caption">往返时延:</span>
+                              <v-chip
+                                size="x-small"
+                                variant="tonal"
+                                color="green"
+                              >
+                                {{
+                                  traceConfig.delay
+                                    ? traceConfig.delay.join(", ")
                                     : "-"
                                 }}
                               </v-chip>

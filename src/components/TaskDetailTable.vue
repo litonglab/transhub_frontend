@@ -31,6 +31,7 @@
         ></el-table-column>
         <el-table-column prop="loss_rate" label="丢包率"></el-table-column>
         <el-table-column prop="buffer_size" label="缓冲区容量"/>
+        <el-table-column prop="delay" label="往返时延"/>
         <el-table-column prop="task_status" label="任务状态"></el-table-column>
         <el-table-column prop="task_score" label="得分">
           <template #default="scope">
