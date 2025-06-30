@@ -282,6 +282,31 @@
                           >{{ courseConfig.end_time || "-" }}
                           </v-list-item-subtitle>
                         </v-list-item>
+                        <v-list-item>
+                          <v-list-item-title>Sender最大窗口限制（课程公共配置）</v-list-item-title>
+                          <v-list-item-subtitle
+                          >{{ systemInfo.config?.sender_max_window || "-" }}
+                          </v-list-item-subtitle>
+                        </v-list-item>
+                        <v-list-item>
+                          <v-list-item-title>允许用户同时提交的最大文件数量
+                            <v-tooltip location="top">
+                              <template v-slot:activator="{ props }">
+                                <v-icon
+                                  v-bind="props"
+                                  icon="mdi-information-outline"
+                                  size="16"
+                                  color="grey"
+                                  class="ml-1"
+                                ></v-icon>
+                              </template>
+                              <span>每个用户可提交的最大文件数量，处于队列中和运行中的任务对应的upload数量超过此数值后将无法再继续上传</span>
+                            </v-tooltip>
+                          </v-list-item-title>
+                          <v-list-item-subtitle
+                          >{{ courseConfig.max_active_uploads_per_user || "-" }}
+                          </v-list-item-subtitle>
+                        </v-list-item>
                         <v-list-item v-if="courseConfig.student_list">
                           <v-list-item-title
                           >学生名单
