@@ -2,7 +2,7 @@
   <v-card-text style="padding: 5px 5px 0">
     <v-row v-if="!loading">
       <!-- 系统信息 -->
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="4">
         <v-card class="h-100">
           <v-card-title>系统信息</v-card-title>
           <v-card-text>
@@ -55,36 +55,12 @@
                   </v-progress-linear>
                 </v-list-item-subtitle>
               </v-list-item>
-              <v-divider style="margin: 10px 0"></v-divider>
-              <v-list-item>
-                <v-list-item-title>进程ID</v-list-item-title>
-                <v-list-item-subtitle
-                >{{ systemInfo.process.current_process?.current_pid || "-" }}
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>启动时间</v-list-item-title>
-                <v-list-item-subtitle
-                >{{ systemInfo.process.current_process?.start_time || "-" }}
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>运行时长</v-list-item-title>
-                <v-list-item-subtitle>
-                  <v-chip color="success" size="small" variant="elevated">
-                    {{
-                      systemInfo.process.current_process?.uptime_formatted ||
-                      "-"
-                    }}
-                  </v-chip>
-                </v-list-item-subtitle>
-              </v-list-item>
             </v-list>
           </v-card-text>
         </v-card>
       </v-col>
       <!-- 应用配置 -->
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="4">
         <v-card class="h-100">
           <v-card-title>应用配置</v-card-title>
           <v-card-text>
@@ -177,6 +153,57 @@
                   >
                     共 {{ systemInfo.config.register_student_list.length }} 人
                     <v-icon size="small" class="ml-1">mdi-eye</v-icon>
+                  </v-chip>
+                </v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <!-- 当前进程 -->
+      <v-col cols="12" md="4">
+        <v-card class="h-100">
+          <v-card-title>当前进程</v-card-title>
+          <v-card-text>
+            <v-list>
+              <v-list-item>
+                <v-list-item-title>命令行</v-list-item-title>
+                <v-list-item-subtitle
+                >{{ systemInfo.process.current_process?.cmdline || "-" }}
+                </v-list-item-subtitle>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>进程名</v-list-item-title>
+                <v-list-item-subtitle
+                >{{ systemInfo.process.current_process?.name || "-" }}
+                </v-list-item-subtitle>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>进程ID</v-list-item-title>
+                <v-list-item-subtitle
+                >{{ systemInfo.process.current_process?.current_pid || "-" }}
+                </v-list-item-subtitle>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>启动时间</v-list-item-title>
+                <v-list-item-subtitle
+                >{{ systemInfo.process.current_process?.start_time || "-" }}
+                </v-list-item-subtitle>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>相关进程数量</v-list-item-title>
+                <v-list-item-subtitle
+                >{{ systemInfo.process.related_processes?.length || 0 }}
+                </v-list-item-subtitle>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>运行时长</v-list-item-title>
+                <v-list-item-subtitle>
+                  <v-chip color="success" size="small" variant="elevated">
+                    {{
+                      systemInfo.process.current_process?.uptime_formatted ||
+                      "-"
+                    }}
                   </v-chip>
                 </v-list-item-subtitle>
               </v-list-item>
