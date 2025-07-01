@@ -208,6 +208,13 @@
           <span>{{ item.deleted_at ? item.deleted_at : "-" }}</span>
         </template>
 
+        <template v-slot:item.created_at="{ item }">
+          <span>{{ item.created_at ? item.created_at : "-" }}</span>
+        </template>
+        <template v-slot:item.updated_at="{ item }">
+          <span>{{ item.updated_at ? item.updated_at : "-" }}</span>
+        </template>
+
         <template v-slot:item.actions="{ item }">
           <template v-if="!item.is_deleted">
             <v-btn
@@ -422,10 +429,17 @@ const headers = [
   {title: "真实姓名", key: "real_name", sortable: false, default: true},
   {title: "学号", key: "sno", sortable: false, default: true},
   {title: "角色", key: "role", sortable: false, default: true},
-  {title: "已选课程", key: "enrolled_courses", sortable: false, default: true,},
+  {
+    title: "已选课程",
+    key: "enrolled_courses",
+    sortable: false,
+    default: true,
+  },
   {title: "锁定状态", key: "is_locked", sortable: false, default: true},
   {title: "删除状态", key: "is_deleted", sortable: false, default: true},
   {title: "删除时间", key: "deleted_at", sortable: false, default: false},
+  {title: "创建时间", key: "created_at", sortable: false, default: true},
+  {title: "更新时间", key: "updated_at", sortable: false, default: false},
   {title: "操作", key: "actions", sortable: false, align: "center", default: true,},
 ];
 

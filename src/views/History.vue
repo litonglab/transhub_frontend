@@ -93,6 +93,14 @@
         >
         </el-table-column>
         <el-table-column
+          prop="updated_at"
+          label="更新时间"
+          width="180"
+          sortable="custom"
+          :sort-orders="['ascending', 'descending']"
+        >
+        </el-table-column>
+        <el-table-column
           prop="status"
           label="状态"
           min-width="120"

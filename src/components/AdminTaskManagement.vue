@@ -184,6 +184,12 @@
         <template v-slot:item.created_time="{ item }">
           {{ formatDateTime(item.created_time) }}
         </template>
+        <template v-slot:item.created_at="{ item }">
+          {{ formatDateTime(item.created_at) }}
+        </template>
+        <template v-slot:item.updated_at="{ item }">
+          {{ formatDateTime(item.updated_at) }}
+        </template>
 
         <template v-slot:item.actions="{ item }">
           <div class="actions-cell">
@@ -300,7 +306,7 @@
           </v-col>
           <v-col cols="12" md="4">
             <v-list-item>
-              <v-list-item-title>创建时间</v-list-item-title>
+              <v-list-item-title>上传时间</v-list-item-title>
               <v-list-item-subtitle
               >{{ formatDateTime(selectedTask.created_time) }}
               </v-list-item-subtitle>
@@ -308,10 +314,9 @@
           </v-col>
           <v-col cols="12" md="4">
             <v-list-item>
-              <v-list-item-title>完成时间</v-list-item-title>
+              <v-list-item-title>更新时间</v-list-item-title>
               <v-list-item-subtitle
-              >暂不支持
-                <!--                {{ formatDateTime(selectedTask.end_time) }}-->
+              >{{ formatDateTime(selectedTask.updated_at) }}
               </v-list-item-subtitle>
             </v-list-item>
           </v-col>
@@ -453,7 +458,9 @@ const headers = [
   {title: "得分", key: "task_score", sortable: true, default: true},
   {title: "比赛名称", key: "cname", sortable: false, default: true},
   {title: "状态", key: "task_status", sortable: false, default: true},
-  {title: "创建时间", key: "created_time", sortable: true, default: true},
+  {title: "上传时间", key: "created_time", sortable: true, default: true},
+  {title: "创建时间", key: "created_at", sortable: false, default: false,},
+  {title: "更新时间", key: "updated_at", sortable: false, default: true,},
   {title: "吞吐量图", key: "throughput_graph", sortable: false, default: false,},
   {title: "时延图", key: "delay_graph", sortable: false, default: false},
   {title: "操作", key: "actions", sortable: false, align: "center", default: true,},

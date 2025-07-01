@@ -28,12 +28,23 @@
           prop="trace_name"
           label="测试文件"
           min-width="160"
+          align="center"
         ></el-table-column>
-        <el-table-column prop="loss_rate" label="丢包率"></el-table-column>
-        <el-table-column prop="buffer_size" label="缓冲区容量"/>
-        <el-table-column prop="delay" label="往返时延"/>
-        <el-table-column prop="task_status" label="任务状态"></el-table-column>
-        <el-table-column prop="task_score" label="得分">
+        <el-table-column prop="loss_rate" label="丢包率" align="center"></el-table-column>
+        <el-table-column prop="buffer_size" label="缓冲区容量" align="center"></el-table-column>
+        <el-table-column prop="delay" label="往返时延" align="center"></el-table-column>
+        <el-table-column prop="created_at" label="创建时间" align="center">
+          <template #default="scope">
+            {{ scope.row.created_at.split(" ")[1] }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="updated_at" label="更新时间" align="center">
+          <template #default="scope">
+            {{ scope.row.updated_at.split(" ")[1] }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="task_status" label="任务状态" align="center"></el-table-column>
+        <el-table-column prop="task_score" label="得分" align="center">
           <template #default="scope">
             <span v-if="scope.row.task_status !== 'finished'"
             >任务完成后可查看</span
