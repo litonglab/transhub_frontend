@@ -103,6 +103,7 @@
               <v-text-field
                 v-model="userId"
                 label="账户"
+                placeholder="用于登录、榜单展示，注册后不可更改"
                 :rules="userIdRules"
                 autocomplete="username"
               ></v-text-field>
@@ -127,6 +128,7 @@
                 label="学号"
                 :rules="snoRules"
                 autocomplete="off"
+                placeholder="真实学号，注册后不可更改"
               ></v-text-field>
               <v-btn type="submit" class="mb-6" block>提交</v-btn>
             </v-form>

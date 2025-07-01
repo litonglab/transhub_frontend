@@ -262,7 +262,20 @@
   <!-- 编辑用户对话框 -->
   <v-dialog v-model="editDialog" max-width="500px">
     <v-card>
-      <v-card-title>编辑用户</v-card-title>
+      <v-card-title>编辑用户
+        <v-tooltip location="top">
+          <template v-slot:activator="{ props }">
+            <v-icon
+              v-bind="props"
+              icon="mdi-information-outline"
+              size="16"
+              color="grey"
+              class="ml-1"
+            ></v-icon>
+          </template>
+          <span>由于用户名与用户数据目录等信息绑定，为避免修改后目录混乱，系统不支持修改用户名等信息，如确需修改，可删除当前账号后重新注册</span>
+        </v-tooltip>
+      </v-card-title>
       <v-card-text>
         <v-form ref="editFormRef">
           <v-text-field
