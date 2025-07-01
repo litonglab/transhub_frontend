@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
-    "@iktakahiro/markdown-it-katex": "^4.0.1",
+    "@iktakahiro/markdown-it-katex": "^3.0.4",
     "@mdi/font": "^7.4.47",
     "@vitejs/plugin-vue": "^5.1.2",
     "@wooorm/starry-night": "^3.5.0",
@@ -43,7 +43,7 @@
     "pinia-plugin-persistedstate": "^3.2.1",
     "require.js": "^1.0.0",
     "roboto-fontface": "*",
-    "vite": "6.3.4",
+    "vite": "^6.3.5",
     "vite-plugin-vuetify": "^2.0.3",
     "vue": "^3.2.13",
     "vue-axios": "^3.5.2",
