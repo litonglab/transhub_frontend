@@ -27,11 +27,12 @@
       </div>
 
       <v-card-text>
-        <div v-if="codeLoading" class="d-flex justify-center pa-4">
+        <div v-if="codeLoading" class="d-flex justify-center pa-4 code-container">
           <v-progress-circular
             indeterminate
             color="primary"
             size="64"
+            style="height: 100%"
           ></v-progress-circular>
         </div>
 
@@ -41,7 +42,7 @@
           </div>
         </div>
 
-        <div v-else class="d-flex flex-column align-center justify-center pa-8">
+        <div v-else class="d-flex flex-column align-center justify-center pa-8 code-container">
           <v-icon size="64" color="grey-lighten-1" class="mb-4"
           >mdi-file-alert
           </v-icon>
@@ -149,7 +150,9 @@ async function fetchCode(upload_id) {
     console.error("Failed to fetch code:", error);
     // ElMessage.error("获取代码失败");
   } finally {
-    codeLoading.value = false;
+    setTimeout(() => {
+      codeLoading.value = false;
+    }, 200);
   }
 }
 
@@ -327,7 +330,6 @@ defineExpose({
   line-height: 1.6;
   white-space: pre;
   color: #333;
-  height: 100%;
   overflow: auto;
   box-sizing: border-box;
 }
