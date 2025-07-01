@@ -225,7 +225,7 @@ const onIframeLoad = () => {
     console.log("无法访问 iframe URL due to CORS policy");
   }
 
-  // 监听 iframe 内的链接点击
+  // 监听 iframe 内的链接点击和表单提交
   try {
     const iframeDoc =
       dramatiqFrame.value.contentDocument ||
@@ -236,12 +236,9 @@ const onIframeLoad = () => {
       "click",
       (event) => {
         const target = event.target;
-
-        // 检查是否点击了链接
         if (target.tagName === "A" || target.closest("a")) {
           const link = target.tagName === "A" ? target : target.closest("a");
           const href = link.href;
-
           if (href && shouldRedirectToBackend(href)) {
             event.preventDefault();
             handleNavigation(href);
@@ -250,6 +247,105 @@ const onIframeLoad = () => {
       },
       true
     );
+
+    // 拦截所有 form 的 submit 事件，重写 action，异步提交
+    const patchFormSubmit = (form) => {
+      if (form._patched) return; // 防止重复绑定
+      form.addEventListener(
+        "submit",
+        async (event) => {
+          let action =
+            form.getAttribute("action") || iframeDoc.location.pathname;
+          if (shouldRedirectToBackend(action)) {
+            event.preventDefault();
+            const finalUrl = buildBackendUrl(action);
+            if ((form.method || "post").toLowerCase() === "get") {
+              // GET 表单，拼接参数后直接跳转
+              const params = new URLSearchParams();
+              for (const el of form.elements) {
+                if (!el.name || el.disabled) continue;
+                if (
+                  (el.type === "checkbox" || el.type === "radio") &&
+                  !el.checked
+                )
+                  continue;
+                params.append(el.name, el.value);
+              }
+              let urlWithParams = finalUrl;
+              if (params.toString()) {
+                urlWithParams +=
+                  (finalUrl.includes("?") ? "&" : "?") + params.toString();
+              }
+              iframeDoc.location.href = urlWithParams;
+              return;
+            }
+            // POST 及其他方法，使用 fetch，数据格式为 application/x-www-form-urlencoded
+            const params = new URLSearchParams();
+            for (const el of form.elements) {
+              if (!el.name || el.disabled) continue;
+              if (
+                (el.type === "checkbox" || el.type === "radio") &&
+                !el.checked
+              )
+                continue;
+              params.append(el.name, el.value);
+            }
+            let fetchOptions = {
+              method: form.method || "POST",
+              body: params.toString(),
+              credentials: "include",
+              redirect: "manual",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+            };
+            try {
+              const resp = await iframeDoc.defaultView.fetch(finalUrl, fetchOptions);
+              // 检查是否为重定向
+              if ([301, 302, 303, 307, 308].includes(resp.status)) {
+                const location = resp.headers.get("Location") || resp.headers.get("location");
+                if (location) {
+                  // 跳转到新地址（相对路径需补全）
+                  let jumpUrl = location;
+                  if (!/^https?:/.test(jumpUrl)) {
+                    const a = iframeDoc.createElement("a");
+                    a.href = jumpUrl;
+                    jumpUrl = a.href;
+                  }
+                  iframeDoc.location.href = jumpUrl;
+                  return;
+                }
+              }
+              // 否则用内容替换
+              const html = await resp.text();
+              if (form.parentNode) {
+                form.parentNode.innerHTML = html;
+              }
+            } catch (e) {
+              alert("表单提交失败: " + e.message);
+            }
+          }
+        },
+        true
+      );
+      form._patched = true;
+    };
+    // 初始 patch
+    iframeDoc.querySelectorAll("form").forEach(patchFormSubmit);
+    // 监听 DOM 变化，动态 patch 新增的 form
+    const observer = new iframeDoc.defaultView.MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.tagName === "FORM") patchFormSubmit(node);
+          if (node.querySelectorAll) {
+            node.querySelectorAll("form").forEach(patchFormSubmit);
+          }
+        });
+      });
+    });
+    observer.observe(iframeDoc.body, {childList: true, subtree: true});
+    // 保存 observer 以便后续清理
+    dramatiqFrame.value._formObserver = observer;
   } catch (error) {
     console.log("无法监听 iframe 内容 due to CORS policy");
   }
@@ -365,6 +461,11 @@ onUnmounted(() => {
   // 清理事件监听器
   document.removeEventListener("fullscreenchange", handleFullscreenChange);
   window.removeEventListener("message", handleMessage);
+  // 清理 iframe 内的 MutationObserver
+  if (dramatiqFrame.value && dramatiqFrame.value._formObserver) {
+    dramatiqFrame.value._formObserver.disconnect();
+    dramatiqFrame.value._formObserver = null;
+  }
 });
 </script>
 
