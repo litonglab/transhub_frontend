@@ -20,8 +20,7 @@
               <v-icon icon="mdi-chevron-down" size="18"/>
             </v-btn>
           </v-col>
-          <template v-if="!isMobile || showAllFilters"
-          ><!-- 新增：列选择多选框 -->
+          <template v-if="!isMobile || showAllFilters">
             <v-col v-if="!isMobile || showAllFilters" cols="12" sm="6" md="2">
               <v-select
                 v-model="selectedColumns"
@@ -39,15 +38,14 @@
                     (+{{ selectedColumns.length - 1 }}...)
                   </span>
                 </template>
-              </v-select
-              >
+              </v-select>
             </v-col>
-            <!-- 新增：task_id 筛选框 -->
             <v-col v-if="!isMobile || showAllFilters" cols="12" sm="6" md="2">
               <v-text-field
                 v-model="taskIdFilter"
                 label="任务ID"
                 @input="searchTasks"
+                @click:clear="searchTasks"
                 clearable
                 density="compact"
               ></v-text-field>
@@ -57,6 +55,7 @@
                 v-model="usernameFilter"
                 label="用户名"
                 @input="searchTasks"
+                @click:clear="searchTasks"
                 clearable
                 density="compact"
               ></v-text-field>
@@ -66,6 +65,7 @@
                 v-model="traceNameFilter"
                 label="Trace 名称"
                 @input="searchTasks"
+                @click:clear="searchTasks"
                 clearable
                 density="compact"
               ></v-text-field>
@@ -76,6 +76,7 @@
                 label="状态筛选"
                 :items="statusOptions"
                 @update:model-value="searchTasks"
+                @click:clear="searchTasks"
                 clearable
                 density="compact"
               ></v-select>
@@ -87,6 +88,7 @@
                 :items="courseList"
                 :loading="courseListLoading"
                 @update:model-value="searchTasks"
+                @click:clear="searchTasks"
                 clearable
                 density="compact"
                 no-data-text="没有可用的课程"
@@ -146,21 +148,24 @@
 
         <template v-slot:item.task_status="{ item }">
           <v-chip
-            :color="getStatusColor(item.task_status)"
+            :color="getStatusMeta(item.task_status).color"
             size="small"
             variant="elevated"
           >
-            {{ getStatusText(item.task_status) }}
+            {{ getStatusMeta(item.task_status).text }}
           </v-chip>
         </template>
         <template v-slot:item.cname="{ item }">
-          <v-chip
-            :color="getStatusColor(item.task_status)"
-            size="small"
-            variant="elevated"
-          >
-            {{ item.cname }}
-          </v-chip>
+          <span v-if="item.cname">
+            <v-chip
+              :color="getStatusMeta(item.task_status).color"
+              size="small"
+              variant="elevated"
+            >
+              {{ item.cname }}
+            </v-chip>
+          </span>
+          <span v-else>-</span>
         </template>
         <template v-slot:item.log="{ item }">
           <div class="log-cell limited-log">
@@ -205,7 +210,6 @@
             variant="text"
             color="primary"
             @click="showImage('throughput', item.task_id)"
-            :disabled="item.task_status !== 'finished'"
             title="查看吞吐量图"
           >
             查看
@@ -217,7 +221,6 @@
             variant="text"
             color="primary"
             @click="showImage('delay', item.task_id)"
-            :disabled="item.task_status !== 'finished'"
             title="查看时延图"
           >
             查看
@@ -260,8 +263,8 @@
           <v-col cols="12" md="4">
             <v-list-item>
               <v-list-item-title>算法</v-list-item-title>
-              <v-list-item-subtitle
-              >{{ selectedTask.algorithm }}
+              <v-list-item-subtitle>
+                {{ selectedTask.algorithm }}
               </v-list-item-subtitle>
             </v-list-item>
           </v-col>
@@ -286,11 +289,11 @@
               <v-list-item-title>状态</v-list-item-title>
               <v-list-item-subtitle>
                 <v-chip
-                  :color="getStatusColor(selectedTask.task_status)"
+                  :color="getStatusMeta(selectedTask.task_status).color"
                   size="small"
                   variant="elevated"
                 >
-                  {{ getStatusText(selectedTask.task_status) }}
+                  {{ getStatusMeta(selectedTask.task_status).text }}
                 </v-chip>
               </v-list-item-subtitle>
             </v-list-item>
@@ -396,9 +399,8 @@
     style="max-width: 70%; max-height: 95%"
   >
     <v-card>
-      <v-card-title>{{
-          imageDialogType === "throughput" ? "吞吐量图" : "时延图"
-        }}
+      <v-card-title
+      >{{ imageDialogType === "throughput" ? "吞吐量图" : "时延图" }}
       </v-card-title>
       <div style="padding: 5px 15px">
         <img v-if="imageDialogUrl" :src="imageDialogUrl" style="width: 100%"/>
@@ -410,14 +412,9 @@
 
 <script setup>
 import {computed, onMounted, reactive, ref} from "vue";
-// useRouter is no longer needed for navigation here, but might be used elsewhere.
-// import { useRouter } from "vue-router";
 import {APIS} from "@/config";
 import {fetchImageBlobUrl, request} from "@/utility.js";
-import {ElMessage} from "element-plus";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
-
-// const router = useRouter();
 
 // 防抖函数
 function debounce(fn, delay = 300) {
@@ -449,83 +446,52 @@ const pagination = reactive({
 });
 
 const headers = [
-  {title: "任务ID", key: "task_id", sortable: false},
-  {title: "用户", key: "username", sortable: false},
-  {title: "算法", key: "algorithm", sortable: false},
-  {title: "Trace", key: "trace_name", sortable: false},
-  {title: "得分", key: "task_score", sortable: true},
-  {title: "比赛名称", key: "cname", sortable: false},
-  {title: "状态", key: "task_status", sortable: false},
-  {title: "创建时间", key: "created_time", sortable: true},
-  {title: "吞吐量图", key: "throughput_graph", sortable: false},
-  {title: "时延图", key: "delay_graph", sortable: false},
-  {title: "操作", key: "actions", sortable: false, align: "center"},
-  {title: "丢包率", key: "loss_rate", sortable: false},
-  {title: "往返时延", key: "delay", sortable: false},
-  {title: "缓冲区大小", key: "buffer_size", sortable: false},
-  {title: "日志", key: "log", sortable: true},
+  {title: "任务ID", key: "task_id", sortable: false, default: true},
+  {title: "用户", key: "username", sortable: false, default: true},
+  {title: "算法", key: "algorithm", sortable: false, default: true},
+  {title: "Trace", key: "trace_name", sortable: false, default: true},
+  {title: "得分", key: "task_score", sortable: true, default: true},
+  {title: "比赛名称", key: "cname", sortable: false, default: true},
+  {title: "状态", key: "task_status", sortable: false, default: true},
+  {title: "创建时间", key: "created_time", sortable: true, default: true},
+  {title: "吞吐量图", key: "throughput_graph", sortable: false, default: false,},
+  {title: "时延图", key: "delay_graph", sortable: false, default: false},
+  {title: "操作", key: "actions", sortable: false, align: "center", default: true,},
+  {title: "丢包率", key: "loss_rate", sortable: false, default: false},
+  {title: "往返时延", key: "delay", sortable: false, default: false},
+  {title: "缓冲区大小", key: "buffer_size", sortable: false, default: false},
+  {title: "日志", key: "log", sortable: true, default: false},
 ];
 
-const statusOptions = [
-  {title: "排队中", value: "queued"},
-  {title: "编译中", value: "compling"},
-  {title: "编译完成", value: "compiled"},
-  {title: "编译失败", value: "compile_failed"},
-  {title: "运行中", value: "running"},
-  {title: "已完成", value: "finished"},
-  {title: "错误", value: "error"},
-  {title: "未能入队", value: "not_queued"},
-];
+const allColumnOptions = headers.map((h) => ({title: h.title, value: h.key}));
 
-const getStatusColor = (status) => {
-  switch (status) {
-    case "finished":
-      return "success";
-    case "running":
-      return "primary";
-    case "queued":
-      return "warning";
-    case "compling":
-      return "info";
-    case "compiled":
-      return "cyan";
-    case "compile_failed":
-    case "error":
-      return "error";
-    case "not_queued":
-      return "secondary";
-    default:
-      return "grey";
-  }
-};
+const selectedColumns = ref(headers.filter((h) => h.default).map((h) => h.key));
 
-const getStatusText = (status) => {
-  switch (status) {
-    case "queued":
-      return "排队中";
-    case "compling":
-      return "编译中";
-    case "compiled":
-      return "编译完成";
-    case "compile_failed":
-      return "编译失败";
-    case "running":
-      return "运行中";
-    case "finished":
-      return "已完成";
-    case "error":
-      return "错误";
-    case "not_queued":
-      return "未能入队";
-    default:
-      return "未知";
-  }
-};
+const computedHeaders = computed(() => {
+  // 保证操作列始终在最后
+  const cols = selectedColumns.value.filter((c) => c !== "actions");
+  return [
+    ...headers.filter((h) => cols.includes(h.key)),
+    ...headers.filter(
+      (h) => h.key === "actions" && selectedColumns.value.includes("actions")
+    ),
+  ];
+});
 
-const formatDateTime = (dateTime) => {
-  if (!dateTime) return "-";
-  return new Date(dateTime).toLocaleString("zh-CN");
-};
+const isMobile = ref(false);
+const showAllFilters = ref(false);
+const imageDialogVisible = ref(false);
+const imageDialogUrl = ref("");
+const imageDialogType = ref("");
+
+onMounted(() => {
+  isMobile.value = window.innerWidth <= 768;
+  window.addEventListener("resize", () => {
+    isMobile.value = window.innerWidth <= 768;
+    if (!isMobile.value) showAllFilters.value = false;
+  });
+  loadCourseList();
+});
 
 const loadTasks = async ({page, itemsPerPage, sortBy}) => {
   loading.value = true;
@@ -569,26 +535,10 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
       method: "GET",
     });
 
-    if (result.data) {
-      console.log("任务管理 - 后端返回数据:", result.data); // 调试信息
-      tasks.value = result.data.tasks || [];
-
-      // 根据后端实际返回的结构修复分页信息
-      // 后端返回: { pagination: { page: 1, pages: 28, size: 20, total: 544 }, tasks: [...] }
-      if (
-        result.data.pagination &&
-        result.data.pagination.total !== undefined
-      ) {
-        pagination.total = result.data.pagination.total;
-      } else if (result.data.total !== undefined) {
-        pagination.total = result.data.total;
-      } else {
-        pagination.total = tasks.value.length;
-      }
-    }
+    tasks.value = result.data.tasks || [];
+    pagination.total = result.data.pagination.total;
   } catch (error) {
     console.error("加载任务列表失败:", error);
-    ElMessage.error("加载任务列表失败");
   } finally {
     loading.value = false;
   }
@@ -626,73 +576,24 @@ const loadCourseList = async () => {
     courseList.value = result.pantheon || [];
   } catch (error) {
     console.error("加载课程列表失败:", error);
-    ElMessage.error("加载课程列表失败");
+    // ElMessage.error("加载课程列表失败");
     courseList.value = []; // Ensure list is empty on error
   } finally {
     courseListLoading.value = false;
   }
 };
 
-const allColumnOptions = [
-  {title: "任务ID", value: "task_id"},
-  {title: "用户", value: "username"},
-  {title: "算法", value: "algorithm"},
-  {title: "Trace", value: "trace_name"},
-  {title: "得分", value: "task_score"},
-  {title: "比赛名称", value: "cname"},
-  {title: "状态", value: "task_status"},
-  {title: "创建时间", value: "created_time"},
-  {title: "吞吐量图", value: "throughput_graph"},
-  {title: "时延图", value: "delay_graph"},
-  {title: "操作", value: "actions"},
-  {title: "丢包率", value: "loss_rate"},
-  {title: "往返时延", value: "delay"},
-  {title: "缓冲区大小", value: "buffer_size"},
-  {title: "日志", value: "log"},
-];
+const isLogTruncated = (log) => {
+  if (!log) return false;
+  const lines = log.split(/\r?\n/);
+  return lines.length > 5;
+};
 
-const defaultColumns = [
-  "task_id",
-  "username",
-  "algorithm",
-  "trace_name",
-  "task_score",
-  "cname",
-  "task_status",
-  "created_time",
-  "throughput_graph",
-  "delay_graph",
-  "actions",
-];
-
-const selectedColumns = ref([...defaultColumns]);
-
-const computedHeaders = computed(() => {
-  // 保证操作列始终在最后
-  const cols = selectedColumns.value.filter((c) => c !== "actions");
-  const ordered = [
-    ...headers.filter((h) => cols.includes(h.key)),
-    ...headers.filter(
-      (h) => h.key === "actions" && selectedColumns.value.includes("actions")
-    ),
-  ];
-  return ordered;
-});
-
-const isMobile = ref(false);
-const showAllFilters = ref(false);
-const imageDialogVisible = ref(false);
-const imageDialogUrl = ref("");
-const imageDialogType = ref("");
-
-onMounted(() => {
-  isMobile.value = window.innerWidth <= 768;
-  window.addEventListener("resize", () => {
-    isMobile.value = window.innerWidth <= 768;
-    if (!isMobile.value) showAllFilters.value = false;
-  });
-  loadCourseList();
-});
+const getLimitedLogLines = (log) => {
+  if (!log) return [];
+  const lines = log.split(/\r?\n/);
+  return lines.slice(0, 5);
+};
 
 async function showImage(type, task_id) {
   try {
@@ -713,17 +614,29 @@ async function showImage(type, task_id) {
   }
 }
 
-function getLimitedLogLines(log) {
-  if (!log) return [];
-  const lines = log.split(/\r?\n/);
-  return lines.slice(0, 5);
-}
+const getStatusMeta = (value) =>
+  statusMeta.find((s) => s.value === value) || {text: "未知", color: "grey"};
 
-function isLogTruncated(log) {
-  if (!log) return false;
-  const lines = log.split(/\r?\n/);
-  return lines.length > 5;
-}
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return "-";
+  return new Date(dateTime).toLocaleString("zh-CN");
+};
+
+const statusMeta = [
+  {value: "queued", text: "排队中", color: "warning"},
+  {value: "compiling", text: "编译中", color: "info"},
+  {value: "compiled", text: "编译完成", color: "cyan"},
+  {value: "compile_failed", text: "编译失败", color: "error"},
+  {value: "running", text: "运行中", color: "primary"},
+  {value: "finished", text: "已完成", color: "success"},
+  {value: "error", text: "错误", color: "error"},
+  {value: "not_queued", text: "未能入队", color: "secondary"},
+];
+
+const statusOptions = statusMeta.map((s) => ({
+  title: s.text,
+  value: s.value,
+}));
 </script>
 
 <style scoped>

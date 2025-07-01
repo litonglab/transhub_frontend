@@ -21,22 +21,53 @@
             </v-btn>
           </v-col>
           <template v-if="!isMobile || showAllFilters">
-            <v-col cols="12" sm="6" md="3">
+            <v-col cols="12" sm="6" md="2">
+              <v-select
+                v-model="selectedColumns"
+                :items="allColumnOptions"
+                label="显示列"
+                multiple
+                clearable
+                density="compact"
+              >
+                <template v-slot:selection="{ item, index }">
+                  <v-chip v-if="index === 0">
+                    <span>{{ item.title }}</span>
+                  </v-chip>
+                  <span v-if="index === 1" class="grey--text text-caption">
+                    (+{{ selectedColumns.length - 1 }}...)
+                  </span>
+                </template>
+              </v-select>
+            </v-col>
+            <v-col cols="12" sm="6" md="2">
+              <v-text-field
+                v-model="userIdFilter"
+                label="用户ID"
+                @input="searchUsers"
+                @click:clear="searchUsers"
+                clearable
+                density="compact"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="2">
               <v-text-field
                 v-model="searchKeyword"
                 label="搜索用户 (用户名、姓名、学号)"
                 prepend-inner-icon="mdi-magnify"
                 @input="debouncedSearch"
+                @click:clear="searchUsers"
                 clearable
                 density="compact"
               ></v-text-field>
             </v-col>
-            <v-col cols="12" sm="6" md="3">
+            <v-col cols="12" sm="6" md="2">
               <v-select
                 v-model="cnameFilter"
                 label="课程筛选"
                 :items="pantheons"
                 @update:model-value="searchUsers"
+                @click:clear="searchUsers"
                 :loading="coursesLoading"
                 clearable
                 density="compact"
@@ -49,26 +80,29 @@
                 label="角色筛选"
                 :items="roleOptions"
                 @update:model-value="searchUsers"
+                @click:clear="searchUsers"
                 clearable
                 density="compact"
               ></v-select>
             </v-col>
-            <v-col cols="12" sm="4" md="2">
+            <v-col cols="12" sm="4" md="1">
               <v-select
                 v-model="activeFilter"
                 label="锁定状态"
                 :items="activeOptions"
                 @update:model-value="searchUsers"
+                @click:clear="searchUsers"
                 clearable
                 density="compact"
               ></v-select>
             </v-col>
-            <v-col cols="12" sm="4" md="2">
+            <v-col cols="12" sm="4" md="1">
               <v-select
                 v-model="deletedFilter"
                 label="删除状态"
                 :items="deletedOptions"
                 @update:model-value="searchUsers"
+                @click:clear="searchUsers"
                 clearable
                 density="compact"
               ></v-select>
@@ -97,7 +131,7 @@
     <!-- 表格区域 -->
     <div class="table-section">
       <v-data-table-server
-        :headers="headers"
+        :headers="computedHeaders"
         :items="users"
         :loading="loading"
         :items-length="pagination.total"
@@ -160,18 +194,22 @@
           </v-chip>
         </template>
 
-        <template v-slot:item.deleted_at="{ item }">
+        <template v-slot:item.is_deleted="{ item }">
           <v-chip
-            :color="item.deleted_at ? 'secondary' : 'grey'"
+            :color="item.is_deleted ? 'secondary' : 'grey'"
             size="small"
             variant="elevated"
           >
-            {{ item.deleted_at ? `已删除` : "未删除" }}
+            {{ item.is_deleted ? `已删除` : "未删除" }}
           </v-chip>
         </template>
 
+        <template v-slot:item.deleted_at="{ item }">
+          <span>{{ item.deleted_at ? item.deleted_at : "-" }}</span>
+        </template>
+
         <template v-slot:item.actions="{ item }">
-          <template v-if="!item.deleted_at">
+          <template v-if="!item.is_deleted">
             <v-btn
               icon="mdi-pencil"
               size="small"
@@ -238,7 +276,7 @@
           <v-select
             label="角色"
             v-model="editedUser.role"
-            :items="editableRoleOptions"
+            :items="roleOptions"
             :disabled="!store.is_super_admin"
           ></v-select>
           <v-switch
@@ -328,7 +366,7 @@
 </template>
 
 <script setup>
-import {onMounted, reactive, ref} from "vue";
+import {computed, onMounted, reactive, ref} from "vue";
 import {useAppStore} from "@/store/app";
 import {APIS} from "@/config";
 import {request} from "@/utility.js";
@@ -360,6 +398,7 @@ const pantheons = ref([]);
 const coursesLoading = ref(false);
 const newPassword = ref("");
 const selectedUser = ref(null);
+const userIdFilter = ref("");
 
 const users = ref([]);
 const pagination = reactive({
@@ -378,23 +417,33 @@ const editedUser = ref({
 });
 
 const headers = [
-  {title: "用户名", key: "username", sortable: false},
-  {title: "真实姓名", key: "real_name", sortable: false},
-  {title: "学号", key: "sno", sortable: false},
-  {title: "角色", key: "role", sortable: false},
-  {title: "已选课程", key: "enrolled_courses", sortable: false},
-  {title: "锁定状态", key: "is_locked", sortable: false},
-  {title: "删除状态", key: "deleted_at", sortable: false},
-  {title: "操作", key: "actions", sortable: false, align: "center"},
+  {title: "用户ID", key: "user_id", sortable: false, default: true},
+  {title: "用户名", key: "username", sortable: false, default: true},
+  {title: "真实姓名", key: "real_name", sortable: false, default: true},
+  {title: "学号", key: "sno", sortable: false, default: true},
+  {title: "角色", key: "role", sortable: false, default: true},
+  {title: "已选课程", key: "enrolled_courses", sortable: false, default: true,},
+  {title: "锁定状态", key: "is_locked", sortable: false, default: true},
+  {title: "删除状态", key: "is_deleted", sortable: false, default: true},
+  {title: "删除时间", key: "deleted_at", sortable: false, default: false},
+  {title: "操作", key: "actions", sortable: false, align: "center", default: true,},
 ];
+
+const allColumnOptions = headers.map((h) => ({title: h.title, value: h.key}));
+
+const selectedColumns = ref(headers.filter((h) => h.default).map((h) => h.key));
+
+const computedHeaders = computed(() => {
+  const cols = selectedColumns.value.filter((c) => c !== "actions");
+  return [
+    ...headers.filter((h) => cols.includes(h.key)),
+    ...headers.filter(
+      (h) => h.key === "actions" && selectedColumns.value.includes("actions")
+    ),
+  ];
+});
 
 const roleOptions = [
-  {title: "学生", value: "student"},
-  {title: "管理员", value: "admin"},
-  {title: "超级管理员", value: "super_admin"},
-];
-
-const editableRoleOptions = [
   {title: "学生", value: "student"},
   {title: "管理员", value: "admin"},
   {title: "超级管理员", value: "super_admin"},
@@ -412,27 +461,14 @@ const deletedOptions = [
 
 const passwordRules = [(v) => !v || v.length >= 6 || "密码至少需要6位字符"];
 
-const getRoleColor = (role) => {
-  switch (role) {
-    case "super_admin":
-      return "purple";
-    case "admin":
-      return "primary";
-    default:
-      return "grey";
-  }
+const roleMap = {
+  super_admin: {color: "purple", text: "超级管理员"},
+  admin: {color: "primary", text: "管理员"},
+  student: {color: "grey", text: "学生"},
 };
 
-const getRoleText = (role) => {
-  switch (role) {
-    case "super_admin":
-      return "超级管理员";
-    case "admin":
-      return "管理员";
-    default:
-      return "学生";
-  }
-};
+const getRoleColor = (role) => roleMap[role]?.color || "grey";
+const getRoleText = (role) => roleMap[role]?.text || "学生";
 
 const loadUsers = async ({page, itemsPerPage, sortBy}) => {
   loading.value = true;
@@ -447,6 +483,9 @@ const loadUsers = async ({page, itemsPerPage, sortBy}) => {
 
     if (searchKeyword.value) {
       params.append("keyword", searchKeyword.value);
+    }
+    if (userIdFilter.value) {
+      params.append("user_id", userIdFilter.value);
     }
     if (roleFilter.value) {
       params.append("role", roleFilter.value);
@@ -464,32 +503,8 @@ const loadUsers = async ({page, itemsPerPage, sortBy}) => {
     const result = await request(`${APIS.admin_get_users}?${params}`, {
       method: "GET",
     });
-
-    if (result.data) {
-      console.log("用户管理 - 后端返回数据:", result.data); // 调试信息
-      users.value = result.data.users || [];
-
-      // 根据后端实际返回的结构修复分页信息
-      // 后端返回: { pagination: { page: 1, pages: 28, size: 20, total: 544 }, users: [...] }
-      console.log("用户管理 - 修改前 pagination.total:", pagination.total);
-
-      if (
-        result.data.pagination &&
-        result.data.pagination.total !== undefined
-      ) {
-        pagination.total = result.data.pagination.total;
-        console.log("用户管理 - 分页信息:", result.data.pagination); // 调试信息
-        console.log("用户管理 - 设置 pagination.total 为:", pagination.total);
-      } else if (result.data.total !== undefined) {
-        pagination.total = result.data.total;
-        console.log("用户管理 - 分页信息 total:", result.data.total); // 调试信息
-      } else {
-        pagination.total = users.value.length;
-        console.log("用户管理 - 使用数组长度作为total:", users.value.length); // 调试信息
-      }
-
-      console.log("用户管理 - 修改后 pagination:", pagination);
-    }
+    users.value = result.data.users || [];
+    pagination.total = result.data.pagination.total;
   } catch (error) {
     console.error("加载用户列表失败:", error);
   } finally {
