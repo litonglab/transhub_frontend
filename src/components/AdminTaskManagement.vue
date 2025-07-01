@@ -452,7 +452,8 @@ const pagination = reactive({
 
 const headers = [
   {title: "任务ID", key: "task_id", sortable: false, default: true},
-  {title: "用户", key: "username", sortable: false, default: true},
+  {title: "上传ID", key: "upload_id", sortable: false, default: true},
+  {title: "用户", key: "username", sortable: false, default: false},
   {title: "算法", key: "algorithm", sortable: false, default: true},
   {title: "Trace", key: "trace_name", sortable: false, default: true},
   {title: "得分", key: "task_score", sortable: true, default: true},
