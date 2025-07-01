@@ -241,7 +241,7 @@
                       "
                       size="small"
                       variant="flat"
-                      class="mr-2"
+                      class="mr-2 ml-2"
                     >
                       {{
                         getCourseStatus(
