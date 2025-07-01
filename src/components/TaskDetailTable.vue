@@ -84,9 +84,8 @@
 
       <v-dialog v-model="dialogVisible" class="responsive-dialog">
         <v-card>
-          <v-card-title>{{
-              dialogType === "image" ? "性能图" : "日志信息"
-            }}
+          <v-card-title
+          >{{ dialogType === "image" ? "性能图" : "日志信息" }}
           </v-card-title>
           <div style="padding: 5px 15px">
             <img
@@ -112,7 +111,7 @@
 <script setup>
 import {ref, watch} from "vue";
 import {APIS} from "@/config.js";
-import {request} from "@/utility.js";
+import {fetchImageBlobUrl, request} from "@/utility.js";
 import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
 
 const props = defineProps({
@@ -187,40 +186,17 @@ async function showImage(type, task_id) {
     const params = new URLSearchParams();
     params.append("task_id", task_id);
     params.append("graph_type", type);
-
     const url = `${APIS.get_graph}?${params.toString()}`;
-
-    const response = await request(
-      url,
-      {
-        method: "GET",
-      },
-      {raw: true}
-    );
-    if (!response.ok) {
-      const result = await response.json();
-      console.error(result.message);
+    const blobUrl = await fetchImageBlobUrl(url);
+    if (!blobUrl) {
+      // fetchImageBlobUrl 已自动打印错误日志
       return;
     }
-    const contentType = response.headers.get("Content-Type");
-    if (!contentType || !contentType.startsWith("image/")) {
-      console.error("Returned content is not an image:", contentType);
-      return;
-    }
-    const blob = await response.blob();
-    if (blob.size === 0) {
-      console.error("Blob is empty");
-      return;
-    }
-    const blobUrl = URL.createObjectURL(blob);
-    dialogContent.value = blobUrl.startsWith("blob:")
-      ? blobUrl
-      : `blob:${blobUrl}`;
+    dialogContent.value = blobUrl;
     dialogType.value = "image";
     dialogVisible.value = true;
   } catch (error) {
-    console.error("Failed to get image:", error);
-    // ElMessage.error("获取图片失败");
+    // fetchImageBlobUrl 已自动打印异常
   }
 }
 

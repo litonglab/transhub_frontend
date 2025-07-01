@@ -20,8 +20,39 @@
               <v-icon icon="mdi-chevron-down" size="18"/>
             </v-btn>
           </v-col>
-          <template v-if="!isMobile || showAllFilters">
-            <v-col cols="12" sm="6" md="3">
+          <template v-if="!isMobile || showAllFilters"
+          ><!-- 新增：列选择多选框 -->
+            <v-col v-if="!isMobile || showAllFilters" cols="12" sm="6" md="2">
+              <v-select
+                v-model="selectedColumns"
+                :items="allColumnOptions"
+                label="显示列"
+                multiple
+                clearable
+                density="compact"
+              >
+                <template v-slot:selection="{ item, index }">
+                  <v-chip v-if="index === 0">
+                    <span>{{ item.title }}</span>
+                  </v-chip>
+                  <span v-if="index === 1" class="grey--text text-caption">
+                    (+{{ selectedColumns.length - 1 }}...)
+                  </span>
+                </template>
+              </v-select
+              >
+            </v-col>
+            <!-- 新增：task_id 筛选框 -->
+            <v-col v-if="!isMobile || showAllFilters" cols="12" sm="6" md="2">
+              <v-text-field
+                v-model="taskIdFilter"
+                label="任务ID"
+                @input="searchTasks"
+                clearable
+                density="compact"
+              ></v-text-field>
+            </v-col>
+            <v-col v-if="!isMobile || showAllFilters" cols="12" sm="6" md="2">
               <v-text-field
                 v-model="usernameFilter"
                 label="用户名"
@@ -30,7 +61,7 @@
                 density="compact"
               ></v-text-field>
             </v-col>
-            <v-col v-if="!isMobile || showAllFilters" cols="12" sm="6" md="3">
+            <v-col v-if="!isMobile || showAllFilters" cols="12" sm="6" md="2">
               <v-text-field
                 v-model="traceNameFilter"
                 label="Trace 名称"
@@ -39,7 +70,7 @@
                 density="compact"
               ></v-text-field>
             </v-col>
-            <v-col cols="12" sm="6" md="3">
+            <v-col cols="12" sm="6" md="2">
               <v-select
                 v-model="statusFilter"
                 label="状态筛选"
@@ -49,7 +80,7 @@
                 density="compact"
               ></v-select>
             </v-col>
-            <v-col v-if="!isMobile || showAllFilters" cols="12" sm="6" md="3">
+            <v-col v-if="!isMobile || showAllFilters" cols="12" sm="6" md="2">
               <v-select
                 v-model="cnameFilter"
                 label="比赛名称"
@@ -81,11 +112,10 @@
         </v-row>
       </v-card>
     </div>
-
     <!-- 表格区域 -->
     <div class="table-section">
       <v-data-table-server
-        :headers="headers"
+        :headers="computedHeaders"
         :items="tasks"
         :loading="loading"
         :items-length="pagination.total"
@@ -123,27 +153,75 @@
             {{ getStatusText(item.task_status) }}
           </v-chip>
         </template>
+        <template v-slot:item.cname="{ item }">
+          <v-chip
+            :color="getStatusColor(item.task_status)"
+            size="small"
+            variant="elevated"
+          >
+            {{ item.cname }}
+          </v-chip>
+        </template>
+        <template v-slot:item.log="{ item }">
+          <div class="log-cell limited-log">
+            <span
+              v-for="(line, idx) in getLimitedLogLines(item.log)"
+              :key="idx"
+            >
+              {{
+                line
+              }}<br v-if="idx < getLimitedLogLines(item.log).length - 1"/>
+            </span>
+            <span v-if="isLogTruncated(item.log)" style="color: #888">...</span>
+          </div>
+        </template>
 
         <template v-slot:item.created_time="{ item }">
           {{ formatDateTime(item.created_time) }}
         </template>
 
         <template v-slot:item.actions="{ item }">
+          <div class="actions-cell">
+            <v-btn
+              icon="mdi-eye"
+              size="small"
+              @click="viewTaskDetail(item)"
+              variant="text"
+              title="查看任务运行详情"
+            ></v-btn>
+            <v-btn
+              v-if="item.upload_id"
+              icon="mdi-file-document-outline"
+              size="small"
+              @click="viewRecordDetail(item.upload_id)"
+              variant="text"
+              title="查看提交记录详情"
+            ></v-btn>
+          </div>
+        </template>
+        <template v-slot:item.throughput_graph="{ item }">
           <v-btn
-            icon="mdi-eye"
             size="small"
-            @click="viewTaskDetail(item)"
             variant="text"
-            title="查看任务运行详情"
-          ></v-btn>
+            color="primary"
+            @click="showImage('throughput', item.task_id)"
+            :disabled="item.task_status !== 'finished'"
+            title="查看吞吐量图"
+          >
+            查看
+          </v-btn>
+        </template>
+        <template v-slot:item.delay_graph="{ item }">
           <v-btn
-            v-if="item.upload_id"
-            icon="mdi-file-document-outline"
             size="small"
-            @click="viewRecordDetail(item.upload_id)"
             variant="text"
-            title="查看提交记录详情"
-          ></v-btn>
+            color="primary"
+            @click="showImage('delay', item.task_id)"
+            :disabled="item.task_status !== 'finished'"
+            title="查看时延图"
+          >
+            查看
+          </v-btn>
         </template>
       </v-data-table-server>
     </div>
@@ -311,14 +389,31 @@
       </v-card-text>
     </v-card>
   </v-dialog>
+
+  <!-- 图弹窗 -->
+  <v-dialog
+    v-model="imageDialogVisible"
+    style="max-width: 70%; max-height: 95%"
+  >
+    <v-card>
+      <v-card-title>{{
+          imageDialogType === "throughput" ? "吞吐量图" : "时延图"
+        }}
+      </v-card-title>
+      <div style="padding: 5px 15px">
+        <img v-if="imageDialogUrl" :src="imageDialogUrl" style="width: 100%"/>
+        <div v-else style="min-height: 80px; padding: 10px 0">暂无图片</div>
+      </div>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
-import {onMounted, reactive, ref} from "vue";
+import {computed, onMounted, reactive, ref} from "vue";
 // useRouter is no longer needed for navigation here, but might be used elsewhere.
 // import { useRouter } from "vue-router";
 import {APIS} from "@/config";
-import {request} from "@/utility.js";
+import {fetchImageBlobUrl, request} from "@/utility.js";
 import {ElMessage} from "element-plus";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 
@@ -342,6 +437,7 @@ const cnameFilter = ref(null);
 const traceNameFilter = ref("");
 const courseList = ref([]);
 const courseListLoading = ref(false);
+const taskIdFilter = ref("");
 
 const tasks = ref([]);
 const selectedTask = ref(null);
@@ -354,14 +450,20 @@ const pagination = reactive({
 
 const headers = [
   {title: "任务ID", key: "task_id", sortable: false},
-  {title: "用户名", key: "username", sortable: false},
-  {title: "比赛名称", key: "cname", sortable: false},
+  {title: "用户", key: "username", sortable: false},
   {title: "算法", key: "algorithm", sortable: false},
   {title: "Trace", key: "trace_name", sortable: false},
-  {title: "任务得分", key: "task_score", sortable: true},
+  {title: "得分", key: "task_score", sortable: true},
+  {title: "比赛名称", key: "cname", sortable: false},
   {title: "状态", key: "task_status", sortable: false},
   {title: "创建时间", key: "created_time", sortable: true},
+  {title: "吞吐量图", key: "throughput_graph", sortable: false},
+  {title: "时延图", key: "delay_graph", sortable: false},
   {title: "操作", key: "actions", sortable: false, align: "center"},
+  {title: "丢包率", key: "loss_rate", sortable: false},
+  {title: "往返时延", key: "delay", sortable: false},
+  {title: "缓冲区大小", key: "buffer_size", sortable: false},
+  {title: "日志", key: "log", sortable: true},
 ];
 
 const statusOptions = [
@@ -435,7 +537,9 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
       page: page.toString(),
       size: itemsPerPage.toString(),
     });
-
+    if (taskIdFilter.value) {
+      params.append("task_id", taskIdFilter.value);
+    }
     if (usernameFilter.value) {
       params.append("username", usernameFilter.value);
     }
@@ -529,8 +633,57 @@ const loadCourseList = async () => {
   }
 };
 
+const allColumnOptions = [
+  {title: "任务ID", value: "task_id"},
+  {title: "用户", value: "username"},
+  {title: "算法", value: "algorithm"},
+  {title: "Trace", value: "trace_name"},
+  {title: "得分", value: "task_score"},
+  {title: "比赛名称", value: "cname"},
+  {title: "状态", value: "task_status"},
+  {title: "创建时间", value: "created_time"},
+  {title: "吞吐量图", value: "throughput_graph"},
+  {title: "时延图", value: "delay_graph"},
+  {title: "操作", value: "actions"},
+  {title: "丢包率", value: "loss_rate"},
+  {title: "往返时延", value: "delay"},
+  {title: "缓冲区大小", value: "buffer_size"},
+  {title: "日志", value: "log"},
+];
+
+const defaultColumns = [
+  "task_id",
+  "username",
+  "algorithm",
+  "trace_name",
+  "task_score",
+  "cname",
+  "task_status",
+  "created_time",
+  "throughput_graph",
+  "delay_graph",
+  "actions",
+];
+
+const selectedColumns = ref([...defaultColumns]);
+
+const computedHeaders = computed(() => {
+  // 保证操作列始终在最后
+  const cols = selectedColumns.value.filter((c) => c !== "actions");
+  const ordered = [
+    ...headers.filter((h) => cols.includes(h.key)),
+    ...headers.filter(
+      (h) => h.key === "actions" && selectedColumns.value.includes("actions")
+    ),
+  ];
+  return ordered;
+});
+
 const isMobile = ref(false);
 const showAllFilters = ref(false);
+const imageDialogVisible = ref(false);
+const imageDialogUrl = ref("");
+const imageDialogType = ref("");
 
 onMounted(() => {
   isMobile.value = window.innerWidth <= 768;
@@ -540,6 +693,37 @@ onMounted(() => {
   });
   loadCourseList();
 });
+
+async function showImage(type, task_id) {
+  try {
+    const params = new URLSearchParams();
+    params.append("task_id", task_id);
+    params.append("graph_type", type);
+    const url = `${APIS.get_graph}?${params.toString()}`;
+    const blobUrl = await fetchImageBlobUrl(url);
+    if (!blobUrl) {
+      return;
+    }
+    imageDialogUrl.value = blobUrl || "";
+    imageDialogType.value = type;
+    imageDialogVisible.value = true;
+  } catch (error) {
+    imageDialogUrl.value = "";
+    imageDialogVisible.value = false;
+  }
+}
+
+function getLimitedLogLines(log) {
+  if (!log) return [];
+  const lines = log.split(/\r?\n/);
+  return lines.slice(0, 5);
+}
+
+function isLogTruncated(log) {
+  if (!log) return false;
+  const lines = log.split(/\r?\n/);
+  return lines.length > 5;
+}
 </script>
 
 <style scoped>
@@ -585,6 +769,27 @@ onMounted(() => {
   color: #1976d2;
   align-items: center;
   display: inline-flex;
+}
+
+.log-cell {
+  max-width: 300px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.limited-log {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.actions-cell {
+  width: 80px;
+  display: flex;
+  align-items: center;
 }
 
 @media (max-width: 768px) {

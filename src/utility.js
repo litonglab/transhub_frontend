@@ -35,7 +35,7 @@ export async function request(url, options = {}, config = {}) {
     ...defaultOptions,
     ...options,
     headers: isFormData
-      ? (options.headers || undefined) // 不加 Content-Type
+      ? options.headers || undefined // 不加 Content-Type
       : {...defaultOptions.headers, ...(options.headers || {})},
   };
   const showError = config.showError !== false;
@@ -72,5 +72,46 @@ export async function request(url, options = {}, config = {}) {
       });
     }
     throw error;
+  }
+}
+
+//
+/**
+ * 获取图片并转为 blob url（内部使用统一 request 封装）
+ * @param {string} url 图片请求地址
+ * @param {object} options fetch 选项（可选）
+ * @returns {Promise<string|null>} 成功返回 blob url，失败或无图片返回 null
+ * @description 用法示例：const imgUrl = await fetchImageBlobUrl(url)
+ */
+export async function fetchImageBlobUrl(url, options = {}) {
+  try {
+    // 只允许 GET
+    const mergedOptions = {method: "GET", ...options};
+    // 使用 request 封装，传 raw:true 返回原始 response
+    const response = await request(url, mergedOptions, {
+      raw: true,
+    });
+    if (!response.ok) {
+      console.error("fetchImageBlobUrl: response not ok", response.status, url);
+      return null;
+    }
+    const contentType = response.headers.get("Content-Type");
+    if (!contentType || !contentType.startsWith("image/")) {
+      console.error(
+        "fetchImageBlobUrl: not an image, contentType =",
+        contentType,
+        url
+      );
+      return null;
+    }
+    const blob = await response.blob();
+    if (!blob || blob.size === 0) {
+      console.error("fetchImageBlobUrl: blob is empty", url);
+      return null;
+    }
+    return URL.createObjectURL(blob);
+  } catch (e) {
+    console.error("fetchImageBlobUrl: exception", e, url);
+    return null;
   }
 }
