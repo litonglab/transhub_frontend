@@ -31,13 +31,6 @@
               @click="reloadIframe"
               title="刷新页面"
             ></v-btn>
-            <v-btn
-              :icon="isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
-              variant="outlined"
-              size="small"
-              @click="toggleFullscreen"
-              :title="isFullscreen ? '退出全屏' : '全屏显示'"
-            ></v-btn>
           </div>
         </div>
       </v-col>
@@ -53,7 +46,6 @@
             class="dramatiq-iframe"
             sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
             referrerpolicy="same-origin"
-            allow="fullscreen"
             @load="onIframeLoad"
             @error="onIframeError"
           ></iframe>
@@ -93,7 +85,6 @@ const route = useRoute();
 const loading = ref(true);
 const showError = ref(false);
 const dramatiqFrame = ref(null);
-const isFullscreen = ref(false);
 const currentUrl = ref("");
 const currentIframeSrc = ref("");
 
@@ -101,11 +92,6 @@ const currentIframeSrc = ref("");
 const backendBaseUrl = computed(() => {
   const hostname = import.meta.env.VITE_APP_API_HOST;
   return hostname.endsWith("/") ? hostname.slice(0, -1) : hostname;
-});
-
-// 构建 dramatiq URL
-const dramatiqUrl = computed(() => {
-  return APIS.dramatiq_dashboard;
 });
 
 // 根据路由参数构建初始 URL
@@ -118,8 +104,7 @@ const getInitialUrl = () => {
       Array.isArray(dramatiqPath) ? dramatiqPath.join("/") : dramatiqPath
     }`;
   }
-
-  return dramatiqUrl.value;
+  return APIS.dramatiq_dashboard;
 };
 
 // 检查 URL 是否需要转发到后端
@@ -136,7 +121,7 @@ const shouldRedirectToBackend = (url) => {
     // 检查路径是否以 /dramatiq 开头
     return pathname.startsWith("/dramatiq");
   } catch (error) {
-    console.error("Invalid URL:", url);
+    console.error("Invalid URL:", url, error);
     return false;
   }
 };
@@ -222,7 +207,7 @@ const onIframeLoad = () => {
     }
   } catch (error) {
     // 跨域限制，无法访问 iframe 内容
-    console.log("无法访问 iframe URL due to CORS policy");
+    console.log("无法访问 iframe URL due to CORS policy", error);
   }
 
   // 监听 iframe 内的链接点击和表单提交
@@ -347,7 +332,7 @@ const onIframeLoad = () => {
     // 保存 observer 以便后续清理
     dramatiqFrame.value._formObserver = observer;
   } catch (error) {
-    console.log("无法监听 iframe 内容 due to CORS policy");
+    console.log("无法监听 iframe 内容 due to CORS policy", error);
   }
 };
 
@@ -377,26 +362,6 @@ const resetToHome = () => {
   handleNavigation("/");
 };
 
-// 切换全屏模式
-const toggleFullscreen = () => {
-  isFullscreen.value = !isFullscreen.value;
-
-  if (isFullscreen.value) {
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen();
-    }
-  } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    }
-  }
-};
-
-// 监听全屏状态变化
-const handleFullscreenChange = () => {
-  isFullscreen.value = !!document.fullscreenElement;
-};
-
 // 处理来自 iframe 的消息
 const handleMessage = (event) => {
   // 确保消息来自正确的源
@@ -413,53 +378,18 @@ const handleMessage = (event) => {
   }
 };
 
-// 检查 iframe 是否可以访问
-const checkIframeAccess = () => {
-  try {
-    if (
-      dramatiqFrame.value &&
-      dramatiqFrame.value.contentWindow &&
-      dramatiqFrame.value.contentDocument
-    ) {
-      return true;
-    }
-  } catch (error) {
-    console.log("Iframe access restricted due to CORS policy");
-  }
-  return false;
-};
-
-// 定时器引用
-let checkInterval = null;
 
 onMounted(() => {
   // 设置初始加载状态
   loading.value = true;
   currentIframeSrc.value = getInitialUrl();
 
-  // 监听全屏状态变化
-  document.addEventListener("fullscreenchange", handleFullscreenChange);
-
   // 监听来自 iframe 的消息
   window.addEventListener("message", handleMessage);
-
-  // 定期检查 iframe 状态（可选）
-  checkInterval = setInterval(() => {
-    if (dramatiqFrame.value && !loading.value) {
-      checkIframeAccess();
-    }
-  }, 5000);
 });
 
 onUnmounted(() => {
-  // 清理定时器
-  if (checkInterval) {
-    clearInterval(checkInterval);
-    checkInterval = null;
-  }
-
   // 清理事件监听器
-  document.removeEventListener("fullscreenchange", handleFullscreenChange);
   window.removeEventListener("message", handleMessage);
   // 清理 iframe 内的 MutationObserver
   if (dramatiqFrame.value && dramatiqFrame.value._formObserver) {
@@ -506,15 +436,6 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-/* 全屏模式下的特殊样式 */
-:fullscreen .task-queue-container {
-  height: 100vh;
-  background: white;
-}
-
-:fullscreen .dramatiq-iframe {
-  min-height: 100vh;
-}
 
 /* 确保 iframe 占满容器 */
 .iframe-card :deep(.v-card-text) {
