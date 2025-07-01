@@ -310,10 +310,8 @@ defineExpose({
   line-height: 1.6;
   white-space: pre-wrap;
   color: #333;
-  height: 100%;
   overflow: auto;
   box-sizing: border-box;
-  min-height: 30vh;
-  max-height: calc(80vh - 150px);
+  height: calc(80vh - 150px);
 }
 </style>
