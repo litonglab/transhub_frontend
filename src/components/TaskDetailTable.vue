@@ -98,7 +98,7 @@
           <v-card-title
           >{{ dialogType === "image" ? "性能图" : "日志信息" }}
           </v-card-title>
-          <div style="padding: 5px 15px">
+          <v-card-text>
             <img
               v-if="dialogType === 'image'"
               :src="dialogContent"
@@ -106,13 +106,9 @@
               alt=""
             />
             <div v-else>
-              <textarea
-                v-model="dialogContent"
-                style="width: 100%; height: 500px; white-space: pre-wrap"
-                readonly
-              ></textarea>
+              <pre class="code-content"><code>{{ dialogContent }}</code></pre>
             </div>
-          </div>
+          </v-card-text>
         </v-card>
       </v-dialog>
     </div>
@@ -302,5 +298,22 @@ defineExpose({
     max-width: 100%;
     max-height: 80%;
   }
+}
+
+.code-content {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 16px;
+  margin: 0;
+  font-family: "Courier New", Consolas, "Liberation Mono", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: #333;
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+  min-height: 30vh;
+  max-height: calc(80vh - 150px);
 }
 </style>

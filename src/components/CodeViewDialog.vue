@@ -1,6 +1,6 @@
 <template>
   <!-- Code View Dialog -->
-  <v-dialog v-model="dialogVisible" max-width="80%">
+  <v-dialog v-model="dialogVisible" class="responsive-dialog">
     <v-card class="position-relative">
       <v-card-title> 代码查看</v-card-title>
 
@@ -295,7 +295,7 @@ defineExpose({
 
 <style scoped>
 .code-container {
-  height: calc(80vh - 120px);
+  height: calc(80vh - 150px);
   overflow: hidden;
 }
 
@@ -305,10 +305,16 @@ defineExpose({
   flex-direction: column;
 }
 
-.full-height {
-  flex: 1;
-  height: 100%;
-  overflow: hidden;
+.responsive-dialog {
+  max-width: 70%;
+  max-height: 95%;
+}
+
+@media (max-width: 600px) {
+  .responsive-dialog {
+    max-width: 100%;
+    max-height: 80%;
+  }
 }
 
 .code-content {
