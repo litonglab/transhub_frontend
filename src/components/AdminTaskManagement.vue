@@ -237,7 +237,7 @@
   </div>
 
   <!-- 任务详情对话框 -->
-  <v-dialog v-model="detailDialog" max-width="900px">
+  <v-dialog v-model="detailDialog" max-width="1500px">
     <v-card>
       <v-card-title>任务详情</v-card-title>
       <v-card-text>

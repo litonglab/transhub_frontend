@@ -36,11 +36,9 @@
         </div>
 
         <div v-else-if="currentCode" class="code-container">
-          <v-card variant="outlined" class="full-height-card">
-            <v-card-text class="pa-0 full-height">
-              <pre class="code-content"><code>{{ currentCode }}</code></pre>
-            </v-card-text>
-          </v-card>
+          <div class="full-height-card">
+            <pre class="code-content"><code>{{ currentCode }}</code></pre>
+          </div>
         </div>
 
         <div v-else class="d-flex flex-column align-center justify-center pa-8">
