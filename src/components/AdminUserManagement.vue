@@ -450,7 +450,6 @@ const headers = [
   },
   {title: "锁定状态", key: "is_locked", sortable: false, default: true},
   {title: "删除状态", key: "is_deleted", sortable: false, default: true},
-  {title: "删除时间", key: "deleted_at", sortable: false, default: false},
   {title: "创建时间", key: "created_at", sortable: false, default: true},
   {title: "更新时间", key: "updated_at", sortable: false, default: false},
   {title: "操作", key: "actions", sortable: false, align: "center", default: true,},
