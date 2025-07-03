@@ -18,8 +18,17 @@
           :color="getRoleColor(store.role)"
           size="small"
           variant="elevated"
+          class="mr-2"
+          v-if="store.role !== 'student'"
         >
           {{ getRoleText(store.role) }}
+        </v-chip>
+        <v-chip
+          color="teal"
+          size="small"
+          variant="elevated"
+        >
+          Version: 3.0
         </v-chip>
         <v-btn class="fill-height">
           {{ user_name }}
