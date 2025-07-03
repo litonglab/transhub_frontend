@@ -1,5 +1,56 @@
+<template>
+  <div class="help-container">
+    <div v-html="markdownContent" class="markdown-body"/>
+
+    <!-- 悬浮的目录按钮 -->
+    <v-fab
+      v-if="showToc"
+      icon="mdi-format-list-bulleted"
+      color="primary"
+      size="large"
+      location="bottom end"
+      :style="{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        zIndex: 1000,
+      }"
+      @click="toggleToc"
+    />
+
+    <!-- 悬浮的目录面板 -->
+    <v-navigation-drawer
+      v-if="showToc"
+      v-model="tocDrawer"
+      location="right"
+      temporary
+      width="320"
+      :scrim="false"
+      :style="{ zIndex: 999 }"
+    >
+      <v-card flat height="100%">
+        <v-card-title class="d-flex align-center pa-4 bg-primary">
+          <v-icon color="white" class="mr-2">mdi-book-open-page-variant</v-icon>
+          <span class="text-white">目录</span>
+          <v-spacer></v-spacer>
+          <v-btn
+            icon="mdi-close"
+            color="white"
+            variant="text"
+            size="small"
+            @click="toggleToc"
+          />
+        </v-card-title>
+
+        <v-card-text class="pa-0">
+          <div class="toc-content pa-4" v-html="extractTocContent()"></div>
+        </v-card-text>
+      </v-card>
+    </v-navigation-drawer>
+  </div>
+</template>
 <script setup>
-import {nextTick, onMounted, ref} from "vue";
+import {nextTick, onMounted, onUnmounted, ref} from "vue";
 import {APIS} from "@/config";
 import {request} from "@/utility.js";
 import MarkdownIt from "markdown-it";
@@ -35,7 +86,7 @@ const md = new MarkdownIt()
 const markdownContent = ref("");
 const showToc = ref(false);
 const isLoaded = ref(false);
-const tocCollapsed = ref(false);
+const tocDrawer = ref(false);
 
 async function fetchMarkdown() {
   if (isLoaded.value) return; // 防止重复加载
@@ -85,10 +136,6 @@ function setupTocClickHandlers() {
             behavior: "smooth",
             block: "start",
           });
-          // 更新 URL 但不触发路由变化
-          if (window.history.replaceState) {
-            window.history.replaceState(null, null, href);
-          }
         }
       }
     });
@@ -97,35 +144,54 @@ function setupTocClickHandlers() {
 
 function setupTocPanelClickHandlers() {
   // 为悬浮面板中的链接添加事件处理
-  setTimeout(() => {
-    const tocPanelLinks = document.querySelectorAll(".toc-panel a");
+  nextTick(() => {
+    const tocPanelLinks = document.querySelectorAll(".toc-content a");
     tocPanelLinks.forEach((link) => {
-      link.addEventListener("click", (e) => {
-        e.preventDefault();
-        const href = link.getAttribute("href");
-        if (href && href.startsWith("#")) {
-          const targetId = href.substring(1);
-          const targetElement = document.getElementById(targetId);
-          if (targetElement) {
-            targetElement.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            });
-            // 点击后自动折叠目录
-            tocCollapsed.value = true;
-            // 更新 URL 但不触发路由变化
-            if (window.history.replaceState) {
-              window.history.replaceState(null, null, href);
-            }
-          }
-        }
-      });
+      // 移除之前的事件监听器，避免重复绑定
+      link.removeEventListener("click", handleTocLinkClick);
+      // 添加新的事件监听器
+      link.addEventListener("click", handleTocLinkClick);
     });
-  }, 100);
+  });
+}
+
+function handleTocLinkClick(e) {
+  e.preventDefault();
+  const href = e.currentTarget.getAttribute("href");
+  if (href && href.startsWith("#")) {
+    const targetId = href.substring(1);
+    const targetElement = document.getElementById(targetId);
+    if (targetElement) {
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      // 点击后自动折叠目录
+      tocDrawer.value = false;
+    }
+  }
 }
 
 function toggleToc() {
-  tocCollapsed.value = !tocCollapsed.value;
+  tocDrawer.value = !tocDrawer.value;
+}
+
+// 处理点击外部关闭目录
+function handleClickOutside(event) {
+  if (!tocDrawer.value) return;
+
+  // 更精确的选择器，确保获取到正确的导航抽屉
+  const tocPanel = document.querySelector(".v-navigation-drawer--temporary");
+  const tocButton = document.querySelector(".v-fab");
+
+  // 检查点击是否在目录面板内部（包括所有子元素）
+  const isClickInsidePanel = tocPanel && tocPanel.contains(event.target);
+  const isClickOnButton = tocButton && tocButton.contains(event.target);
+
+  // 只有当点击既不在面板内也不在按钮上时才关闭
+  if (!isClickInsidePanel && !isClickOnButton) {
+    tocDrawer.value = false;
+  }
 }
 
 function extractTocContent() {
@@ -133,33 +199,25 @@ function extractTocContent() {
   const parser = new DOMParser();
   const doc = parser.parseFromString(markdownContent.value, "text/html");
   const tocElement = doc.querySelector(".table-of-contents");
-  return tocElement ? tocElement.innerHTML : "";
+  const content = tocElement ? tocElement.innerHTML : "";
+
+  // 在下一个 tick 中重新绑定事件
+  nextTick(() => {
+    setupTocPanelClickHandlers();
+  });
+
+  return content;
 }
 
 onMounted(() => {
   fetchMarkdown();
+  document.addEventListener("click", handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
 });
 </script>
-
-<template>
-  <div class="help-container">
-    <div v-html="markdownContent" class="markdown-body"/>
-
-    <!-- 悬浮的目录按钮 -->
-    <div v-if="showToc" class="toc-float-button" @click="toggleToc">
-      <i class="toc-icon">📚</i>
-    </div>
-
-    <!-- 悬浮的目录面板 -->
-    <div v-if="showToc" class="toc-panel" :class="{ collapsed: tocCollapsed }">
-      <div class="toc-header">
-        <span class="toc-title">📖 目录</span>
-        <button class="toc-close" @click="toggleToc">×</button>
-      </div>
-      <div class="toc-content" v-html="extractTocContent()"></div>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .help-container {
@@ -181,96 +239,6 @@ onMounted(() => {
   display: none;
 }
 
-/* 悬浮目录按钮 */
-.toc-float-button {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
-  background: #007bff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-  z-index: 1000;
-  transition: all 0.3s ease;
-}
-
-.toc-float-button:hover {
-  background: #0056b3;
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
-}
-
-.toc-icon {
-  font-size: 20px;
-  color: white;
-}
-
-/* 悬浮目录面板 */
-.toc-panel {
-  position: fixed;
-  top: 120px;
-  right: 20px;
-  width: 300px;
-  max-height: calc(100vh - 100px);
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  z-index: 999;
-  overflow: hidden;
-  transform: translateX(0);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid #e1e5e9;
-}
-
-.toc-panel.collapsed {
-  transform: translateX(calc(100% + 20px));
-}
-
-.toc-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.toc-title {
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.toc-close {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
-}
-
-.toc-close:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.toc-content {
-  padding: 20px;
-  overflow-y: auto;
-  max-height: calc(100vh - 170px);
-}
-
 /* 悬浮面板中的目录样式 */
 .toc-content :deep(ul) {
   list-style: none;
@@ -279,51 +247,38 @@ onMounted(() => {
 }
 
 .toc-content :deep(ul ul) {
-  padding-left: 20px;
-  margin-top: 8px;
+  padding-left: 16px;
+  margin-top: 4px;
 }
 
 .toc-content :deep(li) {
-  margin: 12px 0;
-  line-height: 1.5;
+  margin: 8px 0;
+  line-height: 1.4;
 }
 
 .toc-content :deep(a) {
-  color: #374151;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
   text-decoration: none;
   font-size: 14px;
   display: block;
   padding: 8px 12px;
   border-radius: 8px;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border-left: 3px solid transparent;
 }
 
 .toc-content :deep(a:hover) {
-  background-color: #f3f4f6;
-  color: #007bff;
-  border-left-color: #007bff;
-  transform: translateX(4px);
+  background-color: rgba(var(--v-theme-primary), 0.04);
+  color: rgb(var(--v-theme-primary));
+  border-left-color: rgb(var(--v-theme-primary));
+  transform: translateX(2px);
 }
 
 /* 标题样式 - 添加滚动偏移量 */
 .markdown-body :deep(h1, h2, h3, h4, h5, h6) {
   scroll-margin-top: 20px;
   position: relative;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .toc-panel {
-    width: calc(100vw - 40px);
-    right: 20px;
-    left: 20px;
-  }
-
-  .toc-float-button {
-    right: 20px;
-  }
 }
 
 .markdown-body :deep(img) {
