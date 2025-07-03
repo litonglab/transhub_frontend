@@ -2,19 +2,33 @@ import {ElMessage} from "element-plus";
 
 /**
  * 时间格式化
- * @param {string|number|Date} dateTime - 日期时间
+ * @param dateString
  * @param {boolean} [onlyTime=false] - 是否只显示时间部分
  * @returns {string}
  */
-export function formatDateTime(dateTime, onlyTime = false) {
-  if (!dateTime) return "-";
-  const dateObj = new Date(dateTime);
+export function formatDateTime(dateString, onlyTime = false) {
+  const date = new Date(Date.parse(dateString));
+  const baseOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+  };
+  const options = onlyTime
+    ? baseOptions
+    : {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      ...baseOptions,
+    };
+  const formatted = new Intl.DateTimeFormat("zh-CN", options).format(date);
   if (onlyTime) {
-    // 只显示时分秒
-    return dateObj.toLocaleTimeString("zh-CN", {hour12: false});
+    // 只返回 HH:mm:ss
+    return formatted.replace(/[^0-9:]/g, "");
   } else {
-    // 显示完整日期时间
-    return dateObj.toLocaleString("zh-CN");
+    return formatted.replace(/\//g, "-").replace(",", "");
   }
 }
 
