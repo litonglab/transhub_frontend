@@ -35,12 +35,12 @@
         <el-table-column prop="delay" label="往返时延" align="center"></el-table-column>
         <el-table-column prop="created_at" label="创建时间" align="center">
           <template #default="scope">
-            {{ scope.row.created_at.split(" ")[1] }}
+            {{ formatDateTime(scope.row.created_at, true) }}
           </template>
         </el-table-column>
         <el-table-column prop="updated_at" label="更新时间" align="center">
           <template #default="scope">
-            {{ scope.row.updated_at.split(" ")[1] }}
+            {{ formatDateTime(scope.row.updated_at, true) }}
           </template>
         </el-table-column>
         <el-table-column prop="task_status" label="任务状态" align="center"></el-table-column>
@@ -118,7 +118,7 @@
 <script setup>
 import {ref, watch} from "vue";
 import {APIS} from "@/config.js";
-import {fetchImageBlobUrl, request} from "@/utility.js";
+import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
 
 const props = defineProps({

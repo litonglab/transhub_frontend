@@ -99,6 +99,9 @@
           sortable="custom"
           :sort-orders="['ascending', 'descending']"
         >
+          <template #default="scope">
+            {{ formatDateTime(scope.row.updated_at) }}
+          </template>
         </el-table-column>
         <el-table-column
           prop="status"

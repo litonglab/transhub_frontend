@@ -204,15 +204,11 @@
           </v-chip>
         </template>
 
-        <template v-slot:item.deleted_at="{ item }">
-          <span>{{ item.deleted_at ? item.deleted_at : "-" }}</span>
-        </template>
-
         <template v-slot:item.created_at="{ item }">
-          <span>{{ item.created_at ? item.created_at : "-" }}</span>
+          <span>{{ item.created_at ? formatDateTime(item.created_at) : "-" }}</span>
         </template>
         <template v-slot:item.updated_at="{ item }">
-          <span>{{ item.updated_at ? item.updated_at : "-" }}</span>
+          <span>{{ item.updated_at ? formatDateTime(item.updated_at) : "-" }}</span>
         </template>
 
         <template v-slot:item.actions="{ item }">
@@ -389,7 +385,7 @@
 import {computed, onMounted, reactive, ref} from "vue";
 import {useAppStore} from "@/store/app";
 import {APIS} from "@/config";
-import {request} from "@/utility.js";
+import {formatDateTime, request} from "@/utility.js";
 import {ElMessage} from "element-plus";
 
 // 防抖函数

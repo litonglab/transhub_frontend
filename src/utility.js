@@ -1,19 +1,21 @@
 import {ElMessage} from "element-plus";
 
-export function formatDateTime(dateString) {
-  const date = new Date(Date.parse(dateString));
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    timeZone: "UTC",
-  };
-
-  const formattedDate = new Intl.DateTimeFormat("zh-CN", options).format(date);
-  return formattedDate.replace(/\//g, "-").replace(",", "");
+/**
+ * 时间格式化
+ * @param {string|number|Date} dateTime - 日期时间
+ * @param {boolean} [onlyTime=false] - 是否只显示时间部分
+ * @returns {string}
+ */
+export function formatDateTime(dateTime, onlyTime = false) {
+  if (!dateTime) return "-";
+  const dateObj = new Date(dateTime);
+  if (onlyTime) {
+    // 只显示时分秒
+    return dateObj.toLocaleTimeString("zh-CN", {hour12: false});
+  } else {
+    // 显示完整日期时间
+    return dateObj.toLocaleString("zh-CN");
+  }
 }
 
 /**

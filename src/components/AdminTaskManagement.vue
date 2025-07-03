@@ -418,7 +418,7 @@
 <script setup>
 import {computed, onMounted, reactive, ref} from "vue";
 import {APIS} from "@/config";
-import {fetchImageBlobUrl, request} from "@/utility.js";
+import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 
 // 防抖函数
@@ -625,10 +625,6 @@ async function showImage(type, task_id) {
 const getStatusMeta = (value) =>
   statusMeta.find((s) => s.value === value) || {text: "未知", color: "grey"};
 
-const formatDateTime = (dateTime) => {
-  if (!dateTime) return "-";
-  return new Date(dateTime).toLocaleString("zh-CN");
-};
 
 const statusMeta = [
   {value: "queued", text: "排队中", color: "warning"},
