@@ -120,14 +120,10 @@
         </el-table-column>
         <el-table-column prop="username" label="用户名"></el-table-column>
         <el-table-column
-          v-if="store.is_admin"
           prop="real_name"
           label="姓名"
           min-width="100"
         >
-          <template #default="scope">
-            {{ scope.row.to_admin?.real_name || "-" }}
-          </template>
         </el-table-column>
         <el-table-column
           v-if="store.is_admin"
@@ -271,7 +267,7 @@ const generateFilePrefix = (row) => {
   }
 
   const sno = row.to_admin.sno || "";
-  const realName = row.to_admin.real_name || "";
+  const realName = row.real_name || "";
   const username = row.username || "";
   return `${sno}_${realName}_${username}`;
 };
@@ -654,16 +650,16 @@ async function exportToExcel() {
       const baseData = {
         "序号": index + 1,
         "用户名": row.username,
+        "姓名": row.real_name || "-",
         "算法": row.algorithm,
         "上传时间": row.formatted_time,
         "总分": row.task_score?.toFixed(2) || "0.00",
       };
 
-      // 如果是管理员，添加学号和姓名字段
+      // 如果是管理员，添加学号字段
       if (store.is_admin && row.to_admin) {
         return {
           ...baseData,
-          "姓名": row.to_admin.real_name || "-",
           "学号": row.to_admin.sno || "-",
         };
       }
