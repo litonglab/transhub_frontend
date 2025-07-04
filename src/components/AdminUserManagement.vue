@@ -438,12 +438,7 @@ const headers = [
   {title: "真实姓名", key: "real_name", sortable: false, default: true},
   {title: "学号", key: "sno", sortable: false, default: true},
   {title: "角色", key: "role", sortable: false, default: true},
-  {
-    title: "已选课程",
-    key: "enrolled_courses",
-    sortable: false,
-    default: true,
-  },
+  {title: "已选课程", key: "enrolled_courses", sortable: false, default: true},
   {title: "锁定状态", key: "is_locked", sortable: false, default: true},
   {title: "删除状态", key: "is_deleted", sortable: false, default: true},
   {title: "创建时间", key: "created_at", sortable: false, default: true},
@@ -679,9 +674,9 @@ const isMobile = ref(false);
 const showAllFilters = ref(false);
 
 onMounted(async () => {
-  isMobile.value = window.innerWidth <= 768;
+  isMobile.value = window.innerWidth <= 960;
   window.addEventListener("resize", () => {
-    isMobile.value = window.innerWidth <= 768;
+    isMobile.value = window.innerWidth <= 960;
     if (!isMobile.value) showAllFilters.value = false;
   });
   coursesLoading.value = true;
@@ -743,7 +738,7 @@ onMounted(async () => {
   display: inline-flex;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .filter-section .pa-4 {
     padding: 6px !important;
   }

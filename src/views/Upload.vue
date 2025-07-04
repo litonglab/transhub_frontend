@@ -5,11 +5,11 @@
     <v-col>
       <div
         style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-          "
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        "
       >
         <span class="text-h4">算法提交</span>
       </div>
@@ -79,12 +79,9 @@
           <br/>
           <el-text class="mx-1" type="info"
           >竞赛时间：{{ time_range_str }}
-          </el-text
-          >
+          </el-text>
           <template #tip>
-            <div class="el-upload__tip">
-              代码文件以“算法名称.cc”的格式命名
-            </div>
+            <div class="el-upload__tip">代码文件以“算法名称.cc”的格式命名</div>
           </template>
         </el-upload>
         <div class="countdown-timer-card">
@@ -309,7 +306,7 @@ const handleSuccess = (response, file, fileList) => {
 }
 
 /* 移动端样式优化 */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 960px) {
   .countdown-timer-card {
     position: relative;
     right: auto;

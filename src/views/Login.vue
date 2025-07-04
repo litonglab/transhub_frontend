@@ -1,24 +1,5 @@
 <template>
   <v-app class="bg-container">
-    <v-app-bar flat elevation="2" color="error">
-      <v-app-bar-title>
-        Transhub：中国人民大学“一人一栈”打榜平台
-      </v-app-bar-title>
-      <!-- litonglab超链接图标 -->
-      <a
-        href="https://www.litonglab.com/"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="header-logo-link"
-      >
-        <img
-          src="@/assets/litonglab-logo-long.png"
-          class="header-logo"
-          alt="LitongLab Logo"
-        />
-      </a>
-    </v-app-bar>
-
     <v-container class="fill-height main-container">
       <v-row justify="center" align="center" dense>
         <v-col cols="12" md="6" class="mobile-col">
@@ -305,8 +286,6 @@ onMounted(async () => {
   background: url("@/assets/ruc_background.jpg") center/cover no-repeat;
 }
 
-/* 主页背景照片*/
-
 .main-container {
   padding-top: 80px; /* 为header留出空间 */
 }
@@ -318,23 +297,6 @@ onMounted(async () => {
   border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); /* 可选美化阴影 */
   border: 1px solid rgba(255, 255, 255, 0.3); /* 可选边框美化 */
-}
-
-/* Header logo 样式 */
-.header-logo-link {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  margin-left: auto;
-  height: 100%;
-  padding: 0 12px;
-}
-
-.header-logo {
-  object-fit: contain;
-  height: 60%;
-  width: auto;
-  max-height: none;
 }
 
 /* 移动端适配 */
@@ -359,16 +321,6 @@ onMounted(async () => {
   .main-container {
     padding-top: 100px !important; /* 移动端增加更多顶部间距 */
     padding-bottom: 20px; /* 底部留出空间 */
-  }
-
-  .header-logo-link {
-    padding: 0 8px;
-    height: 100%;
-  }
-
-  .header-logo {
-    height: 60%;
-    max-height: none;
   }
 
   .mobile-col {

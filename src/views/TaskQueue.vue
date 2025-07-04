@@ -285,10 +285,14 @@ const onIframeLoad = () => {
               },
             };
             try {
-              const resp = await iframeDoc.defaultView.fetch(finalUrl, fetchOptions);
+              const resp = await iframeDoc.defaultView.fetch(
+                finalUrl,
+                fetchOptions
+              );
               // 检查是否为重定向
               if ([301, 302, 303, 307, 308].includes(resp.status)) {
-                const location = resp.headers.get("Location") || resp.headers.get("location");
+                const location =
+                  resp.headers.get("Location") || resp.headers.get("location");
                 if (location) {
                   // 跳转到新地址（相对路径需补全）
                   let jumpUrl = location;
@@ -378,7 +382,6 @@ const handleMessage = (event) => {
   }
 };
 
-
 onMounted(() => {
   // 设置初始加载状态
   loading.value = true;
@@ -436,7 +439,6 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-
 /* 确保 iframe 占满容器 */
 .iframe-card :deep(.v-card-text) {
   height: 100%;
@@ -460,7 +462,7 @@ onUnmounted(() => {
 }
 
 /* 移动端适配 */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .dramatiq-iframe {
     min-height: 500px;
   }

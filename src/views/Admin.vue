@@ -157,7 +157,7 @@ watch(activeTab, (newTab) => {
 }
 
 /* 移动端适配 */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .tabs-container {
     position: relative;
     top: auto;

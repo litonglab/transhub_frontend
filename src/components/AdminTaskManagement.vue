@@ -493,9 +493,9 @@ const imageDialogUrl = ref("");
 const imageDialogType = ref("");
 
 onMounted(() => {
-  isMobile.value = window.innerWidth <= 768;
+  isMobile.value = window.innerWidth <= 960;
   window.addEventListener("resize", () => {
-    isMobile.value = window.innerWidth <= 768;
+    isMobile.value = window.innerWidth <= 960;
     if (!isMobile.value) showAllFilters.value = false;
   });
   loadCourseList();
@@ -625,7 +625,6 @@ async function showImage(type, task_id) {
 const getStatusMeta = (value) =>
   statusMeta.find((s) => s.value === value) || {text: "未知", color: "grey"};
 
-
 const statusMeta = [
   {value: "queued", text: "排队中", color: "warning"},
   {value: "compiling", text: "编译中", color: "info"},
@@ -709,7 +708,7 @@ const statusOptions = statusMeta.map((s) => ({
   align-items: center;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .filter-section .pa-4 {
     padding: 6px !important;
   }
