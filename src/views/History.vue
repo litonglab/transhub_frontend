@@ -57,7 +57,7 @@
         style="width: 100%"
         height="100%"
         @sort-change="handleSortChange"
-        :default-sort="{ prop: 'formatted_time', order: 'descending' }"
+        :default-sort="{ prop: 'created_time', order: 'descending' }"
         @expand-change="handleExpandChange"
         row-key="upload_id"
       >
@@ -85,12 +85,15 @@
           min-width="150"
         ></el-table-column>
         <el-table-column
-          prop="formatted_time"
+          prop="created_time"
           label="上传时间"
           width="180"
           sortable="custom"
           :sort-orders="['ascending', 'descending']"
         >
+          <template #default="scope">
+            {{ formatDateTime(scope.row.created_time) }}
+          </template>
         </el-table-column>
         <el-table-column
           prop="updated_at"
@@ -217,7 +220,7 @@ const currentUploadId = ref("");
 const codeDialogRef = ref(null);
 let autoRefreshTimer = null;
 // Keep track of current sort state for data refresh
-let currentTableSort = {prop: "formatted_time", order: "descending"};
+let currentTableSort = {prop: "created_time", order: "descending"};
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -246,12 +249,12 @@ const applySorting = (data) => {
   return [...data].sort((a, b) => {
     const {prop, order} = currentTableSort;
     if (order === "ascending") {
-      if (prop === "formatted_time") {
+      if (prop === "created_time") {
         return new Date(a.created_time) - new Date(b.created_time);
       }
       return a[prop] > b[prop] ? 1 : -1;
     } else {
-      if (prop === "formatted_time") {
+      if (prop === "created_time") {
         return new Date(b.created_time) - new Date(a.created_time);
       }
       return a[prop] < b[prop] ? 1 : -1;
@@ -265,20 +268,11 @@ async function get_history_records(loading_delay = 0) {
     const res = await request(APIS.get_history_records, {
       method: "GET",
     });
-    let temp = res.history;
     // Save the upload_id list of currently expanded rows
     const currentExpandedIds = [...expandedRows.value];
 
-    const formattedData = temp.map((record) => {
-      const formatted_time = formatDateTime(record.created_time);
-      return {
-        ...record,
-        formatted_time,
-      };
-    });
-
     // Apply current sorting to the entire dataset
-    totalTableData.value = applySorting(formattedData);
+    totalTableData.value = applySorting(res.history);
 
     // Don't force re-render TaskDetailTable components, let them reuse existing instances
     // Refresh data of expanded components in the next tick

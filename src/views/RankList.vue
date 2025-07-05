@@ -11,6 +11,26 @@
         "
       >
         <span class="text-h4">榜单展示</span>
+        <span
+          v-if="userRank !== null"
+          style="
+            font-size: 20px;
+            color: #1976d2;
+            font-weight: 800;
+          ">我的排名:
+          <span
+            v-if="userRank === 0 || userRank === 1 || userRank === 2"
+            style="font-size: 26px;">
+            <span v-if="userRank === 0">🥇</span>
+            <span v-else-if="userRank === 1">🥈</span>
+            <span v-else-if="userRank === 2">🥉</span>
+          </span>
+          <span
+            v-else
+            style="font-size: 26px; color: #e53935; font-weight: bold">
+            {{ userRank + 1 }}
+          </span>
+        </span>
         <div>
           <!-- 管理员批量操作区域 -->
           <el-button
@@ -86,7 +106,7 @@
           )
         "
         :header-cell-style="{ 'text-align': 'center' }"
-        :cell-style="{ textAlign: 'center' }"
+        :cell-style="tableCellStyle"
         @sort-change="sortTableFun"
         :default-sort="{ prop: 'task_score', order: 'descending' }"
         style="width: 100%"
@@ -119,11 +139,7 @@
         <el-table-column label="编号" type="index" width="60" :index="indexAdd">
         </el-table-column>
         <el-table-column prop="username" label="用户名"></el-table-column>
-        <el-table-column
-          prop="real_name"
-          label="姓名"
-          min-width="100"
-        >
+        <el-table-column prop="real_name" label="姓名" min-width="100">
         </el-table-column>
         <el-table-column
           v-if="store.is_admin"
@@ -140,7 +156,10 @@
           label="算法"
           min-width="150"
         ></el-table-column>
-        <el-table-column prop="formatted_time" label="上传时间" min-width="150">
+        <el-table-column prop="upload_time" label="上传时间" min-width="150">
+          <template #default="scope">
+            {{ formatDateTime(scope.row.upload_time) }}
+          </template>
         </el-table-column>
         <el-table-column
           prop="task_score"
@@ -242,6 +261,8 @@ import * as XLSX from "xlsx";
 const router = useRouter();
 const store = useAppStore();
 const totalTableData = ref([]);
+// 当前用户排名（下标，0为第一名），未上榜为null
+const userRank = ref(null);
 const pageParams = ref({
   page: 1,
   pageSize: 25,
@@ -314,6 +335,19 @@ const applySorting = (data) => {
   });
 };
 
+// 表格高亮当前用户行
+const tableCellStyle = ({row}) => {
+  if (row.username === store.name) {
+    return {
+      background: "#fffbe6",
+      color: "#d84315",
+      fontWeight: "bold",
+      textAlign: "center",
+    };
+  }
+  return {textAlign: "center"};
+};
+
 // Toggle expand all rows functions
 async function toggleExpandAll() {
   if (allExpanded.value) {
@@ -384,18 +418,13 @@ async function get_ranklist(loading_delay = 0) {
     const res = await request(APIS.get_ranks, {
       method: "GET",
     });
-    let temp = res.rank;
-
-    const formattedData = temp.map((record) => {
-      const formatted_time = formatDateTime(record.upload_time);
-      return {
-        ...record,
-        formatted_time,
-      };
-    });
-
     // Apply current sorting to the entire dataset
-    totalTableData.value = applySorting(formattedData);
+    const sortedData = applySorting(res.rank);
+    totalTableData.value = sortedData;
+
+    // 计算当前用户排名
+    const idx = sortedData.findIndex((row) => row.username === store.name);
+    userRank.value = idx >= 0 ? idx : null;
 
     // No need to refresh the expanded rows, because rank list row item is static.
   } catch (error) {
@@ -652,7 +681,7 @@ async function exportToExcel() {
         "用户名": row.username,
         "姓名": row.real_name || "-",
         "算法": row.algorithm,
-        "上传时间": row.formatted_time,
+        "上传时间": formatDateTime(row.upload_time),
         "总分": row.task_score?.toFixed(2) || "0.00",
       };
 
@@ -673,8 +702,7 @@ async function exportToExcel() {
 
     // 设置列宽
     worksheet["!cols"] = store.is_admin
-      ? [{wch: 8}, {wch: 15}, {wch: 12}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 10},
-      ]
+      ? [{wch: 8}, {wch: 15}, {wch: 12}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 10},]
       : [{wch: 8}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 10}];
 
     // 添加工作表到工作簿
