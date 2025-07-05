@@ -76,7 +76,13 @@ export async function request(url, options = {}, config = {}) {
       }
     } else if (response.status !== 200) {
       throw new Error(`网络或系统错误：${response.status}`);
+    } else if (contentType.startsWith("text/html")) {
+      // HTML 内容可能是404错误页面
+      // 目前后端接口暂时没有返回HTML的情况
+      console.error("request: response is HTML, 可能是404错误页面");
+      throw new Error(`后端可能返回了HTML 404页面，请确认后端API地址是否正确：${url}`);
     } else {
+      console.log("request: response not json, returning raw response", response);
       return response;
     }
   } catch (error) {
