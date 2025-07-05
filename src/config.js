@@ -21,7 +21,7 @@ export const APIS = {
   //get_cca_guide: hostname + '/help_get_cca_guide',
   get_tutorial: hostname + "/help_get_tutorial",
   get_pantheon: hostname + "/help_get_pantheon",
-  get_competition_time: hostname + "/help_get_competition_time",
+  get_competition_info: hostname + "/help_get_competition_info",
 
   //summary
   get_ranks: hostname + "/summary_get_ranks",
