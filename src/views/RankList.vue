@@ -290,7 +290,8 @@ const generateFilePrefix = (row) => {
   const sno = row.to_admin.sno || "";
   const realName = row.real_name || "";
   const username = row.username || "";
-  return `${sno}_${realName}_${username}`;
+  const score = row.task_score?.toFixed(0) || "-1";
+  return `${sno}_${score}_${realName}_${username}`;
 };
 
 // 从 localStorage 加载分页状态
@@ -564,7 +565,7 @@ async function batchDownloadCodes() {
   // 确认对话框
   try {
     await ElMessageBox.confirm(
-      `确定要下载选中的 ${selectedRows.value.length} 个代码文件吗？`,
+      `确定要下载选中的 ${selectedRows.value.length} 个代码文件吗？（代码文件名格式为：学号_总分_姓名_用户名_源文件名）`,
       "批量下载确认",
       {
         confirmButtonText: "确定下载",
@@ -623,7 +624,7 @@ async function batchDownloadCodesAsZip() {
   // 确认对话框
   try {
     await ElMessageBox.confirm(
-      `确定要将选中的 ${selectedRows.value.length} 个代码文件打包下载吗？`,
+      `确定要将选中的 ${selectedRows.value.length} 个代码文件打包下载吗？（代码文件名格式为：学号_总分_姓名_用户名_源文件名）`,
       "批量打包下载确认",
       {
         confirmButtonText: "确定下载",
