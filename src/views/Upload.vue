@@ -57,7 +57,7 @@
           :on-preview="handlePreview"
           :on-remove="handleRemove"
           :before-remove="beforeRemove"
-          :multiple="false"
+          :multiple="store.is_admin"
           :on-exceed="handleExceed"
           :on-change="handleChange"
           :data="{ url: upload.url }"
@@ -83,6 +83,9 @@
           <el-text class="mx-1" type="info"
           >竞赛时间：{{ time_range_str }}
           </el-text>
+          <el-text class="mx-1" type="info" v-if="store.is_admin"
+          ><br/>（管理员用户支持批量上传且不受比赛时间和上传数量限制）
+          </el-text>
           <template #tip>
             <div class="el-upload__tip">代码文件以“算法名称.cc”的格式命名</div>
           </template>
@@ -102,6 +105,9 @@ import {APIS} from "@/config";
 import {request} from "@/utility.js";
 import {useRouter} from "vue-router";
 import {UploadFilled} from "@element-plus/icons-vue";
+import {useAppStore} from "@/store/app";
+
+const store = useAppStore();
 
 const router = useRouter();
 const fileList = ref([]);
@@ -166,7 +172,7 @@ const uploadFile = async ({file}) => {
       {body: formData, isFormData: true},
       {showError: false}
     );
-    let message = result["message"];
+    let message = `${file.name}: ${result["message"]}`;
     let title = "上传成功";
     if (result["enqueue_summary"]["failed_enqueues"] !== 0) {
       title = "上传成功，部分任务未入队";
@@ -205,8 +211,12 @@ const uploadFile = async ({file}) => {
       });
   } catch (error) {
     console.log(error);
+    let msg = error.message || "上传失败，请稍后再试";
+    if (store.is_admin) {
+      msg = `${file.name}: ${msg}`;
+    }
     await ElMessageBox.alert(
-      error.message || "请检查文件格式或网络连接",
+      msg,
       "上传失败",
       {
         confirmButtonText: "确定",

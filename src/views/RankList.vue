@@ -33,6 +33,18 @@
         </span>
         <div>
           <!-- 管理员批量操作区域 -->
+          <v-tooltip location="top" v-if="store.is_admin">
+            <template #activator="{ props }">
+              <v-icon
+                v-bind="props"
+                icon="mdi-information-outline"
+                size="16"
+                color="grey"
+                class="mr-2"
+              ></v-icon>
+            </template>
+            <span>管理员用户下载代码时，代码文件名格式为：学号_总分_姓名_用户名_源文件名</span>
+          </v-tooltip>
           <el-button
             v-if="store.is_admin"
             type="primary"
@@ -565,7 +577,7 @@ async function batchDownloadCodes() {
   // 确认对话框
   try {
     await ElMessageBox.confirm(
-      `确定要下载选中的 ${selectedRows.value.length} 个代码文件吗？（代码文件名格式为：学号_总分_姓名_用户名_源文件名）`,
+      `确定要下载选中的 ${selectedRows.value.length} 个代码文件吗？`,
       "批量下载确认",
       {
         confirmButtonText: "确定下载",
@@ -624,7 +636,7 @@ async function batchDownloadCodesAsZip() {
   // 确认对话框
   try {
     await ElMessageBox.confirm(
-      `确定要将选中的 ${selectedRows.value.length} 个代码文件打包下载吗？（代码文件名格式为：学号_总分_姓名_用户名_源文件名）`,
+      `确定要将选中的 ${selectedRows.value.length} 个代码文件打包下载吗？`,
       "批量打包下载确认",
       {
         confirmButtonText: "确定下载",
