@@ -22,6 +22,7 @@ export const APIS = {
   get_tutorial: hostname + "/help_get_tutorial",
   get_pantheon: hostname + "/help_get_pantheon",
   get_competition_info: hostname + "/help_get_competition_info",
+  get_system_info: hostname + "/help_get_system_info",
 
   //summary
   get_ranks: hostname + "/summary_get_ranks",
