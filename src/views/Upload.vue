@@ -210,7 +210,7 @@ const uploadFile = async ({file}) => {
         // 用户点击取消或关闭弹窗
       });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     let msg = error.message || "上传失败，请稍后再试";
     if (store.is_admin) {
       msg = `${file.name}: ${msg}`;
@@ -229,11 +229,11 @@ const uploadFile = async ({file}) => {
 };
 
 const handlePreview = (file) => {
-  console.log("Preview:", file);
+  console.debug("Preview:", file);
 };
 
 const handleRemove = (file, fileList) => {
-  console.log("Remove:", file, fileList);
+  console.debug("Remove:", file, fileList);
 };
 
 const beforeRemove = (file, fileList) => {
@@ -261,7 +261,7 @@ const handleChange = (file, fileList) => {
 };
 
 const handleSuccess = (response, file, fileList) => {
-  console.log("Success:", response, file, fileList);
+  console.debug("Success:", response, file, fileList);
 };
 </script>
 

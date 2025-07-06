@@ -735,19 +735,19 @@ onMounted(() => {
   if (props.isActive) {
     startTimer();
   }
-  console.log("AdminSystemInfo mounted");
+  console.debug("AdminSystemInfo mounted");
 });
 
 onUnmounted(() => {
   stopTimer();
-  console.log("AdminSystemInfo unmounted");
+  console.debug("AdminSystemInfo unmounted");
 });
 
 // 监听激活状态变化
 watch(
   () => props.isActive,
   (newValue, oldValue) => {
-    console.log(
+    console.debug(
       "AdminSystemInfo isActive changed:",
       newValue,
       "from:",
