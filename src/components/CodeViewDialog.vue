@@ -27,7 +27,10 @@
       </div>
 
       <v-card-text>
-        <div v-if="codeLoading" class="d-flex justify-center pa-4 code-container">
+        <div
+          v-if="codeLoading"
+          class="d-flex justify-center pa-4 code-container"
+        >
           <v-progress-circular
             indeterminate
             color="primary"
@@ -42,7 +45,10 @@
           </div>
         </div>
 
-        <div v-else class="d-flex flex-column align-center justify-center pa-8 code-container">
+        <div
+          v-else
+          class="d-flex flex-column align-center justify-center pa-8 code-container"
+        >
           <v-icon size="64" color="grey-lighten-1" class="mb-4"
           >mdi-file-alert
           </v-icon>
@@ -111,13 +117,32 @@ async function requestCode(upload_id) {
     throw new Error("Request failed");
   }
 
-  // 解析文件名
+  // 解析文件名，优先 filename*，其次 filename
   const contentDisposition = response.headers.get("Content-Disposition");
-  const fileNameMatch = contentDisposition
-    ? contentDisposition.match(/filename="?([^"]+)"?/)
-    : null;
-  const fileName =
-    fileNameMatch && fileNameMatch[1] ? fileNameMatch[1] : "code.cc";
+  let fileName = "code.cc";
+  if (contentDisposition) {
+    // 匹配 filename*（RFC 5987），如 filename*=UTF-8''%E4%B8%AD%E6%96%87.cc
+    const fileNameStarMatch = contentDisposition.match(
+      /filename\*\s*=\s*([^;]+)/i
+    );
+    if (fileNameStarMatch) {
+      // 取编码部分并 decode
+      let value = fileNameStarMatch[1].trim();
+      // 形如 UTF-8''%E4%B8%AD%E6%96%87.cc
+      const parts = value.split("''");
+      if (parts.length === 2) {
+        fileName = decodeURIComponent(parts[1]);
+      } else {
+        fileName = decodeURIComponent(value);
+      }
+    } else {
+      // 兼容 filename="xxx"
+      const fileNameMatch = contentDisposition.match(/filename="?([^";]+)"?/);
+      if (fileNameMatch && fileNameMatch[1]) {
+        fileName = fileNameMatch[1];
+      }
+    }
+  }
 
   return {response, fileName};
 }
