@@ -399,7 +399,7 @@
                         v-for="(traceConfig, traceName) in courseConfig.trace"
                         :key="traceName"
                         cols="12"
-                        md="6"
+                        md="3"
                       >
                         <v-card variant="outlined" class="mb-2">
                           <v-card-title class="text-subtitle-1 py-2">

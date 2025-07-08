@@ -148,13 +148,7 @@
           </v-tooltip>
         </div>
       </div>
-      <div
-        style="
-          height: 1px;
-          width: 80%;
-          margin: 10px auto 12px auto;
-          background: #eee;
-        "/>
+      <v-divider style="margin: 10px auto;width: 80%;"/>
       <a
         href="https://www.litonglab.com/"
         target="_blank"
