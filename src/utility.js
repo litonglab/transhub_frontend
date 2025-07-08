@@ -36,7 +36,7 @@ export function formatDateTime(dateString, onlyTime = false) {
  * 统一后端请求封装
  * @param {string} url 请求地址
  * @param {object} options fetch 选项
- * @param {object} config 额外配置（如：是否返回原始 response、是否弹窗错误提示 showError）
+ * @param {object} config 额外配置（如：是否弹窗错误提示 showError）
  */
 export async function request(url, options = {}, config = {}) {
   // 判断是否是 FormData
