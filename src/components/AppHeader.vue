@@ -2,7 +2,7 @@
   <v-app-bar flat elevation="2" color="error">
     <v-app-bar-nav-icon @click="handleMenuClick" class="d-md-none" v-if="!isLoginPage"/>
     <v-app-bar-title>
-      Transhub：中国人民大学“一人一栈”打榜平台
+      Transhub：中国人民大学“一人一栈”训练平台
     </v-app-bar-title>
     <template v-if="isLoginPage">
       <a
