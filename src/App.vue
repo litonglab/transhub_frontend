@@ -29,3 +29,8 @@ onMounted(async () => {
   }
 });
 </script>
+<style>
+.el-message {
+  z-index: 9999 !important;
+}
+</style>
