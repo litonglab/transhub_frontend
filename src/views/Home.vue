@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import HomeMenuDrawer from "@/components/HomeMenuDrawer.vue";
+import HomeMenuDrawer from "@/components/layout/HomeMenuDrawer.vue";
 </script>
 
 <style scoped>

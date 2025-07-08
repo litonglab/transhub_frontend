@@ -12,7 +12,7 @@
         class="header-logo-link"
       >
         <img
-          src="@/assets/litonglab-logo-long.png"
+          src="../../assets/litonglab-logo-long.png"
           class="header-logo"
           alt="LitongLab Logo"
         />

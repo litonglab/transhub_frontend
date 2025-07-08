@@ -73,11 +73,11 @@
 
 <script setup>
 import {onMounted, ref, watch} from "vue";
-import AdminUserManagement from "@/components/AdminUserManagement.vue";
-import AdminTaskManagement from "@/components/AdminTaskManagement.vue";
-import AdminStatistics from "@/components/AdminStatistics.vue";
-import AdminSystemInfo from "@/components/AdminSystemInfo.vue";
-import AdminSystemLogs from "@/components/AdminSystemLogs.vue";
+import AdminUserManagement from "@/components/admin/AdminUserManagement.vue";
+import AdminTaskManagement from "@/components/admin/AdminTaskManagement.vue";
+import AdminStatistics from "@/components/admin/AdminStatistics.vue";
+import AdminSystemInfo from "@/components/admin/AdminSystemInfo.vue";
+import AdminSystemLogs from "@/components/admin/AdminSystemLogs.vue";
 
 const activeTab = ref("stats");
 

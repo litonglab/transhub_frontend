@@ -10,7 +10,7 @@ import {onMounted} from "vue";
 import {request} from "@/utility";
 import {APIS} from "@/config";
 import {useRouter} from "vue-router";
-import AppHeader from "@/components/AppHeader.vue";
+import AppHeader from "@/components/layout/AppHeader.vue";
 
 const router = useRouter();
 
@@ -29,8 +29,3 @@ onMounted(async () => {
   }
 });
 </script>
-<style>
-.el-message {
-  z-index: 9999 !important;
-}
-</style>
