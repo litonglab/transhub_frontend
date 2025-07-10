@@ -28,7 +28,7 @@
       :scrim="false"
       :style="{ zIndex: 999 }"
     >
-      <v-card flat height="100%">
+      <v-card flat style="height: 100%; display: flex; flex-direction: column">
         <v-card-title class="d-flex align-center pa-4 bg-primary">
           <v-icon color="white" class="mr-2">mdi-book-open-page-variant</v-icon>
           <span class="text-white">目录</span>
@@ -41,9 +41,21 @@
             @click="toggleToc"
           />
         </v-card-title>
-
-        <v-card-text class="pa-0">
-          <div class="toc-content pa-4" v-html="extractTocContent()"></div>
+        <v-card-text
+          class="pa-0"
+          style="
+            flex: 1 1 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+          "
+        >
+          <div
+            class="toc-content pa-4"
+            v-html="extractTocContent()"
+            style="flex: 1 1 0; min-height: 0; overflow-y: auto"
+          ></div>
         </v-card-text>
       </v-card>
     </v-navigation-drawer>
@@ -240,6 +252,12 @@ onUnmounted(() => {
 }
 
 /* 悬浮面板中的目录样式 */
+
+.toc-content {
+  height: 100%;
+  overflow-y: auto;
+}
+
 .toc-content :deep(ul) {
   list-style: none;
   padding-left: 0;
