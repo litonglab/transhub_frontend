@@ -326,7 +326,6 @@ onUnmounted(() => {
 .markdown-body {
   background: white;
   height: 100%;
-  padding: 0 10px 100px;
   line-height: 1.8;
   font-size: 16px;
   color: #2c3e50;
@@ -395,7 +394,15 @@ onUnmounted(() => {
   font-weight: 650;
 }
 
-.markdown-body :deep(h5, h6) {
+.markdown-body :deep(h5) {
+  font-size: 1.1em;
+  color: #4a5568;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  font-weight: 650;
+}
+
+.markdown-body :deep(h6) {
   font-size: 1.1em;
   color: #4a5568;
   margin-top: 12px;
@@ -424,9 +431,14 @@ onUnmounted(() => {
 }
 
 /* 列表样式 */
-.markdown-body :deep(ul, ol) {
+.markdown-body :deep(ul) {
   margin-bottom: 15px;
-  padding-left: 30px;
+  padding-left: 25px;
+}
+
+.markdown-body :deep(ol) {
+  margin-bottom: 15px;
+  padding-left: 25px;
 }
 
 .markdown-body :deep(li) {
@@ -531,7 +543,7 @@ onUnmounted(() => {
   font-size: 0.9em;
 }
 
-.markdown-body :deep(p code, li code, td code) {
+.markdown-body :deep(p code) {
   background: #f7fafc;
   color: #e53e3e;
   padding: 4px 8px;
@@ -608,7 +620,32 @@ onUnmounted(() => {
 }
 
 /* 标题滚动偏移 */
-.markdown-body :deep(h1, h2, h3, h4, h5, h6) {
+.markdown-body :deep(h1) {
+  scroll-margin-top: 20px;
+  position: relative;
+}
+
+.markdown-body :deep(h2) {
+  scroll-margin-top: 20px;
+  position: relative;
+}
+
+.markdown-body :deep(h3) {
+  scroll-margin-top: 20px;
+  position: relative;
+}
+
+.markdown-body :deep(h4) {
+  scroll-margin-top: 20px;
+  position: relative;
+}
+
+.markdown-body :deep(h5) {
+  scroll-margin-top: 20px;
+  position: relative;
+}
+
+.markdown-body :deep(h6) {
   scroll-margin-top: 20px;
   position: relative;
 }
