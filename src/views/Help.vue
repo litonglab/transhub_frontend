@@ -244,6 +244,7 @@ onUnmounted(() => {
   width: 100%;
   max-width: none;
   position: relative;
+  padding-bottom: 200px; /* 底部额外间距，确保最后内容可见 */
 }
 
 /* 隐藏原始目录 */
