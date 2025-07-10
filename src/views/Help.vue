@@ -1,9 +1,6 @@
 <template>
-  <div class="help-container">
-    <div class="markdown-wrapper">
-      <div v-html="markdownContent" class="markdown-body"/>
-    </div>
-
+  <div class="markdown-wrapper">
+    <div v-html="markdownContent" class="markdown-body"/>
     <!-- 悬浮的目录按钮 -->
     <v-fab
       v-if="showToc"
@@ -11,12 +8,7 @@
       color="primary"
       size="large"
       location="bottom end"
-      :style="{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        zIndex: 1000,
-      }"
+      class="toc-btn"
       @click="toggleToc"
     />
 
@@ -28,40 +20,15 @@
       temporary
       width="320"
       :scrim="false"
-      :style="{ zIndex: 999 }"
+      class="toc-panel"
     >
-      <v-card flat style="height: 100%; display: flex; flex-direction: column">
-        <v-card-title class="d-flex align-center pa-4 bg-primary">
-          <v-icon color="white" class="mr-2">mdi-book-open-page-variant</v-icon>
-          <span class="text-white">目录</span>
-          <v-spacer></v-spacer>
-          <v-btn
-            icon="mdi-close"
-            color="white"
-            variant="text"
-            size="small"
-            @click="toggleToc"
-          />
-        </v-card-title>
-        <v-card-text
-          class="pa-0"
-          style="
-            flex: 1 1 0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-          "
-        >
-          <div
-            class="toc-content pa-4"
-            v-html="extractTocContent()"
-            style="flex: 1 1 0; min-height: 0; overflow-y: auto"
-          ></div>
-        </v-card-text>
-      </v-card>
+      <div
+        class="toc-content"
+        v-html="extractTocContent()"
+      />
     </v-navigation-drawer>
   </div>
+
 </template>
 <script setup>
 import {nextTick, onMounted, onUnmounted, ref} from "vue";
@@ -350,29 +317,19 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.help-container {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  overflow-y: auto;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  /* padding: 20px 0; */
-}
-
 .markdown-wrapper {
-  margin: 0 auto;
-  /* padding: 0 20px; */
+  padding: 0 10px;
+  width: 100%;
+  overflow-y: auto;
 }
 
 .markdown-body {
   background: white;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  height: 100%;
   padding: 0 10px 100px;
   line-height: 1.8;
   font-size: 16px;
   color: #2c3e50;
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
 }
 
@@ -393,8 +350,8 @@ onUnmounted(() => {
   font-size: 2.5em;
   color: #1a202c;
   border-bottom: 3px solid #667eea;
-  padding-bottom: 16px;
-  margin-bottom: 32px;
+  padding-bottom: 8px;
+  margin-bottom: 22px;
   margin-top: 0;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -403,8 +360,8 @@ onUnmounted(() => {
 .markdown-body :deep(h2) {
   font-size: 2em;
   color: #2d3748;
-  margin-top: 48px;
-  margin-bottom: 24px;
+  margin-top: 22px;
+  margin-bottom: 20px;
   font-weight: 600;
   position: relative;
   padding-left: 20px;
@@ -425,15 +382,15 @@ onUnmounted(() => {
 .markdown-body :deep(h3) {
   font-size: 1.5em;
   color: #1a202c;
-  margin-top: 36px;
-  margin-bottom: 18px;
+  margin-top: 18px;
+  margin-bottom: 16px;
   font-weight: 700;
 }
 
 .markdown-body :deep(h4) {
   font-size: 1.25em;
   color: #2d3748;
-  margin-top: 28px;
+  margin-top: 16px;
   margin-bottom: 14px;
   font-weight: 650;
 }
@@ -441,14 +398,14 @@ onUnmounted(() => {
 .markdown-body :deep(h5, h6) {
   font-size: 1.1em;
   color: #4a5568;
-  margin-top: 24px;
+  margin-top: 12px;
   margin-bottom: 12px;
   font-weight: 650;
 }
 
 /* 段落样式 */
 .markdown-body :deep(p) {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   text-align: justify;
 }
 
@@ -468,7 +425,7 @@ onUnmounted(() => {
 
 /* 列表样式 */
 .markdown-body :deep(ul, ol) {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   padding-left: 30px;
 }
 
@@ -656,11 +613,49 @@ onUnmounted(() => {
   position: relative;
 }
 
-/* 悬浮面板中的目录样式 */
-.toc-content {
+.toc-panel {
+  z-index: 999;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
   height: 100%;
   overflow-y: auto;
   background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+  padding: 20px 0 10px 15px;
+  backdrop-filter: blur(10px);
+}
+
+/* 悬浮面板中的目录样式 */
+.toc-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2000;
+}
+
+.toc-content {
+  height: 100%;
+  padding-right: 15px;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+  backdrop-filter: blur(10px);
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.toc-content::before {
+  content: "📚 目录";
+  display: block;
+  position: sticky;
+  top: 0;
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #667eea;
+  z-index: 9999;
+  background: #f8faff;
 }
 
 .toc-content :deep(ul) {
@@ -670,13 +665,13 @@ onUnmounted(() => {
 }
 
 .toc-content :deep(ul ul) {
-  padding-left: 16px;
-  margin-top: 6px;
+  padding-left: 20px;
+  margin-top: 8px;
 }
 
 .toc-content :deep(li) {
-  margin: 4px 0;
-  line-height: 1.5;
+  margin: 6px 0;
+  line-height: 1.6;
 }
 
 .toc-content :deep(a) {
@@ -685,27 +680,29 @@ onUnmounted(() => {
   font-size: 14px;
   display: block;
   padding: 12px 16px;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  border-left: 3px solid transparent;
   font-weight: 500;
   position: relative;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.7);
   margin-bottom: 4px;
   backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-left: 3px solid transparent;
 }
 
 .toc-content :deep(a:hover) {
   background: linear-gradient(
     135deg,
-    rgba(102, 126, 234, 0.1) 0%,
-    rgba(118, 75, 162, 0.1) 100%
+    rgba(102, 126, 234, 0.15) 0%,
+    rgba(118, 75, 162, 0.15) 100%
   );
   color: #667eea;
   border-left-color: #667eea;
-  transform: translateX(4px);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  transform: translateX(6px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.3);
 }
 
 /* 悬浮按钮样式优化 */
