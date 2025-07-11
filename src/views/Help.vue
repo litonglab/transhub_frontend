@@ -79,20 +79,8 @@ async function fetchMarkdown() {
 
     // 在文档开始处添加目录占位符
     text = "${toc}\n\n" + text;
-
-    // 处理图片链接，给所有图片加上 base url
-    const baseUrl = APIS.get_tutorial_images;
-    // 匹配 ![alt](url) 形式的图片语法，并处理相对路径
-    text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
-      // 如果 url 已经是 http(s) 或 data:，则不处理
-      if (/^(https?:|data:)/.test(url)) return match;
-      // 去除首尾空格
-      url = url.trim();
-      // 拼接 base url
-      const newUrl = baseUrl.replace(/\/$/, "") + "/" + url.replace(/^\//, "");
-      // console.debug(`处理图片链接: ${match} -> ${newUrl}`);
-      return `![${alt}](${newUrl})`;
-    });
+    // 处理图片链接，给所有图片相对路径加上后端api url
+    text = addBaseUrlToImages(text, APIS.get_tutorial_images);
 
     markdownContent.value = md.render(text);
 
@@ -105,6 +93,8 @@ async function fetchMarkdown() {
     setupTocClickHandlers();
     setupTocPanelClickHandlers();
     setupCodeCopyButtons();
+    // 让所有超链接在新标签页打开
+    setLinksOpenInNewTab();
   } catch (error) {
     markdownContent.value = md.render(
       "### 加载失败，请稍后再试。原因：" + error.message
@@ -112,6 +102,31 @@ async function fetchMarkdown() {
     showToc.value = false;
     isLoaded.value = true;
   }
+}
+
+// 设置所有 markdown-body 内的 a 标签在新标签页打开
+function setLinksOpenInNewTab() {
+  nextTick(() => {
+    const links = document.querySelectorAll(".markdown-body a");
+    links.forEach((link) => {
+      link.setAttribute("target", "_blank");
+      link.setAttribute("rel", "noopener noreferrer");
+    });
+  });
+}
+
+// 给 markdown 文本中的所有图片链接加上 base url
+function addBaseUrlToImages(text, baseUrl) {
+  return text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+    // 如果 url 已经是 http(s) 或 data:，则不处理
+    if (/^(https?:|data:)/.test(url)) return match;
+    // 去除首尾空格
+    url = url.trim();
+    // 拼接 base url
+    const newUrl =
+      baseUrl.replace(/\/$/, "") + "/" + url.replace(/^\//, "");
+    return `![${alt}](${newUrl})`;
+  });
 }
 
 function setupTocClickHandlers() {
