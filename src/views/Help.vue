@@ -70,9 +70,7 @@ async function fetchMarkdown() {
   try {
     const markdowns = await request(
       APIS.get_tutorial,
-      {
-        method: "GET",
-      },
+      {method: "GET",},
       {raw: true, showError: false}
     );
     let text = await markdowns.text();
@@ -123,8 +121,7 @@ function addBaseUrlToImages(text, baseUrl) {
     // 去除首尾空格
     url = url.trim();
     // 拼接 base url
-    const newUrl =
-      baseUrl.replace(/\/$/, "") + "/" + url.replace(/^\//, "");
+    const newUrl = baseUrl.replace(/\/$/, "") + "/" + url.replace(/^\//, "");
     return `![${alt}](${newUrl})`;
   });
 }
@@ -224,100 +221,89 @@ function setupCodeCopyButtons() {
       return;
     }
 
-    // 创建复制按钮
-    const copyButton = document.createElement("button");
-    copyButton.className = "copy-button";
-    copyButton.innerHTML = `
+    // 复制按钮状态图标常量
+    const COPY_ICON_HTML = `
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
         <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
       </svg>
-      <span class="copy-text">复制</span>
+    `;
+    const COPIED_ICON_HTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20,6 9,17 4,12"></polyline>
+      </svg>
+    `;
+    const ERROR_ICON_HTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="15" y1="9" x2="9" y2="15"></line>
+        <line x1="9" y1="9" x2="15" y2="15"></line>
+      </svg>
     `;
 
-    // 添加点击事件
+    // 创建复制按钮
+    const copyButton = document.createElement("button");
+    copyButton.className = "copy-button";
+    copyButton.innerHTML = `${COPY_ICON_HTML}<span class="copy-text">复制</span>`;
+
     copyButton.addEventListener("click", async () => {
       const codeElement = preElement.querySelector("code");
       const text = codeElement
         ? codeElement.textContent
         : preElement.textContent;
-
+      let success = false;
+      let errorMsg = "";
       try {
-        // 检查是否支持现代剪贴板API
+        // 优先使用 clipboard API
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(text);
         } else {
-          // 使用更现代的方式作为备选方案
+          // execCommand 兜底，但兼容性差
           const textArea = document.createElement("textarea");
           textArea.value = text;
+          // 让 textarea 可见但极小，避免部分浏览器不生效
           textArea.style.position = "fixed";
-          textArea.style.left = "-999999px";
-          textArea.style.top = "-999999px";
+          textArea.style.opacity = "0";
+          textArea.style.left = "0";
+          textArea.style.top = "0";
+          textArea.style.width = "1px";
+          textArea.style.height = "1px";
           document.body.appendChild(textArea);
           textArea.focus();
           textArea.select();
-
-          // 尝试使用新的选择API
-          if (document.getSelection) {
-            const selection = document.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(textArea);
-            selection.removeAllRanges();
-            selection.addRange(range);
+          // 兼容 iOS
+          if (typeof textArea.setSelectionRange === "function") {
+            textArea.setSelectionRange(0, textArea.value.length);
           }
-
-          // 触发复制事件
-          const successful = document.execCommand("copy");
+          // 必须同步调用 execCommand
+          success = document.execCommand("copy");
           document.body.removeChild(textArea);
-
-          if (!successful) {
-            throw new Error("复制操作失败");
+          if (!success) {
+            errorMsg = "execCommand 复制失败";
+            throw new Error(errorMsg);
           }
         }
-
-        // 更新按钮状态为成功
-        copyButton.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20,6 9,17 4,12"></polyline>
-          </svg>
-          <span class="copy-text">已复制</span>
-        `;
+        // 成功反馈
+        copyButton.innerHTML = `${COPIED_ICON_HTML}<span class="copy-text">已复制</span>`;
         copyButton.classList.add("copied");
-
-        // 2秒后恢复原状
         setTimeout(() => {
-          copyButton.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
-            </svg>
-            <span class="copy-text">复制</span>
-          `;
+          copyButton.innerHTML = `${COPY_ICON_HTML}<span class="copy-text">复制</span>`;
           copyButton.classList.remove("copied");
         }, 2000);
       } catch (err) {
+        // 失败时选中代码内容，方便用户手动复制
+        if (codeElement) {
+          const range = document.createRange();
+          range.selectNodeContents(codeElement);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
         console.error("复制失败:", err);
-
-        // 显示错误状态
-        copyButton.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="15" y1="9" x2="9" y2="15"></line>
-            <line x1="9" y1="9" x2="15" y2="15"></line>
-          </svg>
-          <span class="copy-text">复制失败</span>
-        `;
+        copyButton.innerHTML = `${ERROR_ICON_HTML}<span class="copy-text">复制失败，请手动复制</span>`;
         copyButton.classList.add("error");
-
-        // 2秒后恢复原状
         setTimeout(() => {
-          copyButton.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
-            </svg>
-            <span class="copy-text">复制</span>
-          `;
+          copyButton.innerHTML = `${COPY_ICON_HTML}<span class="copy-text">复制</span>`;
           copyButton.classList.remove("error");
         }, 2000);
       }
@@ -774,32 +760,5 @@ onUnmounted(() => {
 
 .v-fab:hover {
   transform: scale(1.1) !important;
-}
-
-/* 复制按钮样式 */
-.copy-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.8);
-  border: none;
-  border-radius: 4px;
-  padding: 8px 12px;
-  cursor: pointer;
-  z-index: 10;
-  transition: background 0.3s ease;
-}
-
-.copy-button:hover {
-  background: rgba(255, 255, 255, 1);
-}
-
-.copy-button svg {
-  vertical-align: middle;
-  margin-right: 4px;
-}
-
-.copy-button.copied {
-  background: rgba(102, 126, 234, 0.2);
 }
 </style>
