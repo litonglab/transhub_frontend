@@ -22,13 +22,9 @@
       :scrim="false"
       class="toc-panel"
     >
-      <div
-        class="toc-content"
-        v-html="extractTocContent()"
-      />
+      <div class="toc-content" v-html="extractTocContent()"/>
     </v-navigation-drawer>
   </div>
-
 </template>
 <script setup>
 import {nextTick, onMounted, onUnmounted, ref} from "vue";
@@ -83,6 +79,20 @@ async function fetchMarkdown() {
 
     // 在文档开始处添加目录占位符
     text = "${toc}\n\n" + text;
+
+    // 处理图片链接，给所有图片加上 base url
+    const baseUrl = APIS.get_tutorial_images;
+    // 匹配 ![alt](url) 形式的图片语法，并处理相对路径
+    text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+      // 如果 url 已经是 http(s) 或 data:，则不处理
+      if (/^(https?:|data:)/.test(url)) return match;
+      // 去除首尾空格
+      url = url.trim();
+      // 拼接 base url
+      const newUrl = baseUrl.replace(/\/$/, "") + "/" + url.replace(/^\//, "");
+      // console.debug(`处理图片链接: ${match} -> ${newUrl}`);
+      return `![${alt}](${newUrl})`;
+    });
 
     markdownContent.value = md.render(text);
 

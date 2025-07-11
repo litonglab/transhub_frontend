@@ -20,6 +20,7 @@ export const APIS = {
   // help
   //get_cca_guide: hostname + '/help_get_cca_guide',
   get_tutorial: hostname + "/help_get_tutorial",
+  get_tutorial_images: hostname + "/help_get_tutorial_images",
   get_pantheon: hostname + "/help_get_pantheon",
   get_competition_info: hostname + "/help_get_competition_info",
   get_system_info: hostname + "/help_get_system_info",
