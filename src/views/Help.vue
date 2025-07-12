@@ -70,7 +70,7 @@ async function fetchMarkdown() {
   try {
     const markdowns = await request(
       APIS.get_tutorial,
-      {method: "GET",},
+      {method: "GET"},
       {raw: true, showError: false}
     );
     let text = await markdowns.text();
@@ -405,7 +405,8 @@ onUnmounted(() => {
   font-weight: 650;
 }
 
-.markdown-body :deep(h5), .markdown-body :deep(h6) {
+.markdown-body :deep(h5),
+.markdown-body :deep(h6) {
   font-size: 1.1em;
   color: #4a5568;
   margin-top: 12px;
@@ -434,7 +435,8 @@ onUnmounted(() => {
 }
 
 /* 列表样式 */
-.markdown-body :deep(ul), .markdown-body :deep(ol) {
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) {
   margin-bottom: 15px;
   padding-left: 25px;
 }
@@ -537,11 +539,12 @@ onUnmounted(() => {
 }
 
 .markdown-body :deep(code) {
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Consolas", "Courier New", monospace;
   font-size: 0.9em;
 }
 
-.markdown-body :deep(p code), .markdown-body :deep(li code) {
+.markdown-body :deep(p code),
+.markdown-body :deep(li code) {
   background: #f7fafc;
   color: #e53e3e;
   padding: 4px 8px;
@@ -618,12 +621,15 @@ onUnmounted(() => {
 }
 
 /* 标题滚动偏移 */
-.markdown-body :deep(h1), .markdown-body :deep(h2), .markdown-body :deep(h3),
-.markdown-body :deep(h4), .markdown-body :deep(h5), .markdown-body :deep(h6) {
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3),
+.markdown-body :deep(h4),
+.markdown-body :deep(h5),
+.markdown-body :deep(h6) {
   scroll-margin-top: 20px;
   position: relative;
 }
-
 
 .toc-panel {
   z-index: 999;
