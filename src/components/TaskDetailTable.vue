@@ -149,7 +149,24 @@ async function fetchTasks(upload_id, delay = 0) {
     if (delay) {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
-    const tasks = data.tasks || [];
+    let tasks = data.tasks || [];
+    // 多重排序：trace_name > loss_rate > buffer_size > delay
+    tasks = tasks.slice().sort((a, b) => {
+      // 1. trace_name 字典序
+      if (a.trace_name !== b.trace_name) {
+        return a.trace_name.localeCompare(b.trace_name);
+      }
+      // 2. loss_rate 数值升序
+      if (a.loss_rate !== b.loss_rate) {
+        return Number(a.loss_rate) - Number(b.loss_rate);
+      }
+      // 3. buffer_size 数值升序
+      if (a.buffer_size !== b.buffer_size) {
+        return Number(a.buffer_size) - Number(b.buffer_size);
+      }
+      // 4. delay 数值升序
+      return Number(a.delay) - Number(b.delay);
+    });
     internalTasks.value = tasks;
     return tasks;
   } catch (error) {
