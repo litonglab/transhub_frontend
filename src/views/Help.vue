@@ -554,7 +554,7 @@ onUnmounted(() => {
   font-size: 0.9em;
 }
 
-.markdown-body :deep(p code) {
+.markdown-body :deep(p code), .markdown-body :deep(li code) {
   background: #f7fafc;
   color: #e53e3e;
   padding: 4px 8px;
