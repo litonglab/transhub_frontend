@@ -29,132 +29,131 @@
       </v-list-item>
     </v-list>
 
-    <!--    底栏-->
-    <div
-      style="
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        text-align: center;
-        padding: 16px 0;
-        font-size: 13px;
-        color: #888;
-        background: #fff;
-      "
-    >
-      <div style="margin-bottom: 10px">
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-bottom: 4px;
-          "
-        >
-          <span>系统负载：</span>
-          <span style="display: flex; align-items: center; gap: 4px">
-            <svg width="20" height="20" viewBox="0 0 22 22">
-              <circle
-                cx="11"
-                cy="11"
-                r="9"
-                fill="#f5f5f5"
-                stroke="#ddd"
-                stroke-width="2"
-              />
-              <circle
-                :stroke="loadConfig[sysLoad === -1 ? loadConfig.length - 1 : sysLoad].color"
-                stroke-width="4"
-                fill="none"
-                cx="11"
-                cy="11"
-                r="9"
-                :stroke-dasharray="2 * Math.PI * 9"
-                :stroke-dashoffset="2 * Math.PI * 9 * (1 - loadConfig[sysLoad === -1 ? loadConfig.length - 1 : sysLoad].ratio)"
-                stroke-linecap="round"
-                transform="rotate(-90 11 11)"
-                style="transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);"
-              />
-            </svg>
-            <span
-              :style="{ color: loadConfig[sysLoad === -1 ? loadConfig.length - 1 : sysLoad].color, fontWeight: 'bold' }"
-            >{{ loadConfig[sysLoad === -1 ? loadConfig.length - 1 : sysLoad].text }}</span>
-          </span>
-          <v-tooltip location="right">
-            <template v-slot:activator="{ props }">
-              <v-icon
-                v-bind="props"
-                icon="mdi-information-outline"
-                size="16"
-                color="grey"
-                class="ml-1"
-              ></v-icon>
-            </template>
-            <span>当系统处于满载状态时，评测程序偶现不稳定现象，如分数明显异常，可尝试重新提交任务，如有需要可联系管理员。</span>
-          </v-tooltip>
-        </div>
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-          "
-        >
-          <span>队列长度：</span>
-          <span style="display: flex; align-items: center; gap: 4px">
-            <span
-              style="
-                width: 60px;
-                height: 8px;
-                background: #eee;
-                border-radius: 4px;
-                overflow: hidden;
-                display: inline-block;
-              "
-            >
+    <template v-slot:append>
+      <!--    底栏-->
+      <div
+        style="
+          text-align: center;
+          padding: 16px 0;
+          font-size: 13px;
+          color: #888;
+          background: #fff;
+        "
+      >
+        <div style="margin-bottom: 10px">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+              margin-bottom: 4px;
+            "
+          >
+            <span>系统负载：</span>
+            <span style="display: flex; align-items: center; gap: 4px">
+              <svg width="20" height="20" viewBox="0 0 22 22">
+                <circle
+                  cx="11"
+                  cy="11"
+                  r="9"
+                  fill="#f5f5f5"
+                  stroke="#ddd"
+                  stroke-width="2"
+                />
+                <circle
+                  :stroke="loadConfig[sysLoad === -1 ? loadConfig.length - 1 : sysLoad].color"
+                  stroke-width="4"
+                  fill="none"
+                  cx="11"
+                  cy="11"
+                  r="9"
+                  :stroke-dasharray="2 * Math.PI * 9"
+                  :stroke-dashoffset="2 * Math.PI * 9 * (1 - loadConfig[sysLoad === -1 ? loadConfig.length - 1 : sysLoad].ratio)"
+                  stroke-linecap="round"
+                  transform="rotate(-90 11 11)"
+                  style="transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);"
+                />
+              </svg>
               <span
-                :style="{
-                  display: 'block',
-                  height: '100%',
-                  width: queueLevel === -1 ? '0%' : ((queueLevel + 1) * 100) / (queueConfig.length - 1) + '%',
-                  background: queueConfig[queueLevel === -1 ? queueConfig.length - 1 : queueLevel].color,
-                  borderRadius: '4px',
-                  transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
-                }"
-              ></span>
+                :style="{color:loadConfig[sysLoad === -1 ? loadConfig.length - 1 : sysLoad].color,fontWeight: 'bold',}"
+              >{{ loadConfig[sysLoad === -1 ? loadConfig.length - 1 : sysLoad].text }}</span>
             </span>
-            <span
-              :class="`ml-1`"
-              :style="{
-                color: queueConfig[queueLevel === -1 ? queueConfig.length - 1 : queueLevel].color,
-                fontWeight: 'bold',
-                display: 'inline-block',
-              }"
-            >{{ queueConfig[queueLevel === -1 ? queueConfig.length - 1 : queueLevel].text }}</span>
-          </span>
-          <v-tooltip location="right">
-            <template v-slot:activator="{ props }">
-              <v-icon
-                v-bind="props"
-                icon="mdi-information-outline"
-                size="16"
-                color="grey"
-                class="ml-1"
-              ></v-icon>
-            </template>
-            <span>系统中待处理的任务数量，可简单换算还需等待的时间。</span>
-          </v-tooltip>
+            <v-tooltip location="right">
+              <template v-slot:activator="{ props }">
+                <v-icon
+                  v-bind="props"
+                  icon="mdi-information-outline"
+                  size="16"
+                  color="grey"
+                  class="ml-1"
+                ></v-icon>
+              </template>
+              <span>当系统处于满载状态时，评测程序偶现不稳定现象，如分数明显异常，可尝试重新提交任务，如有需要可联系管理员。</span>
+            </v-tooltip>
+          </div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+            "
+          >
+            <span>队列长度：</span>
+            <span style="display: flex; align-items: center; gap: 4px">
+              <span
+                style="
+                  width: 60px;
+                  height: 8px;
+                  background: #eee;
+                  border-radius: 4px;
+                  overflow: hidden;
+                  display: inline-block;
+                "
+              >
+                <span
+                  :style="{
+                    display: 'block',
+                    height: '100%',
+                    width: queueLevel === -1 ? '0%' : ((queueLevel + 1) * 100) / (queueConfig.length - 1) + '%',
+                    background: queueConfig[queueLevel === -1 ? queueConfig.length - 1 : queueLevel].color,
+                    borderRadius: '4px',
+                    transition: 'width 0.6s cubic-bezier(.4,0,.2,1)',
+                  }"
+                ></span>
+              </span>
+              <span
+                :class="`ml-1`"
+                :style="{
+                  color: queueConfig[queueLevel === -1 ? queueConfig.length - 1 : queueLevel].color,
+                  fontWeight: 'bold',
+                  display: 'inline-block',
+                }"
+              >{{ queueConfig[queueLevel === -1 ? queueConfig.length - 1 : queueLevel].text }}</span>
+            </span>
+            <v-tooltip location="right">
+              <template v-slot:activator="{ props }">
+                <v-icon
+                  v-bind="props"
+                  icon="mdi-information-outline"
+                  size="16"
+                  color="grey"
+                  class="ml-1"
+                ></v-icon>
+              </template>
+              <span>系统中待处理的任务数量，可简单换算还需等待的时间。</span>
+            </v-tooltip>
+          </div>
         </div>
+        <v-divider style="margin: 10px auto; width: 80%"/>
+        <a
+          href="https://www.litonglab.com/"
+          target="_blank"
+          style="color: #888; text-decoration: underline"
+        >LitongLab</a><br/>© 2025 TransHub. All rights reserved.
       </div>
-      <v-divider style="margin: 10px auto;width: 80%;"/>
-      <a
-        href="https://www.litonglab.com/"
-        target="_blank"
-        style="color: #888; text-decoration: underline"
-      >LitongLab</a><br/>© 2025 TransHub. All rights reserved.
-    </div>
+    </template>
   </v-navigation-drawer>
 </template>
 
