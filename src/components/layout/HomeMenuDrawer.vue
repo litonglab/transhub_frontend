@@ -185,7 +185,7 @@ const updateSystemInfo = async () => {
 // 系统负载配置，-1 配置放在最后一项，未获取时直接取最后一项
 const loadConfig = [
   {text: "轻载", color: "#4caf50", ratio: 0.3,},
-  {text: "重载", color: "#ff9800", ratio: 0.8,},
+  {text: "重载", color: "#ff9800", ratio: 0.65,},
   {text: "满载", color: "#f44336", ratio: 1,},
   {text: "无数据", color: "#bbb", ratio: 0,},
 ];
