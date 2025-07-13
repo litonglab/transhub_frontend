@@ -1,7 +1,7 @@
 <template>
   <div class="user-management-container">
     <!-- 筛选区域 -->
-    <div class="filter-section">
+    <div class="filter-section" v-if="!isFullScreen">
       <v-card elevation="0" class="pa-4">
         <v-row align="center">
           <v-col
@@ -130,6 +130,23 @@
 
     <!-- 表格区域 -->
     <div class="table-section">
+      <div class="table-actions">
+        <v-btn
+          :icon="isFullScreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
+          size="small"
+          variant="text"
+          @click="toggleFullScreen"
+          :title="isFullScreen ? '退出全屏' : '全屏'"
+          style="margin-right: -15px"
+        ></v-btn>
+        <v-btn
+          icon="mdi-refresh"
+          size="small"
+          variant="text"
+          @click="refreshUsers"
+          title="刷新"
+        ></v-btn>
+      </div>
       <v-data-table-server
         :headers="computedHeaders"
         :items="users"
@@ -145,19 +162,7 @@
         class="table-container"
       >
         <template v-slot:header.actions>
-          <div
-            class="d-flex justify-space-between align-center"
-            style="width: 100%"
-          >
-            <span>操作</span>
-            <v-btn
-              icon="mdi-refresh"
-              size="small"
-              variant="text"
-              @click="refreshUsers"
-              title="刷新"
-            ></v-btn>
-          </div>
+          <span>操作</span>
         </template>
 
         <template v-slot:item.role="{ item }">
@@ -415,6 +420,7 @@ const coursesLoading = ref(false);
 const newPassword = ref("");
 const selectedUser = ref(null);
 const userIdFilter = ref("");
+const isFullScreen = ref(false);
 
 const users = ref([]);
 const pagination = reactive({
@@ -486,6 +492,10 @@ const roleMap = {
 
 const getRoleColor = (role) => roleMap[role]?.color || "grey";
 const getRoleText = (role) => roleMap[role]?.text || "学生";
+
+const toggleFullScreen = () => {
+  isFullScreen.value = !isFullScreen.value;
+};
 
 const loadUsers = async ({page, itemsPerPage, sortBy}) => {
   loading.value = true;
@@ -724,6 +734,14 @@ onMounted(async () => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.table-actions {
+  position: absolute;
+  top: -8px;
+  right: 0;
+  z-index: 2000;
 }
 
 .table-container {
