@@ -1,4 +1,6 @@
 import {ElMessage} from "element-plus";
+import * as XLSX from "xlsx";
+
 
 /**
  * 时间格式化
@@ -135,4 +137,44 @@ export async function fetchImageBlobUrl(url, options = {}) {
     console.error("fetchImageBlobUrl: exception", e, url);
     return null;
   }
+}
+
+/**
+ * 通用导出Excel工具函数
+ * @param {Array} data - 要导出的原始数据数组
+ * @param {Object} options - 配置项
+ * @param {function} options.formatter - (row, index) => object，格式化每一行数据
+ * @param {string} options.sheetName - 工作表名称，默认"Sheet1"
+ * @param {string} options.fileName - 文件名（不含扩展名），默认"导出数据"
+ * @param {Array} options.colWidths - 列宽数组（可选）
+ */
+export function exportDataToExcel(data, options = {}) {
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error("当前没有数据可导出");
+  }
+  const {
+    formatter = (row) => row,
+    sheetName = "Sheet1",
+    fileName = "导出数据",
+    colWidths = undefined,
+  } = options;
+
+  // 格式化数据
+  const exportData = data.map((row, idx) => formatter(row, idx));
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+  if (colWidths) {
+    worksheet["!cols"] = colWidths;
+  }
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+  // 生成带时间戳的文件名
+  const timestamp = new Date()
+    .toISOString()
+    .slice(0, 19)
+    .replace(/[:-]/g, "")
+    .replace("T", "_");
+  const fullFileName = `${fileName}_${timestamp}.xlsx`;
+  XLSX.writeFile(workbook, fullFileName);
+  return fullFileName;
 }

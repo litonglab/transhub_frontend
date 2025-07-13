@@ -87,6 +87,7 @@ npm run build
   后端返回`{"code": 401}`时表示未登录或登录已失效，会自动重定向到登录页面。
 - `fetchImageBlobUrl(url, options = {})`：用于下载图片并转换为Blob URL。可以在需要显示图片的地方使用此函数获取Blob
   URL后再设置到`<img>`标签的`src`属性中。
+- `exportDataToExcel(data, options = {})`：用于将数据导出为Excel文件。支持自定义文件名、工作表名称等选项。
 
 ### 6.3 区分用户角色
 

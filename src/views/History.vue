@@ -12,6 +12,12 @@
       >
         <span class="text-h4">历史记录</span>
         <div>
+          <el-button type="warning" @click="exportHistoryToExcel">
+            <el-icon>
+              <Download/>
+            </el-icon>
+            导出Excel
+          </el-button>
           <el-button type="success" @click="toggleExpandAll">
             {{ allExpanded ? "折叠所有" : "展开所有" }}
           </el-button>
@@ -199,10 +205,48 @@
 import {nextTick, onBeforeUnmount, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import {APIS} from "@/config";
-import {formatDateTime, request} from "@/utility.js";
-import {InfoFilled, Link} from "@element-plus/icons-vue";
+import {exportDataToExcel, formatDateTime, request} from "@/utility.js";
+import {ElMessage} from "element-plus";
+import {Download, InfoFilled, Link} from "@element-plus/icons-vue";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 import CodeViewDialog from "@/components/CodeViewDialog.vue";
+
+// 导出历史记录为Excel
+function exportHistoryToExcel() {
+  try {
+    const fileName = exportDataToExcel(totalTableData.value, {
+      formatter: (row, index) => ({
+        "序号": index + 1,
+        "比赛名称": row.cname || "-",
+        "算法": row.algorithm || "-",
+        "上传时间": formatDateTime(row.created_time),
+        "更新时间": formatDateTime(row.updated_at),
+        "状态": row.status || "-",
+        "总分":
+          typeof row.score === "number"
+            ? row.score.toFixed(2)
+            : row.score || "-",
+      }),
+      sheetName: "历史记录",
+      fileName: "历史记录",
+      colWidths: [
+        {wch: 8}, // 序号
+        {wch: 20}, // 比赛名称
+        {wch: 20}, // 算法
+        {wch: 20}, // 上传时间
+        {wch: 20}, // 更新时间
+        {wch: 12}, // 状态
+        {wch: 10}, // 总分
+      ],
+    });
+    ElMessage.success(
+      `成功导出 ${totalTableData.value.length} 条记录到 ${fileName}`
+    );
+  } catch (error) {
+    console.error("导出Excel失败:", error);
+    ElMessage.error("导出Excel失败");
+  }
+}
 
 const router = useRouter();
 const totalTableData = ref([]);

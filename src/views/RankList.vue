@@ -261,14 +261,13 @@
 <script setup>
 import {onBeforeUnmount, onMounted, ref} from "vue";
 import {APIS} from "@/config.js";
-import {formatDateTime, request} from "@/utility.js";
+import {exportDataToExcel, formatDateTime, request} from "@/utility.js";
 import {useRouter} from "vue-router";
 import {Download, InfoFilled, Link} from "@element-plus/icons-vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 import CodeViewDialog from "@/components/CodeViewDialog.vue";
 import {useAppStore} from "@/store/app.js";
-import * as XLSX from "xlsx";
 
 const router = useRouter();
 const store = useAppStore();
@@ -681,58 +680,34 @@ async function batchDownloadCodesAsZip() {
 
 // 导出Excel
 async function exportToExcel() {
-  if (totalTableData.value.length === 0) {
-    ElMessage.warning("当前没有数据可导出");
-    return;
-  }
-
   try {
-    // 准备导出数据
-    const exportData = totalTableData.value.map((row, index) => {
-      const baseData = {
-        "序号": index + 1,
-        "用户名": row.username,
-        "姓名": row.real_name || "-",
-        "算法": row.algorithm,
-        "上传时间": formatDateTime(row.upload_time),
-        "总分": row.task_score?.toFixed(2) || "0.00",
-      };
-
-      // 如果是管理员，添加学号字段
-      if (store.is_admin && row.to_admin) {
-        return {
-          ...baseData,
-          "学号": row.to_admin.sno || "-",
+    const fileName = exportDataToExcel(totalTableData.value, {
+      formatter: (row, index) => {
+        const baseData = {
+          "序号": index + 1,
+          "用户名": row.username,
+          "姓名": row.real_name || "-",
+          "算法": row.algorithm,
+          "上传时间": formatDateTime(row.upload_time),
+          "总分": row.task_score?.toFixed(2) || "0.00",
         };
-      }
-
-      return baseData;
+        if (store.is_admin && row.to_admin) {
+          return {
+            ...baseData,
+            "学号": row.to_admin.sno || "-",
+          };
+        }
+        return baseData;
+      },
+      sheetName: "榜单数据",
+      fileName: "榜单数据",
+      colWidths: store.is_admin
+        ? [{wch: 8}, {wch: 15}, {wch: 12}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 10},]
+        : [{wch: 8}, {wch: 15}, {wch: 12}, {wch: 15}, {wch: 20}, {wch: 20}],
     });
-
-    // 创建工作簿
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-
-    // 设置列宽
-    worksheet["!cols"] = store.is_admin
-      ? [{wch: 8}, {wch: 15}, {wch: 12}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 10},]
-      : [{wch: 8}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 10}];
-
-    // 添加工作表到工作簿
-    XLSX.utils.book_append_sheet(workbook, worksheet, "榜单数据");
-
-    // 生成文件名
-    const timestamp = new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace(/[:-]/g, "")
-      .replace("T", "_");
-    const fileName = `榜单数据_${timestamp}.xlsx`;
-
-    // 导出文件
-    XLSX.writeFile(workbook, fileName);
-
-    ElMessage.success(`成功导出 ${exportData.length} 条记录到 ${fileName}`);
+    ElMessage.success(
+      `成功导出 ${totalTableData.value.length} 条记录到 ${fileName}`
+    );
   } catch (error) {
     console.error("导出Excel失败:", error);
     ElMessage.error("导出Excel失败");
