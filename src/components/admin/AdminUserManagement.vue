@@ -441,8 +441,8 @@ const headers = [
   {title: "已选课程", key: "enrolled_courses", sortable: false, default: true},
   {title: "锁定状态", key: "is_locked", sortable: false, default: true},
   {title: "删除状态", key: "is_deleted", sortable: false, default: true},
-  {title: "创建时间", key: "created_at", sortable: false, default: true},
-  {title: "更新时间", key: "updated_at", sortable: false, default: false},
+  {title: "创建时间", key: "created_at", sortable: true, default: true}, // 支持排序
+  {title: "更新时间", key: "updated_at", sortable: true, default: false}, // 支持排序
   {title: "操作", key: "actions", sortable: false, align: "center", default: true,},
 ];
 
@@ -515,6 +515,18 @@ const loadUsers = async ({page, itemsPerPage, sortBy}) => {
     }
     if (cnameFilter.value) {
       params.append("cname", cnameFilter.value);
+    }
+
+    if (sortBy && sortBy.length > 0) {
+      const sortItem = sortBy[0];
+      const sortByMap = {
+        created_at: "created_at",
+        updated_at: "updated_at",
+      };
+      if (sortByMap[sortItem.key]) {
+        params.append("sort_by", sortByMap[sortItem.key]);
+        params.append("sort_order", sortItem.order || "desc");
+      }
     }
 
     const result = await request(`${APIS.admin_get_users}?${params}`, {
