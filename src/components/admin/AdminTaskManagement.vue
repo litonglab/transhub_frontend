@@ -1,9 +1,9 @@
 <template>
   <div class="task-management-container">
     <!-- 筛选区域 -->
-    <div class="filter-section">
+    <div class="filter-section" v-if="!isFullScreen">
       <v-card elevation="0" class="pa-4">
-        <v-row align="center">
+        <v-row align="center" dense>
           <v-col
             v-if="isMobile && !showAllFilters"
             cols="12"
@@ -94,6 +94,78 @@
                 no-data-text="没有可用的课程"
               ></v-select>
             </v-col>
+            <!-- 开始时间筛选 -->
+            <v-col cols="12" sm="6" md="2">
+              <v-text-field
+                v-model="startTimeFilter"
+                label="开始时间"
+                type="datetime-local"
+                @input="searchTasks"
+                @click:clear="searchTasks"
+                clearable
+                density="compact"
+              ></v-text-field>
+            </v-col>
+            <!-- 结束时间筛选 -->
+            <v-col cols="12" sm="6" md="2">
+              <v-text-field
+                v-model="endTimeFilter"
+                label="结束时间"
+                type="datetime-local"
+                @input="searchTasks"
+                @click:clear="searchTasks"
+                clearable
+                density="compact"
+              ></v-text-field>
+            </v-col>
+            <!-- 得分筛选框 -->
+            <v-col cols="12" sm="6" md="2">
+              <v-text-field
+                v-model="taskScoreFilter"
+                label="得分(支持区间,如60-100)"
+                @input="searchTasks"
+                @click:clear="searchTasks"
+                clearable
+                density="compact"
+                type="text"
+              ></v-text-field>
+            </v-col>
+            <!-- 时延筛选框 -->
+            <v-col cols="12" sm="6" md="2">
+              <v-text-field
+                v-model="delayFilter"
+                label="时延(支持区间,如10-50)"
+                @input="searchTasks"
+                @click:clear="searchTasks"
+                clearable
+                density="compact"
+                type="text"
+              ></v-text-field>
+            </v-col>
+            <!-- 丢包率筛选框 -->
+            <v-col cols="12" sm="6" md="2">
+              <v-text-field
+                v-model="lossRateFilter"
+                label="丢包率(支持区间,如0-0.1)"
+                @input="searchTasks"
+                @click:clear="searchTasks"
+                clearable
+                density="compact"
+                type="text"
+              ></v-text-field>
+            </v-col>
+            <!-- 缓冲区大小筛选框 -->
+            <v-col cols="12" sm="6" md="2">
+              <v-text-field
+                v-model="bufferSizeFilter"
+                label="缓冲区大小(支持区间,如100-200)"
+                @input="searchTasks"
+                @click:clear="searchTasks"
+                clearable
+                density="compact"
+                type="text"
+              ></v-text-field>
+            </v-col>
             <v-col
               v-if="isMobile"
               cols="12"
@@ -116,6 +188,23 @@
     </div>
     <!-- 表格区域 -->
     <div class="table-section">
+      <div class="table-actions">
+        <v-btn
+          :icon="isFullScreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
+          size="small"
+          variant="text"
+          @click="toggleFullScreen"
+          :title="isFullScreen ? '退出全屏' : '全屏'"
+          style="margin-right: -15px;"
+        ></v-btn>
+        <v-btn
+          icon="mdi-refresh"
+          size="small"
+          variant="text"
+          @click="refreshTasks"
+          title="刷新"
+        ></v-btn>
+      </div>
       <v-data-table-server
         :headers="computedHeaders"
         :items="tasks"
@@ -131,19 +220,7 @@
         class="table-container"
       >
         <template v-slot:header.actions>
-          <div
-            class="d-flex justify-space-between align-center"
-            style="width: 100%"
-          >
-            <span>操作</span>
-            <v-btn
-              icon="mdi-refresh"
-              size="small"
-              variant="text"
-              @click="refreshTasks"
-              title="刷新"
-            ></v-btn>
-          </div>
+          <span>操作</span>
         </template>
 
         <template v-slot:item.task_status="{ item }">
@@ -437,6 +514,12 @@ const usernameFilter = ref("");
 const statusFilter = ref(null);
 const cnameFilter = ref(null);
 const traceNameFilter = ref("");
+const startTimeFilter = ref(""); // 开始时间筛选
+const endTimeFilter = ref(""); // 结束时间筛选
+const delayFilter = ref(""); // 时延筛选
+const lossRateFilter = ref(""); // 丢包率筛选
+const bufferSizeFilter = ref(""); // 缓冲区大小筛选
+const taskScoreFilter = ref(""); // 得分范围筛选
 const courseList = ref([]);
 const courseListLoading = ref(false);
 const taskIdFilter = ref("");
@@ -491,6 +574,7 @@ const showAllFilters = ref(false);
 const imageDialogVisible = ref(false);
 const imageDialogUrl = ref("");
 const imageDialogType = ref("");
+const isFullScreen = ref(false);
 
 onMounted(() => {
   isMobile.value = window.innerWidth <= 960;
@@ -500,6 +584,10 @@ onMounted(() => {
   });
   loadCourseList();
 });
+
+const toggleFullScreen = () => {
+  isFullScreen.value = !isFullScreen.value;
+};
 
 const loadTasks = async ({page, itemsPerPage, sortBy}) => {
   loading.value = true;
@@ -527,6 +615,25 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
       params.append("trace_file", traceNameFilter.value);
     }
 
+    // 上传时间范围筛选
+    if (startTimeFilter.value) {
+      params.append("created_time_start", startTimeFilter.value);
+    }
+    if (endTimeFilter.value) {
+      params.append("created_time_end", endTimeFilter.value);
+    }
+
+    // 时延、丢包率、缓冲区大小筛选参数
+    if (delayFilter.value) {
+      params.append("delay", delayFilter.value);
+    }
+    if (lossRateFilter.value) {
+      params.append("loss_rate", lossRateFilter.value);
+    }
+    if (bufferSizeFilter.value) {
+      params.append("buffer_size", bufferSizeFilter.value);
+    }
+
     if (sortBy && sortBy.length > 0) {
       const sortItem = sortBy[0];
       const sortByMap = {
@@ -537,6 +644,9 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
         params.append("sort_by", sortByMap[sortItem.key]);
         params.append("sort_order", sortItem.order || "desc");
       }
+    }
+    if (taskScoreFilter.value) {
+      params.append("task_score", taskScoreFilter.value);
     }
 
     const result = await request(`${APIS.admin_get_tasks}?${params}`, {
@@ -661,6 +771,14 @@ const statusOptions = statusMeta.map((s) => ({
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.table-actions {
+  position: absolute;
+  top: -8px;
+  right: 0px;
+  z-index: 2000;
 }
 
 .table-container {

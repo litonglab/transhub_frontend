@@ -3,7 +3,7 @@
     <!-- 筛选区域 -->
     <div class="filter-section" v-if="!isFullScreen">
       <v-card elevation="0" class="pa-4">
-        <v-row align="center">
+        <v-row align="center" dense>
           <v-col
             v-if="isMobile && !showAllFilters"
             cols="12"
