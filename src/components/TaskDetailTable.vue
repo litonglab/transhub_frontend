@@ -71,7 +71,7 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column label="日志">
+        <el-table-column v-if="hasAnyLog" label="日志">
           <template #header>
             <div class="column-header">
               <span>日志</span>
@@ -116,7 +116,8 @@
 </template>
 
 <script setup>
-import {ref, watch} from "vue";
+// 只要有一行有 log 字段（非空字符串/非 null/非 undefined）就显示日志列
+import {computed, ref, watch} from "vue";
 import {APIS} from "@/config.js";
 import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
@@ -133,6 +134,12 @@ const props = defineProps({
 });
 
 const internalTasks = ref([]);
+
+const hasAnyLog = computed(() => {
+  return internalTasks.value.some(
+    (task) => task.log !== undefined && task.log !== null && String(task.log).trim() !== ""
+  );
+});
 const dialogVisible = ref(false);
 const dialogContent = ref("");
 const dialogType = ref("");
@@ -225,7 +232,7 @@ async function showImage(type, task_id) {
 }
 
 function showLog(logContent) {
-  dialogContent.value = logContent;
+  dialogContent.value = logContent || "暂无日志信息或无权限查看此日志";
   dialogType.value = "log";
   dialogVisible.value = true;
 }
