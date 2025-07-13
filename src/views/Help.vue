@@ -591,13 +591,25 @@ onUnmounted(() => {
 
 /* 图片样式 */
 .markdown-body :deep(img) {
-  max-width: 100%;
+  max-width: 70%;
   height: auto;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   margin: 24px auto;
   display: block;
   border: 1px solid #e2e8f0;
+}
+
+@media (max-width: 960px) {
+  .markdown-body :deep(img) {
+    max-width: 80%;
+  }
+}
+
+@media (max-width: 768px) {
+  .markdown-body :deep(img) {
+    max-width: 100%;
+  }
 }
 
 /* 分割线样式 */
