@@ -1,80 +1,18 @@
 <template>
   <el-card shadow="hover">
-    <div class="task-detail-table-wrapper">
-      <el-table
-        :data="internalTasks"
-        style="width: 100%"
-        :max-height="height"
-        class="task-detail-table"
-        v-loading="loading"
-        element-loading-text="加载中..."
-      >
-        <template #empty>
-          <div class="empty-container">
-            <span>暂无数据</span>
-            <el-button
-              link
-              :icon="RefreshIcon"
-              @click="handleRefresh"
-              :loading="loading"
-              size="small"
-              class="refresh-button"
-              title="刷新数据"
-            >
-            </el-button>
-          </div>
-        </template>
-        <el-table-column
-          prop="trace_name"
-          label="测试用例"
-          min-width="160"
-          align="center"
-        ></el-table-column>
-        <el-table-column prop="loss_rate" label="丢包率" align="center"></el-table-column>
-        <el-table-column prop="buffer_size" label="缓冲区容量" align="center"></el-table-column>
-        <el-table-column prop="delay" label="往返时延" align="center"></el-table-column>
-        <el-table-column prop="created_at" label="创建时间" align="center">
-          <template #default="scope">
-            {{ formatDateTime(scope.row.created_at, true) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="updated_at" label="更新时间" align="center">
-          <template #default="scope">
-            {{ formatDateTime(scope.row.updated_at, true) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="task_status" label="任务状态" align="center"></el-table-column>
-        <el-table-column prop="task_score" label="得分" align="center">
-          <template #default="scope">
-            <span v-if="scope.row.task_status !== 'finished'"
-            >任务完成后可查看</span
-            >
-          </template>
-        </el-table-column>
-        <el-table-column label="吞吐量">
-          <template #default="scope">
-            <el-button
-              v-if="scope.row.task_status === 'finished'"
-              @click="showImage('throughput', scope.row.task_id)"
-            >查看
-            </el-button>
-            <span v-else>-</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="时延">
-          <template #default="scope">
-            <el-button
-              v-if="scope.row.task_status === 'finished'"
-              @click="showImage('delay', scope.row.task_id)"
-            >查看
-            </el-button>
-            <span v-else>-</span>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="hasAnyLog" label="日志">
-          <template #header>
-            <div class="column-header">
-              <span>日志</span>
+    <div class="task-detail-table-flex">
+      <div class="task-detail-table-wrapper">
+        <el-table
+          :data="internalTasks"
+          style="width: 100%"
+          :max-height="height"
+          class="task-detail-table"
+          v-loading="loading"
+          element-loading-text="加载中..."
+        >
+          <template #empty>
+            <div class="empty-container">
+              <span>暂无数据</span>
               <el-button
                 link
                 :icon="RefreshIcon"
@@ -87,30 +25,178 @@
               </el-button>
             </div>
           </template>
-          <template #default="scope">
-            <el-button @click="showLog(scope.row.log)">查看</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+          <el-table-column
+            prop="trace_name"
+            label="测试用例"
+            min-width="160"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="loss_rate"
+            label="丢包率"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="buffer_size"
+            label="缓冲区容量"
+            align="center"
+          ></el-table-column>
+          <el-table-column
+            prop="delay"
+            label="往返时延"
+            align="center"
+          ></el-table-column>
+          <el-table-column prop="created_at" label="创建时间" align="center">
+            <template #default="scope">
+              {{ formatDateTime(scope.row.created_at, true) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="updated_at" label="更新时间" align="center">
+            <template #default="scope">
+              {{ formatDateTime(scope.row.updated_at, true) }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="task_status"
+            label="任务状态"
+            align="center"
+          ></el-table-column>
+          <el-table-column prop="task_score" label="得分" align="center">
+            <template #default="scope">
+              <span v-if="scope.row.task_status !== 'finished'"
+              >任务完成后可查看</span
+              >
+            </template>
+          </el-table-column>
+          <el-table-column label="吞吐量">
+            <template #default="scope">
+              <el-button
+                v-if="scope.row.task_status === 'finished'"
+                @click="showImage('throughput', scope.row.task_id)"
+              >查看
+              </el-button>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="时延">
+            <template #default="scope">
+              <el-button
+                v-if="scope.row.task_status === 'finished'"
+                @click="showImage('delay', scope.row.task_id)"
+              >查看
+              </el-button>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="hasAnyLog" label="日志">
+            <template #header>
+              <div class="column-header">
+                <span>日志</span>
+                <el-button
+                  link
+                  :icon="RefreshIcon"
+                  @click="handleRefresh"
+                  :loading="loading"
+                  size="small"
+                  class="refresh-button"
+                  title="刷新数据"
+                >
+                </el-button>
+              </div>
+            </template>
+            <template #default="scope">
+              <el-button @click="showLog(scope.row.log)">查看</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
 
-      <v-dialog v-model="dialogVisible" class="responsive-dialog">
-        <v-card>
-          <v-card-title
-          >{{ dialogType === "image" ? "性能图" : "日志信息" }}
-          </v-card-title>
-          <v-card-text>
-            <img
-              v-if="dialogType === 'image'"
-              :src="dialogContent"
-              style="width: 100%"
-              alt=""
-            />
-            <div v-else>
-              <pre class="code-content"><code>{{ dialogContent }}</code></pre>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-dialog>
+        <v-dialog v-model="dialogVisible" class="responsive-dialog">
+          <v-card>
+            <v-card-title>
+              {{
+                dialogType === "image"
+                  ? "性能图"
+                  : dialogType === "allRadar"
+                    ? "所有测试雷达图"
+                    : "日志信息"
+              }}
+            </v-card-title>
+            <v-card-text>
+              <img
+                v-if="dialogType === 'image'"
+                :src="dialogContent"
+                style="width: 100%"
+                alt=""
+              />
+              <div
+                v-else-if="dialogType === 'allRadar'"
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 24px;
+                  justify-content: center;
+                "
+              >
+                <div
+                  v-for="(row, idx) in allRadarRows"
+                  :key="row.task_id || idx"
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    min-width: 200px;
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 13px;
+                      margin-bottom: 4px;
+                      color: #666;
+                      max-width: 180px;
+                      text-align: center;
+                      word-break: break-all;
+                    "
+                  >
+                    {{ row.trace_name || row.task_id || "测试" + (idx + 1) }}
+                  </div>
+                  <RadarChart
+                    :delay="row.delay"
+                    :loss="row.loss_rate"
+                    :throughput="row.buffer_size"
+                  />
+                </div>
+              </div>
+              <div v-else>
+                <pre class="code-content"><code>{{ dialogContent }}</code></pre>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
+      </div>
+      <div class="table-summary-radar">
+        <div class="radar-header">
+          <span
+            style="font-weight: bold; text-align: center;"
+          >
+            综合雷达图
+          </span>
+          <el-button
+            link
+            :icon="ZoomInIcon"
+            @click="showAllRadarDialog"
+            :disabled="!hasAnyRadarData"
+            size="small"
+            class="radar-expand-button"
+            title="查看所有测试雷达图"
+          >
+          </el-button>
+        </div>
+        <RadarChart
+          :delay="avgRadar.delay"
+          :loss="avgRadar.loss"
+          :throughput="avgRadar.throughput"
+        />
+      </div>
     </div>
   </el-card>
 </template>
@@ -120,7 +206,33 @@
 import {computed, ref, watch} from "vue";
 import {APIS} from "@/config.js";
 import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
-import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
+import {Refresh as RefreshIcon, ZoomIn as ZoomInIcon,} from "@element-plus/icons-vue";
+import RadarChart from "./RadarChart.vue";
+// 计算所有任务的平均分（仅统计有分数的）
+const avgRadar = computed(() => {
+  const finished = internalTasks.value.filter(
+    (t) =>
+      t.task_status === "finished" &&
+      typeof t.delay === "number" &&
+      typeof t.loss_rate === "number" &&
+      typeof t.buffer_size === "number"
+  );
+  if (!finished.length) return {delay: 0, loss: 0, throughput: 0};
+  const sum = finished.reduce(
+    (acc, t) => {
+      acc.delay += t.delay;
+      acc.loss += t.loss_rate;
+      acc.throughput += t.buffer_size;
+      return acc;
+    },
+    {delay: 0, loss: 0, throughput: 0}
+  );
+  return {
+    delay: Math.round(sum.delay / finished.length),
+    loss: Math.round(sum.loss / finished.length),
+    throughput: Math.round(sum.throughput / finished.length),
+  };
+});
 
 const props = defineProps({
   upload_id: {
@@ -144,6 +256,18 @@ const dialogVisible = ref(false);
 const dialogContent = ref("");
 const dialogType = ref("");
 const loading = ref(false);
+
+
+const allRadarRows = ref([]);
+const hasAnyRadarData = computed(() => {
+  return internalTasks.value.some(
+    (t) =>
+      t.task_status === "finished" &&
+      typeof t.delay === "number" &&
+      typeof t.loss_rate === "number" &&
+      typeof t.buffer_size === "number"
+  );
+});
 
 async function fetchTasks(upload_id, delay = 0) {
   loading.value = true;
@@ -237,6 +361,19 @@ function showLog(logContent) {
   dialogVisible.value = true;
 }
 
+// 查看所有测试的雷达图
+function showAllRadarDialog() {
+  allRadarRows.value = internalTasks.value.filter(
+    (t) =>
+      t.task_status === "finished" &&
+      typeof t.delay === "number" &&
+      typeof t.loss_rate === "number" &&
+      typeof t.buffer_size === "number"
+  );
+  dialogType.value = "allRadar";
+  dialogVisible.value = true;
+}
+
 // Check task status to determine whether to refresh or stop auto-refresh, used in parent component.
 function checkTaskStatus() {
   if (!internalTasks.value || internalTasks.value.length === 0) {
@@ -300,8 +437,48 @@ defineExpose({
   gap: 10px;
 }
 
+.task-detail-table-flex {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 32px;
+}
+
 .task-detail-table-wrapper {
+  flex: 1 1 0%;
+  min-width: 0;
+  width: auto;
+  /* 让表格自适应剩余空间 */
+}
+
+.table-summary-radar {
+  /* min-width: 370px;
+  max-width: 400px; */
+  /* padding: 12px 0 0 0; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.radar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
   width: 100%;
+  margin-bottom: 2px;
+}
+
+.radar-expand-button {
+  padding: 4px;
+  color: #606266;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.radar-expand-button:hover {
+  color: #409eff;
+  transform: scale(1.15);
 }
 
 .task-detail-table {
