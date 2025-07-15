@@ -5,8 +5,8 @@
     <v-fab
       v-if="showToc"
       icon="mdi-format-list-bulleted"
-      color="primary"
-      size="large"
+      color="#b00020"
+      size="default"
       location="bottom end"
       class="toc-btn"
       @click="toggleToc"
@@ -382,7 +382,7 @@ onUnmounted(() => {
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 4px;
+  width: 3px;
   height: 24px;
   background: linear-gradient(135deg, #d58391 0%, #b00020 100%);
   border-radius: 2px;
@@ -455,7 +455,7 @@ onUnmounted(() => {
 
 /* 引用块样式 */
 .markdown-body :deep(blockquote) {
-  border-left: 4px solid #b00020;
+  border-left: 3px solid #b00020;
   background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
   margin: 24px 0;
   padding: 20px 24px 10px;
