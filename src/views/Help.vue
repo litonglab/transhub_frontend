@@ -566,13 +566,13 @@ onUnmounted(() => {
 }
 
 .markdown-body :deep(th) {
-  background: linear-gradient(135deg, #d58391 0%, #b00020 100%);
-  color: white;
-  font-weight: 600;
+  color: #b00020;
+  font-weight: 700;
   padding: 16px;
   text-align: left;
-  font-size: 0.95em;
+  font-size: 1em;
   letter-spacing: 0.05em;
+  border-bottom: 2px solid #f8bbd0;
 }
 
 .markdown-body :deep(td) {
