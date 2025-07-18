@@ -1,24 +1,5 @@
 <template>
   <v-app class="bg-container">
-    <v-app-bar flat elevation="2" color="error">
-      <v-app-bar-title>
-        Transhub：中国人民大学“一人一栈”打榜平台
-      </v-app-bar-title>
-      <!-- litonglab超链接图标 -->
-      <a
-        href="https://www.litonglab.com/"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="header-logo-link"
-      >
-        <img
-          src="@/assets/litonglab-logo-long.png"
-          class="header-logo"
-          alt="LitongLab Logo"
-        />
-      </a>
-    </v-app-bar>
-
     <v-container class="fill-height main-container">
       <v-row justify="center" align="center" dense>
         <v-col cols="12" md="6" class="mobile-col">
@@ -103,6 +84,7 @@
               <v-text-field
                 v-model="userId"
                 label="账户"
+                placeholder="用于登录、榜单展示，注册后不可更改"
                 :rules="userIdRules"
                 autocomplete="username"
               ></v-text-field>
@@ -127,6 +109,7 @@
                 label="学号"
                 :rules="snoRules"
                 autocomplete="off"
+                placeholder="真实学号，注册后不可更改"
               ></v-text-field>
               <v-btn type="submit" class="mb-6" block>提交</v-btn>
             </v-form>
@@ -193,7 +176,7 @@ const countdown = ref(60);
 let timer = null;
 
 const openCountdownBox = (msg) => {
-  countdown.value = 15; // 重置倒计时为15秒
+  countdown.value = 10; // 重置倒计时为10秒
   ElMessageBox({
     title: "提示",
     message: () => `登录中...`,
@@ -253,7 +236,15 @@ async function login() {
   try {
     const result = await request(APIS.login, {body: JSON.stringify(data)});
     if (result.code === 200) {
+      // 设置用户基本信息
       store.set_name(data.username);
+
+      // 如果后端返回了用户角色信息，设置到store中
+      if (result && result.role) {
+        store.set_role(result.role);
+      } else {
+        store.set_role("student"); // 默认为学生角色
+      }
       await router.push({name: "help"});
     } else if (result.code === 201) {
       // 使用ElMessageBox弹出一个对话框，并显示一个60秒的倒计时，倒计时结束前，不能关闭对话框
@@ -295,12 +286,9 @@ onMounted(async () => {
   background: url("@/assets/ruc_background.jpg") center/cover no-repeat;
 }
 
-/* 主页背景照片*/
-
 .main-container {
   padding-top: 80px; /* 为header留出空间 */
 }
-
 
 .frosted-card {
   background: rgba(255, 255, 255, 0.75);
@@ -309,23 +297,6 @@ onMounted(async () => {
   border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); /* 可选美化阴影 */
   border: 1px solid rgba(255, 255, 255, 0.3); /* 可选边框美化 */
-}
-
-/* Header logo 样式 */
-.header-logo-link {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  margin-left: auto;
-  height: 100%;
-  padding: 0 12px;
-}
-
-.header-logo {
-  object-fit: contain;
-  height: 60%;
-  width: auto;
-  max-height: none;
 }
 
 /* 移动端适配 */
@@ -350,16 +321,6 @@ onMounted(async () => {
   .main-container {
     padding-top: 100px !important; /* 移动端增加更多顶部间距 */
     padding-bottom: 20px; /* 底部留出空间 */
-  }
-
-  .header-logo-link {
-    padding: 0 8px;
-    height: 100%;
-  }
-
-  .header-logo {
-    height: 60%;
-    max-height: none;
   }
 
   .mobile-col {

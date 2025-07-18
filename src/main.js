@@ -7,7 +7,7 @@
 // Components
 import App from "./App.vue";
 
-// Composables
+// Composable
 import {createApp} from "vue";
 
 // Plugins

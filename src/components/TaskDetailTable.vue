@@ -26,13 +26,25 @@
         </template>
         <el-table-column
           prop="trace_name"
-          label="测试文件"
+          label="测试用例"
           min-width="160"
+          align="center"
         ></el-table-column>
-        <el-table-column prop="loss_rate" label="丢包率"></el-table-column>
-        <el-table-column prop="buffer_size" label="缓冲区容量"/>
-        <el-table-column prop="task_status" label="任务状态"></el-table-column>
-        <el-table-column prop="task_score" label="得分">
+        <el-table-column prop="loss_rate" label="丢包率" align="center"></el-table-column>
+        <el-table-column prop="buffer_size" label="缓冲区容量" align="center"></el-table-column>
+        <el-table-column prop="delay" label="往返时延" align="center"></el-table-column>
+        <el-table-column prop="created_at" label="创建时间" align="center">
+          <template #default="scope">
+            {{ formatDateTime(scope.row.created_at, true) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="updated_at" label="更新时间" align="center">
+          <template #default="scope">
+            {{ formatDateTime(scope.row.updated_at, true) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="task_status" label="任务状态" align="center"></el-table-column>
+        <el-table-column prop="task_score" label="得分" align="center">
           <template #default="scope">
             <span v-if="scope.row.task_status !== 'finished'"
             >任务完成后可查看</span
@@ -59,7 +71,7 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column label="日志">
+        <el-table-column v-if="hasAnyLog" label="日志">
           <template #header>
             <div class="column-header">
               <span>日志</span>
@@ -83,11 +95,10 @@
 
       <v-dialog v-model="dialogVisible" class="responsive-dialog">
         <v-card>
-          <v-card-title>{{
-              dialogType === "image" ? "性能图" : "日志信息"
-            }}
+          <v-card-title
+          >{{ dialogType === "image" ? "性能图" : "日志信息" }}
           </v-card-title>
-          <div style="padding: 5px 15px">
+          <v-card-text>
             <img
               v-if="dialogType === 'image'"
               :src="dialogContent"
@@ -95,13 +106,9 @@
               alt=""
             />
             <div v-else>
-              <textarea
-                v-model="dialogContent"
-                style="width: 100%; height: 500px; white-space: pre-wrap"
-                readonly
-              ></textarea>
+              <pre class="code-content"><code>{{ dialogContent }}</code></pre>
             </div>
-          </div>
+          </v-card-text>
         </v-card>
       </v-dialog>
     </div>
@@ -109,9 +116,10 @@
 </template>
 
 <script setup>
-import {ref, watch} from "vue";
+// 只要有一行有 log 字段（非空字符串/非 null/非 undefined）就显示日志列
+import {computed, ref, watch} from "vue";
 import {APIS} from "@/config.js";
-import {request} from "@/utility.js";
+import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
 
 const props = defineProps({
@@ -126,6 +134,12 @@ const props = defineProps({
 });
 
 const internalTasks = ref([]);
+
+const hasAnyLog = computed(() => {
+  return internalTasks.value.some(
+    (task) => task.log !== undefined && task.log !== null && String(task.log).trim() !== ""
+  );
+});
 const dialogVisible = ref(false);
 const dialogContent = ref("");
 const dialogType = ref("");
@@ -142,7 +156,24 @@ async function fetchTasks(upload_id, delay = 0) {
     if (delay) {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
-    const tasks = data.tasks || [];
+    let tasks = data.tasks || [];
+    // 多重排序：trace_name > loss_rate > buffer_size > delay
+    tasks = tasks.slice().sort((a, b) => {
+      // 1. trace_name 字典序
+      if (a.trace_name !== b.trace_name) {
+        return a.trace_name.localeCompare(b.trace_name);
+      }
+      // 2. loss_rate 数值升序
+      if (a.loss_rate !== b.loss_rate) {
+        return Number(a.loss_rate) - Number(b.loss_rate);
+      }
+      // 3. buffer_size 数值升序
+      if (a.buffer_size !== b.buffer_size) {
+        return Number(a.buffer_size) - Number(b.buffer_size);
+      }
+      // 4. delay 数值升序
+      return Number(a.delay) - Number(b.delay);
+    });
     internalTasks.value = tasks;
     return tasks;
   } catch (error) {
@@ -186,45 +217,22 @@ async function showImage(type, task_id) {
     const params = new URLSearchParams();
     params.append("task_id", task_id);
     params.append("graph_type", type);
-
     const url = `${APIS.get_graph}?${params.toString()}`;
-
-    const response = await request(
-      url,
-      {
-        method: "GET",
-      },
-      {raw: true}
-    );
-    if (!response.ok) {
-      const result = await response.json();
-      console.error(result.message);
+    const blobUrl = await fetchImageBlobUrl(url);
+    if (!blobUrl) {
+      // fetchImageBlobUrl 已自动打印错误日志
       return;
     }
-    const contentType = response.headers.get("Content-Type");
-    if (!contentType || !contentType.startsWith("image/")) {
-      console.error("Returned content is not an image:", contentType);
-      return;
-    }
-    const blob = await response.blob();
-    if (blob.size === 0) {
-      console.error("Blob is empty");
-      return;
-    }
-    const blobUrl = URL.createObjectURL(blob);
-    dialogContent.value = blobUrl.startsWith("blob:")
-      ? blobUrl
-      : `blob:${blobUrl}`;
+    dialogContent.value = blobUrl;
     dialogType.value = "image";
     dialogVisible.value = true;
   } catch (error) {
-    console.error("Failed to get image:", error);
-    // ElMessage.error("获取图片失败");
+    // fetchImageBlobUrl 已自动打印异常
   }
 }
 
 function showLog(logContent) {
-  dialogContent.value = logContent;
+  dialogContent.value = logContent || "暂无日志信息或无权限查看此日志";
   dialogType.value = "log";
   dialogVisible.value = true;
 }
@@ -314,5 +322,20 @@ defineExpose({
     max-width: 100%;
     max-height: 80%;
   }
+}
+
+.code-content {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 16px;
+  margin: 0;
+  font-family: "Courier New", Consolas, "Liberation Mono", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: #333;
+  overflow: auto;
+  box-sizing: border-box;
+  height: calc(80vh - 150px);
 }
 </style>

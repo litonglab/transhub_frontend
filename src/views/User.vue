@@ -61,6 +61,14 @@
                 class="mx-2"
               >修改信息
               </v-btn>
+              <v-btn
+                v-if="store.is_admin"
+                color="purple-darken-2"
+                outlined
+                @click="goToAdmin"
+                class="mx-2"
+              >管理员面板
+              </v-btn>
             </v-col>
           </v-row>
         </v-sheet>
@@ -138,12 +146,14 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {ElMessage} from "element-plus";
+import {useRouter} from "vue-router";
 
 import {useAppStore} from "@/store/app";
 import {APIS} from "@/config";
 import {request} from "@/utility.js";
 
 const store = useAppStore();
+const router = useRouter();
 const pantheons = ref([]);
 const name = store.name;
 
@@ -238,6 +248,12 @@ async function getRealInfo() {
   } catch (error) {
   }
 }
+
+const goToAdmin = () => {
+  router.push({
+    name: "admin",
+  });
+};
 
 onMounted(async () => {
   getRealInfo();

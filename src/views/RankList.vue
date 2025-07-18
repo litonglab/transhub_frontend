@@ -4,29 +4,93 @@
     <v-col>
       <div
         style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-          "
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        "
       >
         <span class="text-h4">榜单展示</span>
+        <span
+          v-if="userRank !== null"
+          style="
+            font-size: 20px;
+            color: #1976d2;
+            font-weight: 800;
+          ">我的排名:
+          <span
+            v-if="userRank === 0 || userRank === 1 || userRank === 2"
+            style="font-size: 26px;">
+            <span v-if="userRank === 0">🥇</span>
+            <span v-else-if="userRank === 1">🥈</span>
+            <span v-else-if="userRank === 2">🥉</span>
+          </span>
+          <span
+            v-else
+            style="font-size: 26px; color: #e53935; font-weight: bold">
+            {{ userRank + 1 }}
+          </span>
+        </span>
         <div>
+          <!-- 管理员批量操作区域 -->
+          <v-tooltip location="top" v-if="store.is_admin">
+            <template #activator="{ props }">
+              <v-icon
+                v-bind="props"
+                icon="mdi-information-outline"
+                size="16"
+                color="grey"
+                class="mr-2"
+              ></v-icon>
+            </template>
+            <span>管理员用户下载代码时，代码文件名格式为：学号_总分_姓名_用户名_源文件名</span>
+          </v-tooltip>
+          <el-button
+            v-if="store.is_admin"
+            type="primary"
+            :disabled="selectedRows.length === 0"
+            @click="batchDownloadCodes"
+            :loading="batchDownloading"
+          >
+            批量下载选中代码 ({{ selectedRows.length }})
+          </el-button>
+          <el-button
+            v-if="store.is_admin"
+            type="success"
+            :disabled="selectedRows.length === 0"
+            @click="batchDownloadCodesAsZip"
+            :loading="batchDownloading"
+            style="margin-left: 8px"
+          >
+            打包下载代码为ZIP ({{ selectedRows.length }})
+          </el-button>
+          <el-button
+            v-if="store.is_admin"
+            type="warning"
+            @click="exportToExcel"
+          >
+            <el-icon>
+              <Download/>
+            </el-icon>
+            导出Excel
+          </el-button>
+          <!-- 普通用户区域 -->
           <el-button type="success" @click="toggleExpandAll">
             {{ allExpanded ? "折叠所有" : "展开所有" }}
           </el-button>
-          <el-button type="primary" @click="get_ranklist(200)"
-          >刷新
-          </el-button
-          >
+          <el-button type="primary" @click="get_ranklist(200)">刷新</el-button>
         </div>
       </div>
+
       <div style="text-align: right">
         <el-text style="margin-top: 10px">
           <el-icon>
             <InfoFilled/>
           </el-icon>
-          榜单数据将自动刷新
+          <span v-if="selectedRows.length > 0">
+            已选择 {{ selectedRows.length }} 项数据，自动刷新已暂停
+          </span>
+          <span v-else> 榜单数据将自动刷新 </span>
         </el-text>
       </div>
     </v-col>
@@ -48,18 +112,19 @@
         ref="tableRef"
         v-loading="loading"
         :data="
-            totalTableData.slice(
-              (pageParams.page - 1) * pageParams.pageSize,
-              pageParams.page * pageParams.pageSize
-            )
-          "
+          totalTableData.slice(
+            (pageParams.page - 1) * pageParams.pageSize,
+            pageParams.page * pageParams.pageSize
+          )
+        "
         :header-cell-style="{ 'text-align': 'center' }"
-        :cell-style="{ textAlign: 'center' }"
+        :cell-style="tableCellStyle"
         @sort-change="sortTableFun"
         :default-sort="{ prop: 'task_score', order: 'descending' }"
         style="width: 100%"
         height="100%"
         @expand-change="handleExpandChange"
+        @selection-change="handleSelectionChange"
         row-key="upload_id"
       >
         <el-table-column type="expand">
@@ -67,33 +132,46 @@
             <div class="expanded-content">
               <task-detail-table
                 :ref="
-                    (el) => {
-                      if (el) taskDetailRefs[props.row.upload_id] = el;
-                    }
-                  "
+                  (el) => {
+                    if (el) taskDetailRefs[props.row.upload_id] = el;
+                  }
+                "
                 :upload_id="props.row.upload_id"
               />
             </div>
           </template>
         </el-table-column>
         <el-table-column
-          label="编号"
-          type="index"
-          width="60"
-          :index="indexAdd"
+          v-if="store.is_admin"
+          type="selection"
+          width="55"
+          :selectable="() => true"
         >
         </el-table-column>
+        <el-table-column label="编号" type="index" width="60" :index="indexAdd">
+        </el-table-column>
         <el-table-column prop="username" label="用户名"></el-table-column>
+        <el-table-column prop="real_name" label="姓名" min-width="100">
+        </el-table-column>
+        <el-table-column
+          v-if="store.is_admin"
+          prop="sno"
+          label="学号"
+          min-width="120"
+        >
+          <template #default="scope">
+            {{ scope.row.to_admin?.sno || "-" }}
+          </template>
+        </el-table-column>
         <el-table-column
           prop="algorithm"
           label="算法"
           min-width="150"
         ></el-table-column>
-        <el-table-column
-          prop="formatted_time"
-          label="上传时间"
-          min-width="150"
-        >
+        <el-table-column prop="upload_time" label="上传时间" min-width="150">
+          <template #default="scope">
+            {{ formatDateTime(scope.row.upload_time) }}
+          </template>
         </el-table-column>
         <el-table-column
           prop="task_score"
@@ -109,11 +187,11 @@
           <template #default="{ row }">
             <div
               style="
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  gap: 4px;
-                "
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+              "
             >
               <el-button type="success" plain @click="toggleExpand(row)"
               >查看
@@ -125,6 +203,29 @@
               >
                 <Link/>
               </el-icon>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="store.is_admin" label="代码">
+          <template #default="{ row }">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+              "
+            >
+              <el-button type="success" plain @click="viewCode(row.upload_id)"
+              >查看
+              </el-button>
+              <v-icon
+                class="download-icon"
+                style="cursor: pointer; font-size: 16px; color: #409eff"
+                @click="handleDownloadCode(row.upload_id)"
+              >
+                mdi-download
+              </v-icon>
             </div>
           </template>
         </el-table-column>
@@ -148,18 +249,31 @@
       </el-pagination>
     </v-col>
   </v-row>
+
+  <!-- Code View Dialog -->
+  <code-view-dialog
+    ref="codeDialogRef"
+    v-model:visible="codeDialogVisible"
+    :upload-id="currentUploadId"
+  />
 </template>
 
 <script setup>
 import {onBeforeUnmount, onMounted, ref} from "vue";
 import {APIS} from "@/config.js";
-import {formatDateTime, request} from "@/utility.js";
+import {exportDataToExcel, formatDateTime, request} from "@/utility.js";
 import {useRouter} from "vue-router";
-import {InfoFilled, Link} from "@element-plus/icons-vue";
+import {Download, InfoFilled, Link} from "@element-plus/icons-vue";
+import {ElMessage, ElMessageBox} from "element-plus";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
+import CodeViewDialog from "@/components/CodeViewDialog.vue";
+import {useAppStore} from "@/store/app.js";
 
 const router = useRouter();
+const store = useAppStore();
 const totalTableData = ref([]);
+// 当前用户排名（下标，0为第一名），未上榜为null
+const userRank = ref(null);
 const pageParams = ref({
   page: 1,
   pageSize: 25,
@@ -169,9 +283,27 @@ const tableRef = ref(null);
 const taskDetailRefs = ref({});
 const allExpanded = ref(false);
 const loading = ref(false);
+const codeDialogVisible = ref(false);
+const currentUploadId = ref("");
+const codeDialogRef = ref(null);
+const selectedRows = ref([]);
+const batchDownloading = ref(false);
 let autoRefreshTimer = null;
 // Keep track of current sort state for data refresh
 let currentTableSort = {prop: "task_score", order: "descending"};
+
+// 封装生成文件前缀的函数
+const generateFilePrefix = (row) => {
+  if (!store.is_admin || !row?.to_admin) {
+    return "";
+  }
+
+  const sno = row.to_admin.sno || "";
+  const realName = row.real_name || "";
+  const username = row.username || "";
+  const score = row.task_score?.toFixed(0) || "-1";
+  return `${sno}_${score}_${realName}_${username}`;
+};
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -213,6 +345,19 @@ const applySorting = (data) => {
       return b[prop] - a[prop];
     }
   });
+};
+
+// 表格高亮当前用户行
+const tableCellStyle = ({row}) => {
+  if (row.username === store.name) {
+    return {
+      background: "#fffbe6",
+      color: "#d84315",
+      fontWeight: "bold",
+      textAlign: "center",
+    };
+  }
+  return {textAlign: "center"};
 };
 
 // Toggle expand all rows functions
@@ -285,18 +430,13 @@ async function get_ranklist(loading_delay = 0) {
     const res = await request(APIS.get_ranks, {
       method: "GET",
     });
-    let temp = res.rank;
-
-    const formattedData = temp.map((record) => {
-      const formatted_time = formatDateTime(record.upload_time);
-      return {
-        ...record,
-        formatted_time,
-      };
-    });
-
     // Apply current sorting to the entire dataset
-    totalTableData.value = applySorting(formattedData);
+    const sortedData = applySorting(res.rank);
+    totalTableData.value = sortedData;
+
+    // 计算当前用户排名
+    const idx = sortedData.findIndex((row) => row.username === store.name);
+    userRank.value = idx >= 0 ? idx : null;
 
     // No need to refresh the expanded rows, because rank list row item is static.
   } catch (error) {
@@ -315,6 +455,10 @@ function startAutoRefresh() {
     clearInterval(autoRefreshTimer);
   }
   autoRefreshTimer = setInterval(() => {
+    // 如果有选择的内容，跳过自动刷新
+    if (selectedRows.value.length > 0) {
+      return;
+    }
     get_ranklist();
   }, 10000); // 每10秒刷新一次
 }
@@ -333,6 +477,8 @@ const handleSizeChange = (size) => {
   savePageState();
   cleanupInvisibleComponents();
   updateAllExpandedStatus();
+  // 清空选择
+  selectedRows.value = [];
 };
 
 const handleCurrentChange = (currentPage) => {
@@ -340,6 +486,8 @@ const handleCurrentChange = (currentPage) => {
   savePageState();
   cleanupInvisibleComponents();
   updateAllExpandedStatus();
+  // 清空选择
+  selectedRows.value = [];
 };
 
 // Clean up component references that are not visible on current page
@@ -395,6 +543,177 @@ function viewDetail(upload_id) {
   router.push({name: "Detail", params: {upload_id}});
 }
 
+async function viewCode(upload_id) {
+  currentUploadId.value = upload_id;
+  codeDialogVisible.value = true;
+}
+
+// 处理代码下载，调用组件的方法
+function handleDownloadCode(upload_id) {
+  if (codeDialogRef.value) {
+    // 如果是管理员，生成文件前缀
+    const row = totalTableData.value.find(
+      (item) => item.upload_id === upload_id
+    );
+    const filePrefix = generateFilePrefix(row);
+
+    codeDialogRef.value.downloadCode(upload_id, filePrefix);
+  }
+}
+
+// 处理表格选择变化
+function handleSelectionChange(selection) {
+  selectedRows.value = selection;
+}
+
+// 批量下载代码
+async function batchDownloadCodes() {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning("请先选择要下载的记录");
+    return;
+  }
+
+  // 确认对话框
+  try {
+    await ElMessageBox.confirm(
+      `确定要下载选中的 ${selectedRows.value.length} 个代码文件吗？`,
+      "批量下载确认",
+      {
+        confirmButtonText: "确定下载",
+        cancelButtonText: "取消",
+        type: "info",
+      }
+    );
+  } catch {
+    return; // 用户取消
+  }
+
+  batchDownloading.value = true;
+  let successCount = 0;
+  let failCount = 0;
+
+  try {
+    // 串行下载，避免同时发起太多请求
+    for (const row of selectedRows.value) {
+      try {
+        if (codeDialogRef.value) {
+          // 如果是管理员，生成文件前缀
+          const filePrefix = generateFilePrefix(row);
+          await codeDialogRef.value.downloadCode(row.upload_id, filePrefix);
+          successCount++;
+        }
+        // 添加短暂延迟，避免请求过于频繁
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(`Failed to download code for ${row.upload_id}:`, error);
+        failCount++;
+      }
+    }
+
+    // 显示下载结果
+    if (successCount > 0 && failCount === 0) {
+      ElMessage.success(`成功下载 ${successCount} 个代码文件`);
+    } else if (successCount > 0 && failCount > 0) {
+      ElMessage.warning(
+        `成功下载 ${successCount} 个，失败 ${failCount} 个代码文件`
+      );
+    } else {
+      ElMessage.error("所有代码文件下载失败");
+    }
+  } finally {
+    batchDownloading.value = false;
+  }
+}
+
+// 批量下载代码并打包为ZIP
+async function batchDownloadCodesAsZip() {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning("请先选择要下载的记录");
+    return;
+  }
+
+  // 确认对话框
+  try {
+    await ElMessageBox.confirm(
+      `确定要将选中的 ${selectedRows.value.length} 个代码文件打包下载吗？`,
+      "批量打包下载确认",
+      {
+        confirmButtonText: "确定下载",
+        cancelButtonText: "取消",
+        type: "info",
+      }
+    );
+  } catch {
+    return; // 用户取消
+  }
+
+  batchDownloading.value = true;
+
+  try {
+    const uploadIds = selectedRows.value.map((row) => row.upload_id);
+
+    // 如果是管理员，生成文件前缀数组
+    const filePrefixes = store.is_admin
+      ? selectedRows.value.map((row) => generateFilePrefix(row))
+      : [];
+
+    const timestamp = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:-]/g, "");
+    const zipFileName = `ranklist_codes_${timestamp}.zip`;
+
+    if (codeDialogRef.value) {
+      await codeDialogRef.value.downloadCodesAsZip(
+        uploadIds,
+        zipFileName,
+        filePrefixes
+      );
+    }
+  } catch (error) {
+    console.error("Failed to download codes as zip:", error);
+    ElMessage.error("打包下载失败");
+  } finally {
+    batchDownloading.value = false;
+  }
+}
+
+// 导出Excel
+async function exportToExcel() {
+  try {
+    const fileName = exportDataToExcel(totalTableData.value, {
+      formatter: (row, index) => {
+        const baseData = {
+          "序号": index + 1,
+          "用户名": row.username,
+          "姓名": row.real_name || "-",
+          "算法": row.algorithm,
+          "上传时间": formatDateTime(row.upload_time),
+          "总分": row.task_score?.toFixed(2) || "0.00",
+        };
+        if (store.is_admin && row.to_admin) {
+          return {
+            ...baseData,
+            "学号": row.to_admin.sno || "-",
+          };
+        }
+        return baseData;
+      },
+      sheetName: "榜单数据",
+      fileName: "榜单数据",
+      colWidths: store.is_admin
+        ? [{wch: 8}, {wch: 15}, {wch: 12}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 10},]
+        : [{wch: 8}, {wch: 15}, {wch: 12}, {wch: 15}, {wch: 20}, {wch: 20}],
+    });
+    ElMessage.success(
+      `成功导出 ${totalTableData.value.length} 条记录到 ${fileName}`
+    );
+  } catch (error) {
+    console.error("导出Excel失败:", error);
+    ElMessage.error("导出Excel失败");
+  }
+}
+
 onMounted(() => {
   loadPageState();
   get_ranklist();
@@ -408,20 +727,13 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.flex {
-  display: flex;
-}
-
-.flex_justify_content_center {
-  justify-content: center;
-}
-
-.default_margin {
-  margin-top: 20px;
-  margin-bottom: 40px;
-}
-
 .expanded-content {
   padding: 20px;
+}
+
+.download-icon:hover {
+  color: #409eff !important;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
 }
 </style>

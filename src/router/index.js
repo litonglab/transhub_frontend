@@ -1,5 +1,6 @@
-// Composables
+// Composable
 import {createRouter, createWebHistory} from "vue-router";
+import {useAppStore} from "@/store/app.js";
 
 const routes = [
   {
@@ -29,9 +30,9 @@ const routes = [
         component: () => import("@/views/History.vue"),
       },
       {
-        path: '/transhub/history/:upload_id',
-        name: 'Detail',
-        component: () => import('@/views/RecordDetail.vue'),
+        path: "/transhub/history/:upload_id",
+        name: "Detail",
+        component: () => import("@/views/RecordDetail.vue"),
         props: true,
       },
       {
@@ -48,6 +49,29 @@ const routes = [
         path: "ranklist",
         name: "ranklist",
         component: () => import("@/views/RankList.vue"),
+      },
+      {
+        path: "admin",
+        name: "admin",
+        component: () => import("@/views/Admin.vue"),
+        meta: {requiresAuth: true, adminOnly: true},
+      },
+      {
+        path: "taskqueue",
+        name: "taskqueue",
+        component: () => import("@/views/TaskQueue.vue"),
+        meta: {requiresAuth: true, adminOnly: true},
+      },
+      {
+        path: "dramatiq/:pathMatch(.*)*",
+        name: "dramatiq",
+        component: () => import("@/views/TaskQueue.vue"),
+        meta: {requiresAuth: true, adminOnly: true},
+        beforeEnter: (to, from, next) => {
+          // 将 dramatiq 路径参数传递给组件
+          to.meta.dramatiqPath = to.params.pathMatch;
+          next();
+        },
       },
       {
         path: "/404",
@@ -70,15 +94,15 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
+  const store = useAppStore();
+
+  // 检查管理员权限
+  if (to.meta?.adminOnly && !store.is_admin) {
+    next("/transhub/user"); // 重定向到个人中心
+    return;
+  }
+
   next();
-  // const appStore = useAppStore();
-  // if (appStore.user_id != null) {
-  //   next();
-  // } else {
-  //   // const {$cookies} = router.app.config.globalProperties
-  //   // Check if the route requires authentication and user is not logged in
-  //   next("/login");
-  // }
 });
 
 export default router;

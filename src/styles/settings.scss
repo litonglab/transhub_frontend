@@ -8,3 +8,7 @@
 // @use 'vuetify' with (
 //   $color-pack: false
 // );
+
+.el-message {
+  z-index: 9999 !important;
+}
