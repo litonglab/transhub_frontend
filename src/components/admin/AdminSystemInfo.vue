@@ -265,7 +265,7 @@
                     <v-col cols="12" md="4">
                       <v-list dense>
                         <v-list-item>
-                          <v-list-item-title>课程名称</v-list-item-title>
+                          <v-list-item-title>课程目录名称</v-list-item-title>
                           <v-list-item-subtitle
                           >{{ courseConfig.name || "-" }}
                           </v-list-item-subtitle>
@@ -341,49 +341,32 @@
                             </v-chip>
                           </v-list-item-subtitle>
                         </v-list-item>
-                        <v-list-item v-if="courseConfig.trace_files">
-                          <v-list-item-title>Trace文件</v-list-item-title>
-                          <v-list-item-subtitle>
-                            <div class="trace-files-container">
-                              <v-chip
-                                v-for="traceFile in courseConfig.trace_files"
-                                :key="traceFile"
-                                size="small"
-                                class="mr-1 mb-1"
-                                variant="outlined"
-                                color="secondary"
-                              >
-                                {{ traceFile }}
-                              </v-chip>
-                            </div>
-                          </v-list-item-subtitle>
-                        </v-list-item>
                       </v-list>
                     </v-col>
                     <v-col cols="12" md="8">
                       <v-list dense>
                         <v-list-item>
-                          <v-list-item-title>课程路径</v-list-item-title>
+                          <v-list-item-title>课程目录路径</v-list-item-title>
                           <v-list-item-subtitle class="text-caption"
                           >{{ courseConfig.path || "-" }}
                           </v-list-item-subtitle>
                         </v-list-item>
                         <v-list-item>
-                          <v-list-item-title>上行目录</v-list-item-title>
-                          <v-list-item-subtitle class="text-caption"
-                          >{{ courseConfig.uplink_dir || "-" }}
-                          </v-list-item-subtitle>
-                        </v-list-item>
-                        <v-list-item>
-                          <v-list-item-title>下行目录</v-list-item-title>
-                          <v-list-item-subtitle class="text-caption"
-                          >{{ courseConfig.downlink_dir || "-" }}
-                          </v-list-item-subtitle>
-                        </v-list-item>
-                        <v-list-item>
-                          <v-list-item-title>指南路径</v-list-item-title>
+                          <v-list-item-title>指南文档路径</v-list-item-title>
                           <v-list-item-subtitle class="text-caption"
                           >{{ courseConfig.zhinan_path || "-" }}
+                          </v-list-item-subtitle>
+                        </v-list-item>
+                        <v-list-item>
+                          <v-list-item-title>指南文档图片路径</v-list-item-title>
+                          <v-list-item-subtitle class="text-caption"
+                          >{{ courseConfig.image_path || "-" }}
+                          </v-list-item-subtitle>
+                        </v-list-item>
+                        <v-list-item>
+                          <v-list-item-title>Trace文件路径</v-list-item-title>
+                          <v-list-item-subtitle class="text-caption"
+                          >{{ courseConfig.trace_path || "-" }}
                           </v-list-item-subtitle>
                         </v-list-item>
                       </v-list>
@@ -424,13 +407,9 @@
                               <v-chip
                                 size="x-small"
                                 variant="tonal"
-                                color="info"
+                                color="#857018"
                               >
-                                {{
-                                  traceConfig.buffer_size
-                                    ? traceConfig.buffer_size.join(", ")
-                                    : "-"
-                                }}
+                                {{ traceConfig.buffer_size }}
                               </v-chip>
                             </div>
                             <div class="d-flex justify-space-between mb-1">
@@ -438,27 +417,39 @@
                               <v-chip
                                 size="x-small"
                                 variant="tonal"
-                                color="warning"
+                                color="#857018"
                               >
-                                {{
-                                  traceConfig.loss_rate
-                                    ? traceConfig.loss_rate.join(", ")
-                                    : "-"
-                                }}
+                                {{ traceConfig.loss_rate }}
                               </v-chip>
                             </div>
-                            <div class="d-flex justify-space-between">
+                            <div class="d-flex justify-space-between mb-1">
                               <span class="text-caption">往返时延:</span>
                               <v-chip
                                 size="x-small"
                                 variant="tonal"
-                                color="green"
+                                color="#857018"
                               >
-                                {{
-                                  traceConfig.delay
-                                    ? traceConfig.delay.join(", ")
-                                    : "-"
-                                }}
+                                {{ traceConfig.delay }}
+                              </v-chip>
+                            </div>
+                            <div class="d-flex justify-space-between mb-1">
+                              <span class="text-caption">上行文件:</span>
+                              <v-chip
+                                size="x-small"
+                                variant="tonal"
+                                color="#81381d"
+                              >
+                                {{ traceConfig.uplink_file }}
+                              </v-chip>
+                            </div>
+                            <div class="d-flex justify-space-between">
+                              <span class="text-caption">下行文件:</span>
+                              <v-chip
+                                size="x-small"
+                                variant="tonal"
+                                color="#81381d"
+                              >
+                                {{ traceConfig.downlink_file }}
                               </v-chip>
                             </div>
                           </v-card-text>

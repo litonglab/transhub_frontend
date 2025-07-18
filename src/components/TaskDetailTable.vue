@@ -26,7 +26,7 @@
         </template>
         <el-table-column
           prop="trace_name"
-          label="测试文件"
+          label="测试用例"
           min-width="160"
           align="center"
         ></el-table-column>
