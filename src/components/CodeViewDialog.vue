@@ -63,7 +63,7 @@
 import {ref, watch} from "vue";
 import {ElMessage} from "element-plus";
 import {APIS} from "@/config";
-import {request} from "@/utility.js";
+import {parseFilenameFromContentDisposition, request} from "@/utility.js";
 
 const props = defineProps({
   visible: {
@@ -117,32 +117,9 @@ async function requestCode(upload_id) {
     throw new Error("Request failed");
   }
 
-  // 解析文件名，优先 filename*，其次 filename
+  // 解析文件名
   const contentDisposition = response.headers.get("Content-Disposition");
-  let fileName = "code.cc";
-  if (contentDisposition) {
-    // 匹配 filename*（RFC 5987），如 filename*=UTF-8''%E4%B8%AD%E6%96%87.cc
-    const fileNameStarMatch = contentDisposition.match(
-      /filename\*\s*=\s*([^;]+)/i
-    );
-    if (fileNameStarMatch) {
-      // 取编码部分并 decode
-      let value = fileNameStarMatch[1].trim();
-      // 形如 UTF-8''%E4%B8%AD%E6%96%87.cc
-      const parts = value.split("''");
-      if (parts.length === 2) {
-        fileName = decodeURIComponent(parts[1]);
-      } else {
-        fileName = decodeURIComponent(value);
-      }
-    } else {
-      // 兼容 filename="xxx"
-      const fileNameMatch = contentDisposition.match(/filename="?([^";]+)"?/);
-      if (fileNameMatch && fileNameMatch[1]) {
-        fileName = fileNameMatch[1];
-      }
-    }
-  }
+  const fileName = parseFilenameFromContentDisposition(contentDisposition) || "code.cc";
 
   return {response, fileName};
 }

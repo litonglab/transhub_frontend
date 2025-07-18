@@ -195,7 +195,7 @@
           variant="text"
           @click="toggleFullScreen"
           :title="isFullScreen ? '退出全屏' : '全屏'"
-          style="margin-right: -15px;"
+          style="margin-right: -15px"
         ></v-btn>
         <v-btn
           icon="mdi-refresh"
@@ -719,10 +719,11 @@ async function showImage(type, task_id) {
     params.append("task_id", task_id);
     params.append("graph_type", type);
     const url = `${APIS.get_graph}?${params.toString()}`;
-    const blobUrl = await fetchImageBlobUrl(url);
-    if (!blobUrl) {
+    const result = await fetchImageBlobUrl(url);
+    if (!result) {
       return;
     }
+    const {blobUrl} = result;
     imageDialogUrl.value = blobUrl || "";
     imageDialogType.value = type;
     imageDialogVisible.value = true;

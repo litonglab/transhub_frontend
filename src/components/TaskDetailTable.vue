@@ -105,13 +105,16 @@
               </div>
             </template>
             <template #default="scope">
-              <el-button @click="showLog(scope.row.log)">查看</el-button>
+              <el-button @click="showLog(scope.row.log, scope.row)"
+              >查看
+              </el-button
+              >
             </template>
           </el-table-column>
         </el-table>
 
         <v-dialog v-model="dialogVisible" class="responsive-dialog">
-          <v-card>
+          <v-card class="position-relative">
             <v-card-title>
               {{
                 dialogType === "image"
@@ -121,13 +124,61 @@
                     : "日志信息"
               }}
             </v-card-title>
+
+            <!-- Floating file info and download button -->
+            <div
+              v-if="dialogType === 'image' || dialogType === 'log'"
+              class="floating-controls"
+            >
+              <v-chip
+                color="primary"
+                variant="outlined"
+                prepend-icon="mdi-file-code"
+                size="small"
+                class="mr-2"
+              >
+                {{ downloadInfo.filename }}
+              </v-chip>
+              <v-btn
+                color="primary"
+                variant="elevated"
+                prepend-icon="mdi-download"
+                size="small"
+                @click="handleDownload"
+              >
+                下载
+              </v-btn>
+            </div>
+
             <v-card-text>
+              <div
+                v-if="imageLoading"
+                class="d-flex justify-center align-center"
+                style="height: 300px"
+              >
+                <v-progress-circular
+                  indeterminate
+                  color="primary"
+                  size="64"
+                ></v-progress-circular>
+              </div>
               <img
-                v-if="dialogType === 'image'"
+                v-else-if="dialogType === 'image' && dialogContent"
                 :src="dialogContent"
                 style="width: 100%"
-                alt=""
+                alt="性能图"
               />
+              <div
+                v-else-if="dialogType === 'image' && !dialogContent"
+                class="d-flex flex-column align-center justify-center pa-8"
+                style="height: 300px"
+              >
+                <v-icon size="64" color="grey-lighten-1" class="mb-4"
+                >mdi-file-alert-outline
+                </v-icon
+                >
+                <v-card-subtitle>无法获取性能图</v-card-subtitle>
+              </div>
               <div
                 v-else-if="dialogType === 'allRadar'"
                 style="
@@ -175,9 +226,7 @@
       </div>
       <div class="table-summary-radar">
         <div class="radar-header">
-          <span
-            style="font-weight: bold; text-align: center;"
-          >
+          <span style="font-weight: bold; text-align: center">
             综合雷达图
           </span>
           <el-button
@@ -208,6 +257,8 @@ import {APIS} from "@/config.js";
 import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import {Refresh as RefreshIcon, ZoomIn as ZoomInIcon,} from "@element-plus/icons-vue";
 import RadarChart from "./RadarChart.vue";
+import {ElMessage} from "element-plus";
+
 // 计算所有任务的平均分（仅统计有分数的）
 const avgRadar = computed(() => {
   const finished = internalTasks.value.filter(
@@ -249,14 +300,19 @@ const internalTasks = ref([]);
 
 const hasAnyLog = computed(() => {
   return internalTasks.value.some(
-    (task) => task.log !== undefined && task.log !== null && String(task.log).trim() !== ""
+    (task) =>
+      task.log !== undefined &&
+      task.log !== null &&
+      String(task.log).trim() !== ""
   );
 });
 const dialogVisible = ref(false);
 const dialogContent = ref("");
 const dialogType = ref("");
 const loading = ref(false);
+const imageLoading = ref(false);
 
+const downloadInfo = ref({filename: "", content: null, type: ""});
 
 const allRadarRows = ref([]);
 const hasAnyRadarData = computed(() => {
@@ -337,28 +393,56 @@ watch(
 );
 
 async function showImage(type, task_id) {
+  imageLoading.value = true;
+  dialogContent.value = "";
+  dialogType.value = "image";
+  dialogVisible.value = true;
+
   try {
     const params = new URLSearchParams();
     params.append("task_id", task_id);
     params.append("graph_type", type);
     const url = `${APIS.get_graph}?${params.toString()}`;
-    const blobUrl = await fetchImageBlobUrl(url);
-    if (!blobUrl) {
+    const result = await fetchImageBlobUrl(url);
+    if (!result) {
       // fetchImageBlobUrl 已自动打印错误日志
+      dialogContent.value = null; // Explicitly set to null on failure
       return;
     }
+    const {blobUrl, filename} = result;
     dialogContent.value = blobUrl;
-    dialogType.value = "image";
-    dialogVisible.value = true;
+
+    const task = internalTasks.value.find((t) => t.task_id === task_id);
+    const traceName = task ? task.trace_name : task_id;
+    const imageType = type === "throughput" ? "吞吐量" : "时延";
+
+    downloadInfo.value = {
+      filename: filename || `${traceName}_${imageType}.png`,
+      content: blobUrl,
+      type: "image",
+    };
   } catch (error) {
     // fetchImageBlobUrl 已自动打印异常
+    dialogContent.value = null; // Explicitly set to null on exception
+  } finally {
+    setTimeout(() => {
+      imageLoading.value = false;
+    }, 200);
   }
 }
 
-function showLog(logContent) {
-  dialogContent.value = logContent || "暂无日志信息或无权限查看此日志";
+function showLog(logContent, row) {
+  const content = logContent || "暂无日志信息或无权限查看此日志";
+  dialogContent.value = content;
   dialogType.value = "log";
   dialogVisible.value = true;
+
+  const traceName = row ? row.trace_name : "unknown";
+  downloadInfo.value = {
+    filename: `${traceName}.log`,
+    content: content,
+    type: "log",
+  };
 }
 
 // 查看所有测试的雷达图
@@ -372,6 +456,34 @@ function showAllRadarDialog() {
   );
   dialogType.value = "allRadar";
   dialogVisible.value = true;
+}
+
+function handleDownload() {
+  const {filename, content, type} = downloadInfo.value;
+  if (!content) {
+    ElMessage.warning("没有可下载的内容");
+    return;
+  }
+
+  const a = document.createElement("a");
+  if (type === "image") {
+    a.href = content; // content is a blob URL
+    a.download = filename;
+  } else if (type === "log") {
+    const blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+  } else {
+    return;
+  }
+
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  if (type === "log") {
+    URL.revokeObjectURL(a.href);
+  }
+  ElMessage.success("下载成功");
 }
 
 // Check task status to determine whether to refresh or stop auto-refresh, used in parent component.
@@ -514,5 +626,25 @@ defineExpose({
   overflow: auto;
   box-sizing: border-box;
   height: calc(80vh - 150px);
+}
+
+.floating-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+</style>
+<style>
+.position-relative {
+  position: relative;
 }
 </style>
