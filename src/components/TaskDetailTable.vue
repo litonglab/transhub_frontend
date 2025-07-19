@@ -147,24 +147,29 @@
                   :color="getScoreColor(scope.row.task_score)"
                   size="medium"
                   text-color="white"
-                  style="padding: 5px 10px;"
+                  style="padding: 5px 10px"
                 >
                 {{ scope.row.task_score.toFixed(2) ?? "-" }}
-              </v-chip>
+                </v-chip>
               </span>
             </template>
           </el-table-column>
-          <el-table-column label="性能图" min-width="120" align="center">
+          <el-table-column label="性能图" min-width="150" align="center">
             <template #default="scope">
               <span v-if="scope.row.task_status === 'finished'">
-                <el-button
-                  @click="showImage('throughput', scope.row.task_id)"
+                <el-button @click="showImage('throughput', scope.row.task_id)"
                 >吞吐
                 </el-button>
-                <el-button
-                  @click="showImage('delay', scope.row.task_id)"
+                <el-button @click="showImage('delay', scope.row.task_id)"
                 >时延
                 </el-button>
+              </span>
+              <span v-else-if="scope.row.task_status === 'not_queued'">
+                <el-button
+                  @click="handleEnqueue(scope.row.task_id)"
+                  :loading="enqueueLoadingMap[scope.row.task_id]"
+                >执行评测</el-button
+                >
               </span>
               <span v-else>-</span>
             </template>
@@ -296,12 +301,31 @@ import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import {Refresh as RefreshIcon, ZoomIn as ZoomInIcon,} from "@element-plus/icons-vue";
 import RadarChart from "./RadarChart.vue";
 import ImageAndLogViewDialog from "./ImageAndLogViewDialog.vue";
+import {ElMessage} from "element-plus";
+
+// 重新入队相关
+let enqueueLoadingMap = ref({});
+
+async function handleEnqueue(task_id) {
+  enqueueLoadingMap.value[task_id] = true;
+  try {
+    await request(APIS.task_enqueue, {
+      method: "POST",
+      body: JSON.stringify({task_id}),
+    });
+    ElMessage.success("任务已重新入队，正排队执行评测");
+    handleRefresh();
+  } catch (err) {
+    console.error("重新入队失败", err);
+  } finally {
+    enqueueLoadingMap.value[task_id] = false;
+  }
+}
 
 // 计算所有任务的平均分（仅统计有分数的，使用后端返回的分数字段）
 const avgRadar = computed(() => {
   const finished = internalTasks.value.filter(
-    (t) =>
-      t.task_status === "finished"
+    (t) => t.task_status === "finished"
   );
   if (!finished.length)
     return {delay_score: 0, loss_score: 0, throughput_score: 0};
