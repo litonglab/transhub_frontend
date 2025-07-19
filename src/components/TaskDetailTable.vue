@@ -79,7 +79,7 @@
           </el-table-column>
           <el-table-column label="往返时延" align="center">
             <template #default="scope">
-              <span>{{ scope.row.delay }}</span>
+              <span>{{ scope.row.delay * 2 }}</span>
               <span v-if="scope.row.task_status === 'finished' && scope.row.delay_score !== 0">
                 <br/>
                 <v-chip
