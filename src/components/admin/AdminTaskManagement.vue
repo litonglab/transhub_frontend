@@ -662,7 +662,7 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
       const sortByMap = {
         task_score: "score",
         delay_score: "delay_score",
-        loss_rate_score: "loss_rate_score",
+        loss_score: "loss_score",
         throughput_score: "throughput_score",
         created_time: "created_time",
         updated_at: "updated_at",
