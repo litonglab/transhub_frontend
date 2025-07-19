@@ -245,17 +245,15 @@
           <span v-else>-</span>
         </template>
         <template v-slot:item.log="{ item }">
-          <div class="log-cell limited-log">
-            <span
-              v-for="(line, idx) in getLimitedLogLines(item.log)"
-              :key="idx"
-            >
-              {{
-                line
-              }}<br v-if="idx < getLimitedLogLines(item.log).length - 1"/>
-            </span>
-            <span v-if="isLogTruncated(item.log)" style="color: #888">...</span>
-          </div>
+          <v-btn
+            size="small"
+            variant="text"
+            color="primary"
+            @click="showLog(item.task_id, item)"
+            title="查看日志"
+          >
+            查看日志
+          </v-btn>
         </template>
 
         <template v-slot:item.created_time="{ item }">
@@ -432,20 +430,15 @@
           <v-col cols="12" v-if="selectedTask.log">
             <v-list-item>
               <v-list-item-title>日志</v-list-item-title>
-              <v-list-item-subtitle>
-                <pre
-                  style="
-                    white-space: pre-wrap;
-                    word-break: break-all;
-                    background-color: #f5f5f5;
-                    padding: 10px;
-                    border-radius: 4px;
-                    max-height: 300px;
-                    overflow-y: auto;
-                  "
-                >{{ selectedTask.log }}</pre
-                >
-              </v-list-item-subtitle>
+              <v-btn
+                size=""
+                variant="text"
+                color="primary"
+                @click="showLog(selectedTask.task_id, selectedTask)"
+                title="查看日志"
+              >
+                查看日志
+              </v-btn>
             </v-list-item>
           </v-col>
         </v-row>
@@ -458,7 +451,7 @@
   </v-dialog>
 
   <!-- 提交记录详情对话框 -->
-  <v-dialog v-model="recordDetailDialog" max-width="1200px" scrollable>
+  <v-dialog v-model="recordDetailDialog" max-width="1800px" scrollable>
     <v-card>
       <v-card-title class="d-flex align-center">
         <span class="headline">提交记录详情</span>
@@ -708,17 +701,6 @@ const loadCourseList = async () => {
   }
 };
 
-const isLogTruncated = (log) => {
-  if (!log) return false;
-  const lines = log.split(/\r?\n/);
-  return lines.length > 5;
-};
-
-const getLimitedLogLines = (log) => {
-  if (!log) return [];
-  const lines = log.split(/\r?\n/);
-  return lines.slice(0, 5);
-};
 
 async function showImage(type, task_id) {
   dialogState.visible = true;
@@ -746,6 +728,35 @@ async function showImage(type, task_id) {
   } catch (error) {
     dialogState.error = true;
     dialogState.errorMessage = "加载性能图失败";
+  } finally {
+    dialogState.loading = false;
+  }
+}
+
+async function showLog(task_id, row) {
+  dialogState.visible = true;
+  dialogState.loading = true;
+  dialogState.error = false;
+  dialogState.contentType = "log";
+  dialogState.title = "日志信息";
+  dialogState.content = "";
+  const traceName = row ? row.trace_name : "unknown";
+  dialogState.filename = `${row.algorithm}_${traceName}.log`;
+  try {
+    // 假设新接口为APIS.task_get_log，GET，参数task_id
+    const params = new URLSearchParams();
+    params.append("task_id", task_id);
+    const url = `${APIS.task_get_log}?${params.toString()}`;
+    const result = await request(url, {method: "GET"});
+    if (!result || !result.log) {
+      dialogState.error = true;
+      dialogState.errorMessage = "未获取到日志内容";
+      return;
+    }
+    dialogState.content = result.log;
+  } catch (error) {
+    dialogState.error = true;
+    dialogState.errorMessage = "加载日志失败";
   } finally {
     dialogState.loading = false;
   }
@@ -796,7 +807,7 @@ const statusOptions = statusMeta.map((s) => ({
 .table-actions {
   position: absolute;
   top: -8px;
-  right: 0px;
+  right: 0;
   z-index: 2000;
 }
 
@@ -822,21 +833,6 @@ const statusOptions = statusMeta.map((s) => ({
   color: #1976d2;
   align-items: center;
   display: inline-flex;
-}
-
-.log-cell {
-  max-width: 300px;
-  white-space: pre-wrap;
-  word-break: break-all;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.limited-log {
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: normal;
 }
 
 .actions-cell {
