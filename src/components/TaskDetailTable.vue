@@ -105,9 +105,7 @@
               </div>
             </template>
             <template #default="scope">
-              <el-button @click="showLog(scope.row.log, scope.row)"
-              >查看
-              </el-button>
+              <el-button @click="showLog(scope.row)">查看</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -206,7 +204,6 @@ import {Refresh as RefreshIcon, ZoomIn as ZoomInIcon,} from "@element-plus/icons
 import RadarChart from "./RadarChart.vue";
 import ImageAndLogViewDialog from "./ImageAndLogViewDialog.vue";
 
-
 // 计算所有任务的平均分（仅统计有分数的）
 const avgRadar = computed(() => {
   const finished = internalTasks.value.filter(
@@ -249,9 +246,7 @@ const internalTasks = ref([]);
 const hasAnyLog = computed(() => {
   return internalTasks.value.some(
     (task) =>
-      task.log !== undefined &&
-      task.log !== null &&
-      String(task.log).trim() !== ""
+      task.log === true
   );
 });
 const dialogVisible = ref(false);
@@ -383,15 +378,33 @@ async function showImage(type, task_id) {
   }
 }
 
-function showLog(logContent, row) {
+async function showLog(row) {
   dialogState.visible = true;
-  dialogState.loading = false;
+  dialogState.loading = true;
   dialogState.error = false;
   dialogState.contentType = "log";
   dialogState.title = "日志信息";
-  dialogState.content = logContent || "暂无日志信息或无权限查看此日志";
+  dialogState.content = "";
   const traceName = row ? row.trace_name : "unknown";
   dialogState.filename = `${row.algorithm}_${traceName}.log`;
+
+  try {
+    const params = new URLSearchParams();
+    params.append("task_id", row.task_id);
+    const url = `${APIS.task_get_log}?${params.toString()}`;
+    const result = await request(url, {method: "GET"});
+    if (result && result.log) {
+      dialogState.content = result.log;
+    } else {
+      dialogState.content = "暂无日志信息或无权限查看此日志";
+    }
+  } catch (error) {
+    dialogState.content = "日志获取失败";
+    dialogState.error = true;
+    dialogState.errorMessage = error?.message || "日志获取失败";
+  } finally {
+    dialogState.loading = false;
+  }
 }
 
 // 查看所有测试的雷达图
