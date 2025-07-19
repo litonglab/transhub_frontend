@@ -554,6 +554,7 @@ const headers = [
     sortable: true,
     default: false,
   },
+  {title: "得分", key: "task_score", sortable: true, default: true},
   {title: "比赛名称", key: "cname", sortable: false, default: true},
   {title: "状态", key: "task_status", sortable: false, default: true},
   {title: "上传时间", key: "created_time", sortable: true, default: true},
