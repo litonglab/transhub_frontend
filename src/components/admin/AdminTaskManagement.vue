@@ -476,20 +476,17 @@
   </v-dialog>
 
   <!-- 图弹窗 -->
-  <v-dialog
-    v-model="imageDialogVisible"
-    style="max-width: 70%; max-height: 95%"
-  >
-    <v-card>
-      <v-card-title
-      >{{ imageDialogType === "throughput" ? "吞吐量图" : "时延图" }}
-      </v-card-title>
-      <div style="padding: 5px 15px">
-        <img v-if="imageDialogUrl" :src="imageDialogUrl" style="width: 100%"/>
-        <div v-else style="min-height: 80px; padding: 10px 0">暂无图片</div>
-      </div>
-    </v-card>
-  </v-dialog>
+  <ImageAndLogViewDialog
+    :visible="dialogState.visible"
+    :title="dialogState.title"
+    :loading="dialogState.loading"
+    :error="dialogState.error"
+    :error-message="dialogState.errorMessage"
+    :content="dialogState.content"
+    :content-type="dialogState.contentType"
+    :filename="dialogState.filename"
+    @update:visible="dialogState.visible = $event"
+  />
 </template>
 
 <script setup>
@@ -497,6 +494,7 @@ import {computed, onMounted, reactive, ref} from "vue";
 import {APIS} from "@/config";
 import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
+import ImageAndLogViewDialog from "@/components/ImageAndLogViewDialog.vue";
 
 // 防抖函数
 function debounce(fn, delay = 300) {
@@ -571,10 +569,18 @@ const computedHeaders = computed(() => {
 
 const isMobile = ref(false);
 const showAllFilters = ref(false);
-const imageDialogVisible = ref(false);
-const imageDialogUrl = ref("");
-const imageDialogType = ref("");
 const isFullScreen = ref(false);
+
+const dialogState = reactive({
+  visible: false,
+  title: "",
+  contentType: "image",
+  content: "",
+  filename: "",
+  loading: false,
+  error: false,
+  errorMessage: "",
+});
 
 onMounted(() => {
   isMobile.value = window.innerWidth <= 960;
@@ -714,6 +720,14 @@ const getLimitedLogLines = (log) => {
 };
 
 async function showImage(type, task_id) {
+  dialogState.visible = true;
+  dialogState.loading = true;
+  dialogState.error = false;
+  dialogState.contentType = "image";
+  dialogState.title = type === "throughput" ? "吞吐量图" : "时延图";
+  dialogState.content = "";
+  dialogState.filename = "";
+
   try {
     const params = new URLSearchParams();
     params.append("task_id", task_id);
@@ -721,15 +735,18 @@ async function showImage(type, task_id) {
     const url = `${APIS.get_graph}?${params.toString()}`;
     const result = await fetchImageBlobUrl(url);
     if (!result) {
+      dialogState.error = true;
+      dialogState.errorMessage = "无法获取性能图";
       return;
     }
-    const {blobUrl} = result;
-    imageDialogUrl.value = blobUrl || "";
-    imageDialogType.value = type;
-    imageDialogVisible.value = true;
+    const {blobUrl, filename} = result;
+    dialogState.content = blobUrl;
+    dialogState.filename = filename;
   } catch (error) {
-    imageDialogUrl.value = "";
-    imageDialogVisible.value = false;
+    dialogState.error = true;
+    dialogState.errorMessage = "加载性能图失败";
+  } finally {
+    dialogState.loading = false;
   }
 }
 

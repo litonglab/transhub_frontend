@@ -107,80 +107,28 @@
             <template #default="scope">
               <el-button @click="showLog(scope.row.log, scope.row)"
               >查看
-              </el-button
-              >
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
 
+        <ImageAndLogViewDialog
+          :visible="dialogState.visible"
+          @update:visible="dialogState.visible = $event"
+          :title="dialogState.title"
+          :content-type="dialogState.contentType"
+          :content="dialogState.content"
+          :filename="dialogState.filename"
+          :loading="dialogState.loading"
+          :error="dialogState.error"
+          :error-message="dialogState.errorMessage"
+        />
+
         <v-dialog v-model="dialogVisible" class="responsive-dialog">
-          <v-card class="position-relative">
-            <v-card-title>
-              {{
-                dialogType === "image"
-                  ? "性能图"
-                  : dialogType === "allRadar"
-                    ? "所有测试雷达图"
-                    : "日志信息"
-              }}
-            </v-card-title>
-
-            <!-- Floating file info and download button -->
-            <div
-              v-if="dialogType === 'image' || dialogType === 'log'"
-              class="floating-controls"
-            >
-              <v-chip
-                color="primary"
-                variant="outlined"
-                prepend-icon="mdi-file-code"
-                size="small"
-                class="mr-2"
-              >
-                {{ downloadInfo.filename }}
-              </v-chip>
-              <v-btn
-                color="primary"
-                variant="elevated"
-                prepend-icon="mdi-download"
-                size="small"
-                @click="handleDownload"
-              >
-                下载
-              </v-btn>
-            </div>
-
+          <v-card>
+            <v-card-title> 所有测试雷达图</v-card-title>
             <v-card-text>
               <div
-                v-if="imageLoading"
-                class="d-flex justify-center align-center"
-                style="height: 300px"
-              >
-                <v-progress-circular
-                  indeterminate
-                  color="primary"
-                  size="64"
-                ></v-progress-circular>
-              </div>
-              <img
-                v-else-if="dialogType === 'image' && dialogContent"
-                :src="dialogContent"
-                style="width: 100%"
-                alt="性能图"
-              />
-              <div
-                v-else-if="dialogType === 'image' && !dialogContent"
-                class="d-flex flex-column align-center justify-center pa-8"
-                style="height: 300px"
-              >
-                <v-icon size="64" color="grey-lighten-1" class="mb-4"
-                >mdi-file-alert-outline
-                </v-icon
-                >
-                <v-card-subtitle>无法获取性能图</v-card-subtitle>
-              </div>
-              <div
-                v-else-if="dialogType === 'allRadar'"
                 style="
                   display: flex;
                   flex-wrap: wrap;
@@ -217,9 +165,6 @@
                   />
                 </div>
               </div>
-              <div v-else>
-                <pre class="code-content"><code>{{ dialogContent }}</code></pre>
-              </div>
             </v-card-text>
           </v-card>
         </v-dialog>
@@ -251,13 +196,12 @@
 </template>
 
 <script setup>
-// 只要有一行有 log 字段（非空字符串/非 null/非 undefined）就显示日志列
-import {computed, ref, watch} from "vue";
+import {computed, reactive, ref, watch} from "vue";
 import {APIS} from "@/config.js";
 import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import {Refresh as RefreshIcon, ZoomIn as ZoomInIcon,} from "@element-plus/icons-vue";
 import RadarChart from "./RadarChart.vue";
-import {ElMessage} from "element-plus";
+import ImageAndLogViewDialog from "./ImageAndLogViewDialog.vue";
 
 // 计算所有任务的平均分（仅统计有分数的）
 const avgRadar = computed(() => {
@@ -307,12 +251,8 @@ const hasAnyLog = computed(() => {
   );
 });
 const dialogVisible = ref(false);
-const dialogContent = ref("");
 const dialogType = ref("");
 const loading = ref(false);
-const imageLoading = ref(false);
-
-const downloadInfo = ref({filename: "", content: null, type: ""});
 
 const allRadarRows = ref([]);
 const hasAnyRadarData = computed(() => {
@@ -323,6 +263,17 @@ const hasAnyRadarData = computed(() => {
       typeof t.loss_rate === "number" &&
       typeof t.buffer_size === "number"
   );
+});
+
+const dialogState = reactive({
+  visible: false,
+  title: "",
+  contentType: "log",
+  content: "",
+  filename: "",
+  loading: false,
+  error: false,
+  errorMessage: "",
 });
 
 async function fetchTasks(upload_id, delay = 0) {
@@ -393,10 +344,13 @@ watch(
 );
 
 async function showImage(type, task_id) {
-  imageLoading.value = true;
-  dialogContent.value = "";
-  dialogType.value = "image";
-  dialogVisible.value = true;
+  dialogState.visible = true;
+  dialogState.loading = true;
+  dialogState.error = false;
+  dialogState.contentType = "image";
+  dialogState.title = "性能图";
+  dialogState.content = "";
+  dialogState.filename = "";
 
   try {
     const params = new URLSearchParams();
@@ -405,44 +359,35 @@ async function showImage(type, task_id) {
     const url = `${APIS.get_graph}?${params.toString()}`;
     const result = await fetchImageBlobUrl(url);
     if (!result) {
-      // fetchImageBlobUrl 已自动打印错误日志
-      dialogContent.value = null; // Explicitly set to null on failure
+      dialogState.error = true;
+      dialogState.errorMessage = "无法获取性能图";
       return;
     }
     const {blobUrl, filename} = result;
-    dialogContent.value = blobUrl;
+    dialogState.content = blobUrl;
 
     const task = internalTasks.value.find((t) => t.task_id === task_id);
     const traceName = task ? task.trace_name : task_id;
     const imageType = type === "throughput" ? "吞吐量" : "时延";
-
-    downloadInfo.value = {
-      filename: filename || `${traceName}_${imageType}.png`,
-      content: blobUrl,
-      type: "image",
-    };
+    dialogState.filename = filename || `${traceName}_${imageType}.png`;
+    dialogState.filename = `${task.algorithm}_${dialogState.filename}`;
   } catch (error) {
-    // fetchImageBlobUrl 已自动打印异常
-    dialogContent.value = null; // Explicitly set to null on exception
+    dialogState.error = true;
+    dialogState.errorMessage = "加载性能图失败";
   } finally {
-    setTimeout(() => {
-      imageLoading.value = false;
-    }, 200);
+    dialogState.loading = false;
   }
 }
 
 function showLog(logContent, row) {
-  const content = logContent || "暂无日志信息或无权限查看此日志";
-  dialogContent.value = content;
-  dialogType.value = "log";
-  dialogVisible.value = true;
-
+  dialogState.visible = true;
+  dialogState.loading = false;
+  dialogState.error = false;
+  dialogState.contentType = "log";
+  dialogState.title = "日志信息";
+  dialogState.content = logContent || "暂无日志信息或无权限查看此日志";
   const traceName = row ? row.trace_name : "unknown";
-  downloadInfo.value = {
-    filename: `${traceName}.log`,
-    content: content,
-    type: "log",
-  };
+  dialogState.filename = `${row.algorithm}_${traceName}.log`;
 }
 
 // 查看所有测试的雷达图
@@ -456,34 +401,6 @@ function showAllRadarDialog() {
   );
   dialogType.value = "allRadar";
   dialogVisible.value = true;
-}
-
-function handleDownload() {
-  const {filename, content, type} = downloadInfo.value;
-  if (!content) {
-    ElMessage.warning("没有可下载的内容");
-    return;
-  }
-
-  const a = document.createElement("a");
-  if (type === "image") {
-    a.href = content; // content is a blob URL
-    a.download = filename;
-  } else if (type === "log") {
-    const blob = new Blob([content], {type: "text/plain;charset=utf-8"});
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-  } else {
-    return;
-  }
-
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  if (type === "log") {
-    URL.revokeObjectURL(a.href);
-  }
-  ElMessage.success("下载成功");
 }
 
 // Check task status to determine whether to refresh or stop auto-refresh, used in parent component.
@@ -557,7 +474,7 @@ defineExpose({
 }
 
 .task-detail-table-wrapper {
-  flex: 1 1 0%;
+  flex: 1 1 0;
   min-width: 0;
   width: auto;
   /* 让表格自适应剩余空间 */
@@ -611,40 +528,5 @@ defineExpose({
     max-width: 100%;
     max-height: 80%;
   }
-}
-
-.code-content {
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  padding: 16px;
-  margin: 0;
-  font-family: "Courier New", Consolas, "Liberation Mono", monospace;
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  color: #333;
-  overflow: auto;
-  box-sizing: border-box;
-  height: calc(80vh - 150px);
-}
-
-.floating-controls {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border-radius: 8px;
-  padding: 8px 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-</style>
-<style>
-.position-relative {
-  position: relative;
 }
 </style>
