@@ -209,7 +209,7 @@ function renderChart() {
           {
             data: [
               {
-                value: [props.delay, props.loss, props.throughput],
+                value: [props.delay.toFixed(2), props.loss.toFixed(2), props.throughput.toFixed(2)],
                 name: "网络性能评分",
                 areaStyle: {
                   color: {

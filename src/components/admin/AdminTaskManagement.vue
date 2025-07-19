@@ -542,7 +542,7 @@ const headers = [
   {title: "状态", key: "task_status", sortable: false, default: true},
   {title: "上传时间", key: "created_time", sortable: true, default: true},
   {title: "创建时间", key: "created_at", sortable: false, default: false,},
-  {title: "更新时间", key: "updated_at", sortable: false, default: true,},
+  {title: "更新时间", key: "updated_at", sortable: true, default: true,},
   {title: "吞吐量图", key: "throughput_graph", sortable: false, default: false,},
   {title: "时延图", key: "delay_graph", sortable: false, default: false},
   {title: "操作", key: "actions", sortable: false, align: "center", default: true,},
@@ -645,6 +645,7 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
       const sortByMap = {
         task_score: "score",
         created_time: "created_time",
+        updated_at: "updated_at",
       };
       if (sortByMap[sortItem.key]) {
         params.append("sort_by", sortByMap[sortItem.key]);
