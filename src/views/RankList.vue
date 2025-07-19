@@ -460,7 +460,7 @@ function startAutoRefresh() {
       return;
     }
     get_ranklist();
-  }, 10000); // 每10秒刷新一次
+  }, 30000); // 每30秒刷新一次
 }
 
 // 停止自动刷新
