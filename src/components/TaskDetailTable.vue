@@ -30,22 +30,23 @@
             label="测试用例"
             min-width="160"
             align="center"
-          ></el-table-column>
-          <el-table-column
-            prop="loss_rate"
-            label="丢包率"
-            align="center"
-          ></el-table-column>
-          <el-table-column
-            prop="buffer_size"
-            label="缓冲区容量"
-            align="center"
-          ></el-table-column>
-          <el-table-column
-            prop="delay"
-            label="往返时延"
-            align="center"
-          ></el-table-column>
+          >
+            <template #header>
+              <span>测试用例</span>
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
+                  <v-icon
+                    v-bind="props"
+                    icon="mdi-information-outline"
+                    size="16"
+                    color="grey"
+                    class="ml-1"
+                  ></v-icon>
+                </template>
+                <span>若相关数据显示为*，则表示对应测试用例已被屏蔽，比赛结束后开放查询。</span>
+              </v-tooltip>
+            </template>
+          </el-table-column>
           <el-table-column prop="created_at" label="创建时间" align="center">
             <template #default="scope">
               {{ formatDateTime(scope.row.created_at, true) }}
@@ -61,30 +62,110 @@
             label="任务状态"
             align="center"
           ></el-table-column>
-          <el-table-column prop="task_score" label="得分" align="center">
+          <el-table-column label="丢包率" align="center">
+            <template #default="scope">
+              <span>{{ scope.row.loss_rate }}</span>
+              <span v-if="scope.row.task_status === 'finished' && scope.row.loss_score !== 0">
+                <br/>
+                <v-chip
+                  :color="getScoreColor(scope.row.loss_score)"
+                  size="small"
+                  text-color="white"
+                >
+                  {{ scope.row.loss_score.toFixed(2) ?? "-" }}
+                </v-chip>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="往返时延" align="center">
+            <template #default="scope">
+              <span>{{ scope.row.delay }}</span>
+              <span v-if="scope.row.task_status === 'finished' && scope.row.delay_score !== 0">
+                <br/>
+                <v-chip
+                  :color="getScoreColor(scope.row.delay_score)"
+                  size="small"
+                  text-color="white"
+                >
+                  {{ scope.row.delay_score.toFixed(2) ?? "-" }}
+                </v-chip>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="缓冲区容量" align="center">
+            <template #header>
+              <span>缓冲区</span>
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
+                  <v-icon
+                    v-bind="props"
+                    icon="mdi-information-outline"
+                    size="16"
+                    color="grey"
+                    class="ml-1"
+                  ></v-icon>
+                </template>
+                <span>此列上方数字为缓冲区容量（单位：数据包个数），为简化表格，将吞吐量分数合并至此列显示。</span>
+              </v-tooltip>
+            </template>
+            <template #default="scope">
+              <span>{{ scope.row.buffer_size }}</span>
+              <span v-if="scope.row.task_status === 'finished' && scope.row.throughput_score !== 0">
+                <br/>
+                <v-chip
+                  :color="getScoreColor(scope.row.throughput_score)"
+                  size="small"
+                  text-color="white"
+                >
+                  {{ scope.row.throughput_score.toFixed(2) ?? "-" }}
+                </v-chip>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="task_score" label="总分" align="center">
+            <template #header>
+              <span>总分</span>
+              <v-tooltip location="bottom">
+                <template v-slot:activator="{ props }">
+                  <v-icon
+                    v-bind="props"
+                    icon="mdi-information-outline"
+                    size="16"
+                    color="grey"
+                    class="ml-1"
+                  ></v-icon>
+                </template>
+                <span>总分为各子项分数加权计算，具体权重请参阅相关文档。</span>
+              </v-tooltip>
+            </template>
             <template #default="scope">
               <span v-if="scope.row.task_status !== 'finished'"
               >任务完成后可查看</span
               >
+              <span v-else>
+                <v-chip
+                  :color="getScoreColor(scope.row.task_score)"
+                  size="medium"
+                  text-color="white"
+                  style="padding: 5px 10px;"
+                >
+                {{ scope.row.task_score.toFixed(2) ?? "-" }}
+              </v-chip>
+              </span>
             </template>
           </el-table-column>
-          <el-table-column label="吞吐量">
+          <el-table-column label="性能图" min-width="120" align="center">
             <template #default="scope">
-              <el-button
-                v-if="scope.row.task_status === 'finished'"
-                @click="showImage('throughput', scope.row.task_id)"
-              >查看
-              </el-button>
-              <span v-else>-</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="时延">
-            <template #default="scope">
-              <el-button
-                v-if="scope.row.task_status === 'finished'"
-                @click="showImage('delay', scope.row.task_id)"
-              >查看
-              </el-button>
+              <span v-if="scope.row.task_status === 'finished'">
+                <el-button
+                  @click="showImage('throughput', scope.row.task_id)"
+                >吞吐
+                </el-button>
+                <el-button
+                  @click="showImage('delay', scope.row.task_id)"
+                >时延
+                </el-button>
+              </span>
               <span v-else>-</span>
             </template>
           </el-table-column>
@@ -158,9 +239,9 @@
                     {{ row.trace_name || row.task_id || "测试" + (idx + 1) }}
                   </div>
                   <RadarChart
-                    :delay="row.delay"
-                    :loss="row.loss_rate"
-                    :throughput="row.buffer_size"
+                    :delay="row.delay_score"
+                    :loss="row.loss_score"
+                    :throughput="row.throughput_score"
                   />
                 </div>
               </div>
@@ -173,6 +254,18 @@
           <span style="font-weight: bold; text-align: center">
             综合雷达图
           </span>
+          <v-tooltip location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-icon
+                v-bind="props"
+                icon="mdi-information-outline"
+                size="16"
+                color="black"
+                class="ml-1"
+              ></v-icon>
+            </template>
+            <span>综合雷达图各项分数为所有测试用例各项原始分数的平均值：avg_score=sum(test_i_score)/count(test)</span>
+          </v-tooltip>
           <el-button
             link
             :icon="ZoomInIcon"
@@ -186,9 +279,9 @@
         </div>
         <div class="radar-center">
           <RadarChart
-            :delay="avgRadar.delay"
-            :loss="avgRadar.loss"
-            :throughput="avgRadar.throughput"
+            :delay="avgRadar.delay_score"
+            :loss="avgRadar.loss_score"
+            :throughput="avgRadar.throughput_score"
           />
         </div>
       </div>
@@ -204,29 +297,27 @@ import {Refresh as RefreshIcon, ZoomIn as ZoomInIcon,} from "@element-plus/icons
 import RadarChart from "./RadarChart.vue";
 import ImageAndLogViewDialog from "./ImageAndLogViewDialog.vue";
 
-// 计算所有任务的平均分（仅统计有分数的）
+// 计算所有任务的平均分（仅统计有分数的，使用后端返回的分数字段）
 const avgRadar = computed(() => {
   const finished = internalTasks.value.filter(
     (t) =>
-      t.task_status === "finished" &&
-      typeof t.delay === "number" &&
-      typeof t.loss_rate === "number" &&
-      typeof t.buffer_size === "number"
+      t.task_status === "finished"
   );
-  if (!finished.length) return {delay: 0, loss: 0, throughput: 0};
+  if (!finished.length)
+    return {delay_score: 0, loss_score: 0, throughput_score: 0};
   const sum = finished.reduce(
     (acc, t) => {
-      acc.delay += t.delay;
-      acc.loss += t.loss_rate;
-      acc.throughput += t.buffer_size;
+      acc.delay_score += t.delay_score;
+      acc.loss_score += t.loss_score;
+      acc.throughput_score += t.throughput_score;
       return acc;
     },
-    {delay: 0, loss: 0, throughput: 0}
+    {delay_score: 0, loss_score: 0, throughput_score: 0}
   );
   return {
-    delay: Math.round(sum.delay / finished.length),
-    loss: Math.round(sum.loss / finished.length),
-    throughput: Math.round(sum.throughput / finished.length),
+    delay_score: sum.delay_score / finished.length,
+    loss_score: sum.loss_score / finished.length,
+    throughput_score: sum.throughput_score / finished.length,
   };
 });
 
@@ -244,10 +335,7 @@ const props = defineProps({
 const internalTasks = ref([]);
 
 const hasAnyLog = computed(() => {
-  return internalTasks.value.some(
-    (task) =>
-      task.log === true
-  );
+  return internalTasks.value.some((task) => task.log === true);
 });
 const dialogVisible = ref(false);
 const dialogType = ref("");
@@ -255,13 +343,7 @@ const loading = ref(false);
 
 const allRadarRows = ref([]);
 const hasAnyRadarData = computed(() => {
-  return internalTasks.value.some(
-    (t) =>
-      t.task_status === "finished" &&
-      typeof t.delay === "number" &&
-      typeof t.loss_rate === "number" &&
-      typeof t.buffer_size === "number"
-  );
+  return internalTasks.value.some((t) => t.task_status === "finished");
 });
 
 const dialogState = reactive({
@@ -410,11 +492,7 @@ async function showLog(row) {
 // 查看所有测试的雷达图
 function showAllRadarDialog() {
   allRadarRows.value = internalTasks.value.filter(
-    (t) =>
-      t.task_status === "finished" &&
-      typeof t.delay === "number" &&
-      typeof t.loss_rate === "number" &&
-      typeof t.buffer_size === "number"
+    (t) => t.task_status === "finished"
   );
   dialogType.value = "allRadar";
   dialogVisible.value = true;
@@ -450,6 +528,13 @@ function checkTaskStatus() {
   }
 
   return true; // Continue auto-refresh
+}
+
+function getScoreColor(score) {
+  if (typeof score !== "number") return "#bdbdbd";
+  if (score < 60) return "#f44336"; // 红色
+  if (score < 90) return "#ff9800"; // 橙色
+  return "#4caf50"; // 绿色
 }
 
 defineExpose({
