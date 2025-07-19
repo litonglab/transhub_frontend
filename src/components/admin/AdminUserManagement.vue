@@ -218,32 +218,33 @@
 
         <template v-slot:item.actions="{ item }">
           <template v-if="!item.is_deleted">
-            <v-btn
-              icon="mdi-pencil"
-              size="small"
-              @click="editUser(item)"
-              variant="text"
-              class="mr-1"
-              title="编辑"
-            ></v-btn>
-            <v-btn
-              icon="mdi-key-variant"
-              size="small"
-              @click="resetPasswordUser(item)"
-              variant="text"
-              color="warning"
-              :disabled="item.username === store.name"
-              title="重置密码"
-            ></v-btn>
-            <v-btn
-              icon="mdi-delete"
-              size="small"
-              @click="promptDeleteUser(item)"
-              variant="text"
-              color="error"
-              :disabled="item.username === store.name"
-              title="删除"
-            ></v-btn>
+            <div style="min-width: 130px">
+              <v-btn
+                icon="mdi-pencil"
+                size="small"
+                @click="editUser(item)"
+                variant="text"
+                title="编辑"
+              ></v-btn>
+              <v-btn
+                icon="mdi-key-variant"
+                size="small"
+                @click="resetPasswordUser(item)"
+                variant="text"
+                color="warning"
+                :disabled="item.username === store.name"
+                title="重置密码"
+              ></v-btn>
+              <v-btn
+                icon="mdi-delete"
+                size="small"
+                @click="promptDeleteUser(item)"
+                variant="text"
+                color="error"
+                :disabled="item.username === store.name"
+                title="删除"
+              ></v-btn>
+            </div>
           </template>
           <template v-else>
             <v-btn
