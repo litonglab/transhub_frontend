@@ -126,7 +126,7 @@
 
         <v-dialog v-model="dialogVisible" class="responsive-dialog">
           <v-card>
-            <v-card-title> 所有测试雷达图</v-card-title>
+            <v-card-title>所有雷达图</v-card-title>
             <v-card-text>
               <div
                 style="
@@ -143,7 +143,8 @@
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    min-width: 200px;
+                    min-width: 250px;
+                    min-height: 250px;
                   "
                 >
                   <div
@@ -185,11 +186,13 @@
           >
           </el-button>
         </div>
-        <RadarChart
-          :delay="avgRadar.delay"
-          :loss="avgRadar.loss"
-          :throughput="avgRadar.throughput"
-        />
+        <div class="radar-center">
+          <RadarChart
+            :delay="avgRadar.delay"
+            :loss="avgRadar.loss"
+            :throughput="avgRadar.throughput"
+          />
+        </div>
       </div>
     </div>
   </el-card>
@@ -202,6 +205,7 @@ import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import {Refresh as RefreshIcon, ZoomIn as ZoomInIcon,} from "@element-plus/icons-vue";
 import RadarChart from "./RadarChart.vue";
 import ImageAndLogViewDialog from "./ImageAndLogViewDialog.vue";
+
 
 // 计算所有任务的平均分（仅统计有分数的）
 const avgRadar = computed(() => {
@@ -469,8 +473,8 @@ defineExpose({
 .task-detail-table-flex {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
-  gap: 32px;
+  align-items: stretch;
+  gap: 5px;
 }
 
 .task-detail-table-wrapper {
@@ -481,12 +485,46 @@ defineExpose({
 }
 
 .table-summary-radar {
-  /* min-width: 370px;
-  max-width: 400px; */
-  /* padding: 12px 0 0 0; */
+  width: 150px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-top: 5px;
+  transition: all 0.3s ease-in-out;
+}
+
+@media (max-width: 768px) {
+  .task-detail-table-flex {
+    flex-direction: column;
+  }
+
+  .table-summary-radar {
+    width: 100%;
+    margin-top: 20px;
+    height: 300px;
+  }
+}
+
+@media (min-width: 1500px) {
+  .table-summary-radar {
+    width: 250px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .table-summary-radar {
+    width: 350px;
+  }
+}
+
+.radar-center {
+  flex-grow: 1;
+  flex-basis: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .radar-header {

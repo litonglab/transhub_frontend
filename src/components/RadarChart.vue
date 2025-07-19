@@ -14,6 +14,7 @@ const props = defineProps({
 
 const chartRef = ref(null);
 let chartInstance = null;
+let resizeObserver = null;
 
 function renderChart() {
   nextTick(() => {
@@ -248,12 +249,16 @@ function renderChart() {
 
 onMounted(() => {
   renderChart();
-  window.addEventListener("resize", resizeChart);
+  if (chartRef.value) {
+    resizeObserver = new ResizeObserver(resizeChart);
+    resizeObserver.observe(chartRef.value);
+  }
 });
 
 function resizeChart() {
   if (chartInstance) {
     chartInstance.resize();
+    renderChart(); // 重新计算并应用响应式配置
   }
 }
 
@@ -262,18 +267,19 @@ onBeforeUnmount(() => {
     chartInstance.dispose();
     chartInstance = null;
   }
-  window.removeEventListener("resize", resizeChart);
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
 });
 
 watch(() => [props.delay, props.loss, props.throughput], renderChart);
 </script>
 <style scoped>
 .radar-chart-auto {
+  flex: 1;
   width: 100%;
   height: 100%;
-  min-width: 200px;
-  /* max-width: 250px; */
-  min-height: 200px;
+  min-height: 180px;
   position: relative;
   overflow: hidden;
   background: linear-gradient(
@@ -310,29 +316,10 @@ watch(() => [props.delay, props.loss, props.throughput], renderChart);
   z-index: 1;
 }
 
-/* 深色模式适配 */
-@media (prefers-color-scheme: dark) {
-  .radar-chart-auto {
-    background: linear-gradient(
-      135deg,
-      rgba(20, 25, 35, 0.9) 0%,
-      rgba(25, 30, 40, 0.95) 50%,
-      rgba(20, 25, 35, 0.9) 100%
-    );
-    box-shadow: 0 4px 20px rgba(64, 158, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  .radar-chart-auto:hover {
-    box-shadow: 0 8px 30px rgba(64, 158, 255, 0.25),
-    0 4px 12px rgba(0, 0, 0, 0.4);
-  }
-}
-
 /* 响应式设计 */
 @media (max-width: 768px) {
   .radar-chart-auto {
     border-radius: 8px;
-    min-height: 150px;
   }
 }
-</style>
+</style> 
