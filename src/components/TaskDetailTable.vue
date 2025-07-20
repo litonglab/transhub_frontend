@@ -79,7 +79,10 @@
           </el-table-column>
           <el-table-column label="往返时延" align="center">
             <template #default="scope">
-              <span>{{ scope.row.delay * 2 }}</span>
+              <!-- 判断是否是数字，如果是再乘2 -->
+              <span>
+                {{ typeof scope.row.delay === 'number' ? (scope.row.delay * 2) : scope.row.delay }}
+              </span>
               <span v-if="scope.row.task_status === 'finished' && scope.row.delay_score !== 0">
                 <br/>
                 <v-chip
