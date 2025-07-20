@@ -105,7 +105,7 @@
                     class="ml-1"
                   ></v-icon>
                 </template>
-                <span>此列上方数字为缓冲区容量（单位：数据包个数），为简化表格，将吞吐量分数合并至此列显示。</span>
+                <span>此列上方数字为缓冲区容量（单位：字节），为简化表格，将吞吐量分数合并至此列显示。</span>
               </v-tooltip>
             </template>
             <template #default="scope">
