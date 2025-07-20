@@ -154,6 +154,7 @@
         :items-length="pagination.total"
         v-model:page="pagination.page"
         v-model:items-per-page="pagination.size"
+        v-model:sort-by="sortBy"
         :items-per-page-options="[10, 20, 50, 100]"
         @update:options="loadUsers"
         show-current-page
@@ -422,6 +423,7 @@ const newPassword = ref("");
 const selectedUser = ref(null);
 const userIdFilter = ref("");
 const isFullScreen = ref(false);
+const sortBy = ref([]);
 
 const users = ref([]);
 const pagination = reactive({
@@ -554,11 +556,15 @@ const loadUsers = async ({page, itemsPerPage, sortBy}) => {
 
 const searchUsers = () => {
   pagination.page = 1;
-  loadUsers({page: 1, itemsPerPage: pagination.size});
+  loadUsers({page: 1, itemsPerPage: pagination.size, sortBy: sortBy.value});
 };
 
 const refreshUsers = () => {
-  loadUsers({page: pagination.page, itemsPerPage: pagination.size});
+  loadUsers({
+    page: pagination.page,
+    itemsPerPage: pagination.size,
+    sortBy: sortBy.value,
+  });
 };
 
 const debouncedSearch = debounce(searchUsers, 500);

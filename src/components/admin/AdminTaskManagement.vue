@@ -212,6 +212,7 @@
         :items-length="pagination.total"
         v-model:page="pagination.page"
         v-model:items-per-page="pagination.size"
+        v-model:sort-by="sortBy"
         :items-per-page-options="[10, 20, 50, 100]"
         @update:options="loadTasks"
         show-current-page
@@ -527,6 +528,7 @@ const taskScoreFilter = ref(""); // 得分范围筛选
 const courseList = ref([]);
 const courseListLoading = ref(false);
 const taskIdFilter = ref("");
+const sortBy = ref([]);
 
 const tasks = ref([]);
 const selectedTask = ref(null);
@@ -697,7 +699,11 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
 
 const debouncedSearch = debounce(() => {
   pagination.page = 1;
-  loadTasks({page: pagination.page, itemsPerPage: pagination.size});
+  loadTasks({
+    page: pagination.page,
+    itemsPerPage: pagination.size,
+    sortBy: sortBy.value,
+  });
 }, 500);
 
 const searchTasks = () => {
@@ -705,7 +711,11 @@ const searchTasks = () => {
 };
 
 const refreshTasks = () => {
-  loadTasks({page: pagination.page, itemsPerPage: pagination.size});
+  loadTasks({
+    page: pagination.page,
+    itemsPerPage: pagination.size,
+    sortBy: sortBy.value,
+  });
 };
 
 const viewTaskDetail = (task) => {
