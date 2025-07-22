@@ -77,6 +77,7 @@
                   }
                 "
                 :upload_id="props.row.upload_id"
+                :height="'450'"
               />
             </div>
           </template>

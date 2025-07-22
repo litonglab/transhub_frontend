@@ -1,6 +1,6 @@
 <template>
   <el-card shadow="hover" style="min-width: 600px">
-    <div class="task-detail-table-flex">
+    <div class="task-detail-table-flex" style="min-height: 350px">
       <div class="task-detail-table-wrapper">
         <el-table
           :data="internalTasks"
@@ -310,18 +310,29 @@
                   </v-btn>
                 </div>
               </template>
-              <div class="in-table-summary-radar">
-                <div class="radar-center">
-                  <RadarChart
-                    :delay="avgRadar.delay_score"
-                    :loss="avgRadar.loss_score"
-                    :throughput="avgRadar.throughput_score"
-                  />
-                </div>
-              </div>
+              <!-- 空白内容，实际雷达图通过绝对定位显示 -->
+              <template #default>
+                <div style="height: 1px"></div>
+              </template>
             </el-table-column>
           </el-table-column>
         </el-table>
+
+        <!--         固定位置的雷达图 -->
+        <div
+          v-if="isInTableRadarVisible"
+          class="fixed-radar-chart"
+          :style="{width: radarColumnWidth + 'px',
+                   top: tableHeaderHeight + 'px',}"
+        >
+          <div class="radar-center">
+            <RadarChart
+              :delay="avgRadar.delay_score"
+              :loss="avgRadar.loss_score"
+              :throughput="avgRadar.throughput_score"
+            />
+          </div>
+        </div>
 
         <ImageAndLogViewDialog
           :visible="dialogState.visible"
@@ -437,6 +448,7 @@ import {ElMessage} from "element-plus";
 
 const radarColumnWidth = ref(350);
 const isInTableRadarVisible = ref(true);
+const tableHeaderHeight = ref(50); // 表格头部高度
 
 const updateRadarColumnWidth = () => {
   const width = window.innerWidth;
@@ -455,9 +467,23 @@ const updateRadarColumnWidth = () => {
   }
 };
 
+// 计算表格头部高度
+const updateTableHeaderHeight = () => {
+  const tableElement = document.querySelector(
+    ".task-detail-table .el-table__header-wrapper"
+  );
+  if (tableElement) {
+    tableHeaderHeight.value = tableElement.offsetHeight;
+  }
+};
+
 onMounted(() => {
   updateRadarColumnWidth();
   window.addEventListener("resize", updateRadarColumnWidth);
+  // 延迟计算表格头部高度，确保DOM已渲染
+  setTimeout(() => {
+    updateTableHeaderHeight();
+  }, 100);
 });
 
 onUnmounted(() => {
@@ -536,7 +562,7 @@ const props = defineProps({
   },
   height: {
     type: String,
-    default: "500",
+    default: "9999999",
   },
 });
 
@@ -630,6 +656,16 @@ watch(
     }
   },
   {immediate: true}
+);
+
+// 监听任务数据变化，更新表格头部高度
+watch(
+  () => internalTasks.value,
+  () => {
+    setTimeout(() => {
+      updateTableHeaderHeight();
+    }, 100);
+  }
 );
 
 async function showImage(type, task_id) {
@@ -786,7 +822,30 @@ defineExpose({
   flex: 1 1 0;
   min-width: 0;
   width: auto;
+  position: relative; /* 为固定雷达图提供定位参考 */
   /* 让表格自适应剩余空间 */
+}
+
+/* 固定位置的雷达图 */
+.fixed-radar-chart {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid #e0e0e0;
+  z-index: 10;
+  pointer-events: auto;
+  /* show table line */
+  margin: 0 1px 1px;
+  padding: 10px;
+}
+
+/* 雷达图单元格不被选中 */
+.task-detail-table :deep(.radar-chart-cell):hover, .task-detail-table :deep(.radar-chart-cell) {
+  background: white !important;
 }
 
 /* 雷达图 */
@@ -833,26 +892,6 @@ defineExpose({
 .radar-expand-button:hover {
   color: #409eff;
   transform: scale(1.15);
-}
-
-/* 雷达图（表格内） */
-.in-table-summary-radar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: white; /* 确保背景不透明 */
-  z-index: 1; /* 确保在表格线上方 */
-  padding: 10px 12px;
-}
-
-/* 雷达图单元格最低高度 */
-.task-detail-table :deep(.radar-chart-cell > .cell) {
-  min-height: 200px;
 }
 
 .task-detail-table {
