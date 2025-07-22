@@ -1,36 +1,37 @@
 <template>
-
-  <!-- Header -->
-  <v-row class="flex-grow-0">
-    <v-col>
-      <div
-        style="
+  <div style="display: flex; flex-direction: column; height: 100%">
+    <!-- Header -->
+    <v-row class="flex-grow-0">
+      <v-col>
+        <div
+          style="
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
           "
-      >
-        <span class="text-h4">任务详情</span>
-        <div>
-          <el-button type="success" @click="goBack">返回上页</el-button>
-          <el-button type="primary" @click="refreshTasks">刷新</el-button>
+        >
+          <span class="text-h4">任务详情</span>
+          <div>
+            <el-button type="success" @click="goBack">返回上页</el-button>
+            <el-button type="primary" @click="refreshTasks">刷新</el-button>
+          </div>
         </div>
-      </div>
-      <div style="text-align: right">
-        <el-text style="margin-top: 10px">
-          <el-icon>
-            <InfoFilled/>
-          </el-icon>
-          任务完成前其状态将自动刷新
-        </el-text>
-      </div>
-    </v-col>
-  </v-row>
+        <div style="text-align: right">
+          <el-text style="margin-top: 10px">
+            <el-icon>
+              <InfoFilled/>
+            </el-icon>
+            任务完成前其状态将自动刷新
+          </el-text>
+        </div>
+      </v-col>
+    </v-row>
 
-  <div class="record-detail-container">
-    <div class="table-container">
-      <task-detail-table ref="taskDetailTableRef" :upload_id="upload_id"/>
+    <div class="record-detail-container" style="flex: 1; overflow: auto">
+      <div class="table-container">
+        <task-detail-table ref="taskDetailTableRef" :upload_id="upload_id"/>
+      </div>
     </div>
   </div>
 </template>
@@ -128,9 +129,5 @@ onBeforeUnmount(() => {
 <style scoped>
 .record-detail-container {
   padding: 1px 0;
-}
-
-.table-container {
-  overflow: auto;
 }
 </style>
