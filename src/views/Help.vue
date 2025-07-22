@@ -42,11 +42,7 @@ import MarkdownItTOC from "markdown-it-toc-done-right";
 import "highlight.js/styles/atom-one-dark.css";
 import MarkdownItMathjax3 from "markdown-it-mathjax3";
 
-const md = new MarkdownIt({
-  html: true, // 启用HTML标签
-  linkify: true,
-  typographer: true,
-})
+const md = new MarkdownIt({})
   .use(MarkdownItAbbr)
   .use(MarkdownItAnchor, {
     permalink: false, // 禁用默认的锚点链接
