@@ -30,6 +30,7 @@
             label="测试用例"
             min-width="160"
             align="center"
+            fixed
           >
             <template #header>
               <span>测试用例</span>
@@ -47,57 +48,14 @@
               </v-tooltip>
             </template>
           </el-table-column>
-          <el-table-column prop="created_at" label="创建时间" align="center">
-            <template #default="scope">
-              {{ formatDateTime(scope.row.created_at, true) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="updated_at" label="更新时间" align="center">
-            <template #default="scope">
-              {{ formatDateTime(scope.row.updated_at, true) }}
-            </template>
-          </el-table-column>
           <el-table-column
-            prop="task_status"
-            label="任务状态"
+            prop="created_at"
+            label="任务时间"
             align="center"
-          ></el-table-column>
-          <el-table-column label="丢包率" align="center">
-            <template #default="scope">
-              <span>{{ scope.row.loss_rate }}</span>
-              <span v-if="scope.row.task_status === 'finished' && scope.row.loss_score !== 0">
-                <br/>
-                <v-chip
-                  :color="getScoreColor(scope.row.loss_score)"
-                  size="small"
-                  text-color="white"
-                >
-                  {{ scope.row.loss_score.toFixed(2) ?? "-" }}
-                </v-chip>
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column label="往返时延" align="center">
-            <template #default="scope">
-              <!-- 判断是否是数字，如果是再乘2 -->
-              <span>
-                {{ typeof scope.row.delay === 'number' ? (scope.row.delay * 2) : scope.row.delay }}
-              </span>
-              <span v-if="scope.row.task_status === 'finished' && scope.row.delay_score !== 0">
-                <br/>
-                <v-chip
-                  :color="getScoreColor(scope.row.delay_score)"
-                  size="small"
-                  text-color="white"
-                >
-                  {{ scope.row.delay_score.toFixed(2) ?? "-" }}
-                </v-chip>
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column label="缓冲区容量" align="center">
+            min-width="100"
+          >
             <template #header>
-              <span>缓冲区</span>
+              <span>任务时间</span>
               <v-tooltip location="bottom">
                 <template v-slot:activator="{ props }">
                   <v-icon
@@ -108,22 +66,106 @@
                     class="ml-1"
                   ></v-icon>
                 </template>
-                <span>此列上方数字为缓冲区容量（单位：字节），为简化表格，将吞吐量分数合并至此列显示。</span>
+                <span
+                >上方为任务创建时间，下方为任务状态最近一次更新时间。</span
+                >
               </v-tooltip>
             </template>
             <template #default="scope">
-              <span>{{ scope.row.buffer_size }}</span>
-              <span v-if="scope.row.task_status === 'finished' && scope.row.throughput_score !== 0">
-                <br/>
-                <v-chip
-                  :color="getScoreColor(scope.row.throughput_score)"
-                  size="small"
-                  text-color="white"
-                >
-                  {{ scope.row.throughput_score.toFixed(2) ?? "-" }}
-                </v-chip>
-              </span>
+              {{ formatDateTime(scope.row.created_at, true) }}
+              <br/>
+              <v-chip color="" size="small">
+                {{ formatDateTime(scope.row.updated_at, true) }}
+              </v-chip>
             </template>
+          </el-table-column>
+          <el-table-column
+            prop="task_status"
+            label="任务状态"
+            align="center"
+          ></el-table-column>
+          <el-table-column label="网络环境配置与得分" align="center">
+            <el-table-column label="丢包率" align="center">
+              <template #default="scope">
+                <span>{{ scope.row.loss_rate }}</span>
+                <span
+                  v-if="
+                    scope.row.task_status === 'finished' &&
+                    scope.row.loss_score !== 0
+                  "
+                >
+                  <br/>
+                  <v-chip
+                    :color="getScoreColor(scope.row.loss_score)"
+                    size="small"
+                  >
+                    {{ scope.row.loss_score.toFixed(2) ?? "-" }}
+                  </v-chip>
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column label="往返时延" align="center">
+              <template #default="scope">
+                <!-- 判断是否是数字，如果是再乘2 -->
+                <span>
+                  {{
+                    typeof scope.row.delay === "number"
+                      ? scope.row.delay * 2
+                      : scope.row.delay
+                  }}
+                </span>
+                <span
+                  v-if="
+                    scope.row.task_status === 'finished' &&
+                    scope.row.delay_score !== 0
+                  "
+                >
+                  <br/>
+                  <v-chip
+                    :color="getScoreColor(scope.row.delay_score)"
+                    size="small"
+                  >
+                    {{ scope.row.delay_score.toFixed(2) ?? "-" }}
+                  </v-chip>
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column label="缓冲区容量" align="center">
+              <template #header>
+                <span>缓冲区</span>
+                <v-tooltip location="bottom">
+                  <template v-slot:activator="{ props }">
+                    <v-icon
+                      v-bind="props"
+                      icon="mdi-information-outline"
+                      size="16"
+                      color="grey"
+                      class="ml-1"
+                    ></v-icon>
+                  </template>
+                  <span
+                  >此列上方数字为缓冲区容量（单位：字节），为简化表格，将吞吐量分数合并至此列显示。</span
+                  >
+                </v-tooltip>
+              </template>
+              <template #default="scope">
+                <span>{{ scope.row.buffer_size }}</span>
+                <span
+                  v-if="
+                    scope.row.task_status === 'finished' &&
+                    scope.row.throughput_score !== 0
+                  "
+                >
+                  <br/>
+                  <v-chip
+                    :color="getScoreColor(scope.row.throughput_score)"
+                    size="small"
+                  >
+                    {{ scope.row.throughput_score.toFixed(2) ?? "-" }}
+                  </v-chip>
+                </span>
+              </template>
+            </el-table-column>
           </el-table-column>
           <el-table-column prop="task_score" label="总分" align="center">
             <template #header>
@@ -149,38 +191,17 @@
                 <v-chip
                   :color="getScoreColor(scope.row.task_score)"
                   size="medium"
-                  text-color="white"
                   style="padding: 5px 10px"
                 >
-                {{ scope.row.task_score.toFixed(2) ?? "-" }}
+                  {{ scope.row.task_score.toFixed(2) ?? "-" }}
                 </v-chip>
               </span>
             </template>
           </el-table-column>
-          <el-table-column label="性能图" min-width="150" align="center">
-            <template #default="scope">
-              <span v-if="scope.row.task_status === 'finished'">
-                <el-button @click="showImage('throughput', scope.row.task_id)"
-                >吞吐
-                </el-button>
-                <el-button @click="showImage('delay', scope.row.task_id)"
-                >时延
-                </el-button>
-              </span>
-              <span v-else-if="scope.row.task_status === 'not_queued'">
-                <el-button
-                  @click="handleEnqueue(scope.row.task_id)"
-                  :loading="enqueueLoadingMap[scope.row.task_id]"
-                >执行评测</el-button
-                >
-              </span>
-              <span v-else>-</span>
-            </template>
-          </el-table-column>
-          <el-table-column v-if="hasAnyLog" label="日志">
+          <el-table-column label="操作" align="center" fixed="right">
             <template #header>
               <div class="column-header">
-                <span>日志</span>
+                <span style="text-align: center; flex-grow: 1">操作</span>
                 <el-button
                   link
                   :icon="RefreshIcon"
@@ -193,9 +214,50 @@
                 </el-button>
               </div>
             </template>
-            <template #default="scope">
-              <el-button @click="showLog(scope.row)">查看</el-button>
-            </template>
+            <el-table-column label="性能图" min-width="160" align="center">
+              <template #header>
+                <span>性能图</span>
+                <v-tooltip location="bottom">
+                  <template v-slot:activator="{ props }">
+                    <v-icon
+                      v-bind="props"
+                      icon="mdi-information-outline"
+                      size="16"
+                      color="grey"
+                      class="ml-1"
+                    ></v-icon>
+                  </template>
+                  <div style="text-align: center">
+                    <span
+                    >任务完成后，系统将在后台按序生成性能图，请耐心等待。<br/>为节省空间，系统定期对生成的原始时延图（svg格式）进行压缩，如有需要，可在性能图生成后尽快下载原始svg图。</span
+                    >
+                  </div>
+                </v-tooltip>
+              </template>
+              <template #default="scope">
+                <span v-if="scope.row.task_status === 'finished'">
+                  <el-button @click="showImage('throughput', scope.row.task_id)"
+                  >吞吐
+                  </el-button>
+                  <el-button @click="showImage('delay', scope.row.task_id)"
+                  >时延
+                  </el-button>
+                </span>
+                <span v-else-if="scope.row.task_status === 'not_queued'">
+                  <el-button
+                    @click="handleEnqueue(scope.row.task_id)"
+                    :loading="enqueueLoadingMap[scope.row.task_id]"
+                  >执行评测</el-button
+                  >
+                </span>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+            <el-table-column v-if="hasAnyLog" label="日志" align="center">
+              <template #default="scope">
+                <el-button @click="showLog(scope.row)">查看</el-button>
+              </template>
+            </el-table-column>
           </el-table-column>
         </el-table>
 
