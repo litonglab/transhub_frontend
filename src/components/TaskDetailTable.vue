@@ -219,7 +219,7 @@
                 </v-btn>
               </div>
             </template>
-            <el-table-column label="性能图" min-width="160" align="center">
+            <el-table-column label="性能图" min-width="130" align="center">
               <template #header>
                 <span>性能图</span>
                 <v-tooltip location="bottom">
