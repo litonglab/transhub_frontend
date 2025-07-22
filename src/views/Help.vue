@@ -40,9 +40,13 @@ import MarkdownItSup from "markdown-it-sup";
 import MarkdownItTasklists from "markdown-it-task-lists";
 import MarkdownItTOC from "markdown-it-toc-done-right";
 import "highlight.js/styles/atom-one-dark.css";
-import "katex/dist/katex.min.css";
+import MarkdownItMathjax3 from "markdown-it-mathjax3";
 
-const md = new MarkdownIt()
+const md = new MarkdownIt({
+  html: true, // 启用HTML标签
+  linkify: true,
+  typographer: true,
+})
   .use(MarkdownItAbbr)
   .use(MarkdownItAnchor, {
     permalink: false, // 禁用默认的锚点链接
@@ -58,6 +62,31 @@ const md = new MarkdownIt()
     includeLevel: [1, 2, 3, 4, 5, 6],
     containerClass: "table-of-contents",
     listType: "ul",
+  })
+  .use(MarkdownItMathjax3, {
+    tex: {
+      inlineMath: [
+        ["$", "$"],
+        ["\\(", "\\)"],
+      ],
+      displayMath: [
+        ["$$", "$$"],
+        ["\\[", "\\]"],
+      ],
+      processEscapes: true,
+      processEnvironments: true,
+    },
+    options: {
+      skipHtmlTags: [
+        "script",
+        "noscript",
+        "style",
+        "textarea",
+        "pre",
+        "code",
+        "a",
+      ],
+    },
   });
 
 const markdownContent = ref("");
