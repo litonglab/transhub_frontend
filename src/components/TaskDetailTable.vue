@@ -148,12 +148,12 @@
                     ></v-icon>
                   </template>
                   <span
-                  >此列上方数字为缓冲区容量（单位：字节），为简化表格，将吞吐量分数合并至此列显示。</span
+                  >此列上方数字为缓冲区容量（单位：KB，此处1KB=1000Byte），为简化表格，将吞吐量分数合并至此列显示。</span
                   >
                 </v-tooltip>
               </template>
               <template #default="scope">
-                <span>{{ scope.row.buffer_size }}</span>
+                <span>{{ formatBufferSize(scope.row.buffer_size) }}</span>
                 <span
                   v-if="
                     scope.row.task_status === 'finished' &&
@@ -322,8 +322,10 @@
         <div
           v-if="isInTableRadarVisible"
           class="fixed-radar-chart"
-          :style="{width: radarColumnWidth + 'px',
-                   top: tableHeaderHeight + 'px',}"
+          :style="{
+            width: radarColumnWidth + 'px',
+            top: tableHeaderHeight + 'px',
+          }"
         >
           <div class="radar-center">
             <RadarChart
@@ -762,7 +764,10 @@ function checkTaskStatus() {
 
   // Check if all tasks are finished, error or not_queued, this means reach final state
   const allReachedFinalState = tasks.every(
-    (task) => task.task_status === "finished" || task.task_status === "error" || task.task_status === "not_queued"
+    (task) =>
+      task.task_status === "finished" ||
+      task.task_status === "error" ||
+      task.task_status === "not_queued"
   );
   console.debug("All tasks reached final state:", allReachedFinalState);
 
@@ -779,6 +784,13 @@ function getScoreColor(score) {
   if (score < 60) return "#f44336"; // 红色
   if (score < 90) return "#ff9800"; // 橙色
   return "#4caf50"; // 绿色
+}
+
+// 格式化缓冲区大小：除以1000并添加千位分隔符
+function formatBufferSize(bufferSize) {
+  if (typeof bufferSize !== "number") return bufferSize;
+  const sizeInKB = bufferSize / 1000;
+  return sizeInKB.toLocaleString();
 }
 
 defineExpose({
