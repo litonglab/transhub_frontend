@@ -1,28 +1,30 @@
 <template>
-  <el-card shadow="hover">
+  <el-card shadow="hover" style="min-width: 600px">
     <div class="task-detail-table-flex">
       <div class="task-detail-table-wrapper">
         <el-table
           :data="internalTasks"
-          style="width: 100%"
           :max-height="height"
           class="task-detail-table"
           v-loading="loading"
           element-loading-text="加载中..."
+          :span-method="objectSpanMethod"
+          :cell-class-name="tableCellClassName"
         >
           <template #empty>
             <div class="empty-container">
               <span>暂无数据</span>
-              <el-button
-                link
-                :icon="RefreshIcon"
+              <v-btn
+                icon
+                variant="text"
+                size="small"
                 @click="handleRefresh"
                 :loading="loading"
-                size="small"
                 class="refresh-button"
                 title="刷新数据"
               >
-              </el-button>
+                <v-icon>mdi-refresh</v-icon>
+              </v-btn>
             </div>
           </template>
           <el-table-column
@@ -44,7 +46,9 @@
                     class="ml-1"
                   ></v-icon>
                 </template>
-                <span>若相关数据显示为*，则表示对应测试用例已被屏蔽，比赛结束后开放查询。</span>
+                <span
+                >若相关数据显示为*，则表示对应测试用例已被屏蔽，比赛结束后开放查询。</span
+                >
               </v-tooltip>
             </template>
           </el-table-column>
@@ -202,16 +206,17 @@
             <template #header>
               <div class="column-header">
                 <span style="text-align: center; flex-grow: 1">操作</span>
-                <el-button
-                  link
-                  :icon="RefreshIcon"
+                <v-btn
+                  icon
+                  variant="text"
+                  size="small"
                   @click="handleRefresh"
                   :loading="loading"
-                  size="small"
                   class="refresh-button"
                   title="刷新数据"
                 >
-                </el-button>
+                  <v-icon>mdi-refresh</v-icon>
+                </v-btn>
               </div>
             </template>
             <el-table-column label="性能图" min-width="160" align="center">
@@ -257,6 +262,63 @@
               <template #default="scope">
                 <el-button @click="showLog(scope.row)">查看</el-button>
               </template>
+            </el-table-column>
+            <el-table-column
+              v-if="isInTableRadarVisible"
+              label="雷达图列"
+              align="center"
+              :width="radarColumnWidth"
+            >
+              <template #header>
+                <div class="column-header">
+                  <div class="radar-header">
+                    <span
+                      style="font-weight: bold; text-align: center"
+                      class="ml-8"
+                    >
+                      综合雷达图
+                    </span>
+                    <v-tooltip location="bottom">
+                      <template v-slot:activator="{ props }">
+                        <v-icon
+                          v-bind="props"
+                          icon="mdi-information-outline"
+                          size="16"
+                          color="grey"
+                          class="ml-1"
+                        ></v-icon>
+                      </template>
+                      <div style="text-align: center">
+                        <span
+                        >综合雷达图各项分数为所有测试用例各项原始分数的平均值：avg_score=sum(test_i_score)/count(test)</span
+                        >
+                      </div>
+                    </v-tooltip>
+                  </div>
+
+                  <v-btn
+                    icon
+                    variant="text"
+                    size="small"
+                    @click="showAllRadarDialog"
+                    :disabled="!hasAnyRadarData"
+                    class="radar-expand-button"
+                    title="查看所有测试雷达图"
+                    color="grey"
+                  >
+                    <v-icon>mdi-apps</v-icon>
+                  </v-btn>
+                </div>
+              </template>
+              <div class="in-table-summary-radar">
+                <div class="radar-center">
+                  <RadarChart
+                    :delay="avgRadar.delay_score"
+                    :loss="avgRadar.loss_score"
+                    :throughput="avgRadar.throughput_score"
+                  />
+                </div>
+              </div>
             </el-table-column>
           </el-table-column>
         </el-table>
@@ -319,9 +381,9 @@
           </v-card>
         </v-dialog>
       </div>
-      <div class="table-summary-radar">
+      <div class="table-summary-radar" v-if="!isInTableRadarVisible">
         <div class="radar-header">
-          <span style="font-weight: bold; text-align: center">
+          <span style="font-weight: bold; text-align: center" class="ml-8">
             综合雷达图
           </span>
           <v-tooltip location="bottom">
@@ -330,22 +392,28 @@
                 v-bind="props"
                 icon="mdi-information-outline"
                 size="16"
-                color="black"
+                color="grey"
                 class="ml-1"
               ></v-icon>
             </template>
-            <span>综合雷达图各项分数为所有测试用例各项原始分数的平均值：avg_score=sum(test_i_score)/count(test)</span>
+            <div style="text-align: center">
+              <span
+              >综合雷达图各项分数为所有测试用例各项原始分数的平均值：avg_score=sum(test_i_score)/count(test)</span
+              >
+            </div>
           </v-tooltip>
-          <el-button
-            link
-            :icon="ZoomInIcon"
+          <v-btn
+            icon
+            variant="text"
+            size="small"
             @click="showAllRadarDialog"
             :disabled="!hasAnyRadarData"
-            size="small"
             class="radar-expand-button"
             title="查看所有测试雷达图"
+            color="grey"
           >
-          </el-button>
+            <v-icon>mdi-apps</v-icon>
+          </v-btn>
         </div>
         <div class="radar-center">
           <RadarChart
@@ -360,13 +428,65 @@
 </template>
 
 <script setup>
-import {computed, reactive, ref, watch} from "vue";
+import {computed, onMounted, onUnmounted, reactive, ref, watch} from "vue";
 import {APIS} from "@/config.js";
 import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
-import {Refresh as RefreshIcon, ZoomIn as ZoomInIcon,} from "@element-plus/icons-vue";
 import RadarChart from "./RadarChart.vue";
 import ImageAndLogViewDialog from "./ImageAndLogViewDialog.vue";
 import {ElMessage} from "element-plus";
+
+const radarColumnWidth = ref(350);
+const isInTableRadarVisible = ref(true);
+
+const updateRadarColumnWidth = () => {
+  const width = window.innerWidth;
+  if (width < 768) {
+    isInTableRadarVisible.value = false;
+    return;
+  }
+
+  isInTableRadarVisible.value = true;
+  if (width >= 1800) {
+    radarColumnWidth.value = 350;
+  } else if (width >= 1500) {
+    radarColumnWidth.value = 250;
+  } else {
+    radarColumnWidth.value = 200;
+  }
+};
+
+onMounted(() => {
+  updateRadarColumnWidth();
+  window.addEventListener("resize", updateRadarColumnWidth);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", updateRadarColumnWidth);
+});
+
+const tableCellClassName = ({column}) => {
+  console.log(column.label);
+  if (column.label === "雷达图列") {
+    return "radar-chart-cell";
+  }
+  return "";
+};
+
+const objectSpanMethod = ({row, column, rowIndex, columnIndex}) => {
+  if (column.label === "雷达图列") {
+    if (rowIndex === 0) {
+      return {
+        rowspan: internalTasks.value.length,
+        colspan: 1,
+      };
+    } else {
+      return {
+        rowspan: 0,
+        colspan: 0,
+      };
+    }
+  }
+};
 
 // 重新入队相关
 let enqueueLoadingMap = ref({});
@@ -643,11 +763,10 @@ defineExpose({
 .refresh-button {
   padding: 2px;
   margin-left: 8px;
-  color: #409eff;
 }
 
 .refresh-button:hover {
-  color: #66b1ff;
+  transform: scale(1.15);
 }
 
 .empty-container {
@@ -671,6 +790,7 @@ defineExpose({
   /* 让表格自适应剩余空间 */
 }
 
+/* 雷达图 */
 .table-summary-radar {
   width: 150px;
   display: flex;
@@ -687,20 +807,8 @@ defineExpose({
 
   .table-summary-radar {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 10px;
     height: 300px;
-  }
-}
-
-@media (min-width: 1500px) {
-  .table-summary-radar {
-    width: 250px;
-  }
-}
-
-@media (min-width: 1800px) {
-  .table-summary-radar {
-    width: 350px;
   }
 }
 
@@ -723,16 +831,29 @@ defineExpose({
   margin-bottom: 2px;
 }
 
-.radar-expand-button {
-  padding: 4px;
-  color: #606266;
-  font-size: 16px;
-  transition: all 0.3s ease;
-}
-
 .radar-expand-button:hover {
   color: #409eff;
   transform: scale(1.15);
+}
+
+/* 雷达图（表格内） */
+.in-table-summary-radar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white; /* 确保背景不透明 */
+  z-index: 1; /* 确保在表格线上方 */
+  padding: 10px 12px;
+}
+
+/* 雷达图单元格最低高度 */
+.task-detail-table :deep(.radar-chart-cell > .cell) {
+  min-height: 200px;
 }
 
 .task-detail-table {
