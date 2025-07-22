@@ -465,7 +465,6 @@ onUnmounted(() => {
 });
 
 const tableCellClassName = ({column}) => {
-  console.log(column.label);
   if (column.label === "雷达图列") {
     return "radar-chart-cell";
   }
@@ -725,14 +724,14 @@ function checkTaskStatus() {
     return false;
   }
 
-  // Check if all tasks are finished or error
-  const allFinishedOrError = tasks.every(
-    (task) => task.task_status === "finished" || task.task_status === "error"
+  // Check if all tasks are finished, error or not_queued, this means reach final state
+  const allReachedFinalState = tasks.every(
+    (task) => task.task_status === "finished" || task.task_status === "error" || task.task_status === "not_queued"
   );
-  console.debug("All tasks finished or error:", allFinishedOrError);
+  console.debug("All tasks reached final state:", allReachedFinalState);
 
-  if (allFinishedOrError && tasks.length > 0) {
-    console.debug("All tasks completed or failed, stopping auto-refresh");
+  if (allReachedFinalState && tasks.length > 0) {
+    console.debug("All tasks reached final state, stopping auto-refresh");
     return false;
   }
 
