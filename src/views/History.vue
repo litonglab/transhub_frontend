@@ -125,7 +125,17 @@
           :sort-orders="['ascending', 'descending']"
         >
           <template #default="scope">
-            {{ scope.row.score.toFixed(2) }}
+            <span
+              :style="{
+                fontStyle:
+                  scope.row.status !== 'finished' ? 'italic' : 'normal',
+                fontWeight: scope.row.status === 'finished' ? 'bold' : 'normal',
+              }"
+            >
+              {{
+                scope.row.score.toFixed(2)
+              }}{{ scope.row.status !== "finished" ? "*" : "" }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="详情" min-width="90">
