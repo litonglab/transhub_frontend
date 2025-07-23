@@ -153,7 +153,7 @@
           href="https://www.litonglab.com/"
           target="_blank"
           style="color: #888; text-decoration: underline"
-        >LitongLab</a><br/>© 2025 TransHub. All rights reserved.
+        >LitongLab</a><br/>© 2025 Transhub. All rights reserved.
       </div>
     </template>
   </v-navigation-drawer>
