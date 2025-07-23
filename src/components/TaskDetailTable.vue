@@ -219,7 +219,7 @@
                 </v-btn>
               </div>
             </template>
-            <el-table-column label="性能图" min-width="130" align="center">
+            <el-table-column label="性能图" min-width="160" align="center">
               <template #header>
                 <span>性能图</span>
                 <v-tooltip location="bottom">
@@ -258,7 +258,7 @@
                 <span v-else>-</span>
               </template>
             </el-table-column>
-            <el-table-column v-if="hasAnyLog" label="日志" align="center">
+            <el-table-column v-if="hasAnyLog" label="日志" min-width="90" align="center">
               <template #default="scope">
                 <el-button @click="showLog(scope.row)">查看</el-button>
               </template>
