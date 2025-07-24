@@ -290,7 +290,7 @@
                       </template>
                       <div style="text-align: center">
                         <span
-                        >综合雷达图各项分数为所有测试用例各项原始分数的平均值：avg_score=sum(test_i_score)/count(test)</span
+                        >综合雷达图各项分数为所有有效测试用例对应原始分数的平均值。</span
                         >
                       </div>
                     </v-tooltip>
