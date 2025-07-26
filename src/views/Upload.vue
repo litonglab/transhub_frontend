@@ -5,11 +5,11 @@
     <v-col>
       <div
         style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-          "
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        "
       >
         <span class="text-h4">算法提交</span>
       </div>
@@ -35,15 +35,18 @@
           运行结束后，排行榜将更新个人最高分数及对应算法，可在排行榜或历史记录中查看得分和性能图。
           <br/>
           4.
-          代码提交后需等待评测运行完成后才能查看结果，等待时间由并发提交的文件数量决定，但最多不超过两小时，超过该时间请与工作人员联系。
+          代码提交后需等待评测运行完成后才能查看结果，等待时间由并发提交的文件数量决定，但最多不超过两小时，超过该时间请与管理员联系。
           <br/>
           5.
-          截止时间以服务器接收文件时间为准，页面倒计时仅供参考。截止后不再接受新的提交，已提交的算法将继续运行并更新排行榜。
+          截止时间以服务器接收文件时间为准，页面倒计时为本机时间，仅供参考。截止后不再接受新的提交，已提交的算法将继续运行并更新排行榜。
           <br/>
           6.
+          当前课程（比赛）最大可同时提交的文件数量为<b><u>{{ max_active_uploads_per_user }}个</u></b>，处于队列中和运行中的提交数量超出此限制后将无法再继续上传，请等待其完成后再尝试上传。
+          <br/>
+          7.
           利用漏洞取得的不当成绩视为无效，打榜结束后，将对每个同学的最终代码进行审查。
           <br/>
-          7. 如需切换课程（比赛），请退出登录后再重新选择相应课程登录。
+          8. 如需切换课程（比赛），请退出登录后再重新选择相应课程（比赛）登录。
           <br/>
         </div>
         <el-upload
@@ -54,7 +57,7 @@
           :on-preview="handlePreview"
           :on-remove="handleRemove"
           :before-remove="beforeRemove"
-          :multiple="false"
+          :multiple="store.is_admin"
           :on-exceed="handleExceed"
           :on-change="handleChange"
           :data="{ url: upload.url }"
@@ -79,12 +82,12 @@
           <br/>
           <el-text class="mx-1" type="info"
           >竞赛时间：{{ time_range_str }}
-          </el-text
-          >
+          </el-text>
+          <el-text class="mx-1" type="info" v-if="store.is_admin"
+          ><br/>（管理员用户支持批量上传且不受比赛时间和上传数量限制）
+          </el-text>
           <template #tip>
-            <div class="el-upload__tip">
-              代码文件以“算法名称.cc”的格式命名
-            </div>
+            <div class="el-upload__tip">代码文件以“算法名称.cc”的格式命名</div>
           </template>
         </el-upload>
         <div class="countdown-timer-card">
@@ -102,6 +105,9 @@ import {APIS} from "@/config";
 import {request} from "@/utility.js";
 import {useRouter} from "vue-router";
 import {UploadFilled} from "@element-plus/icons-vue";
+import {useAppStore} from "@/store/app";
+
+const store = useAppStore();
 
 const router = useRouter();
 const fileList = ref([]);
@@ -109,6 +115,7 @@ const upload = ref({
   url: APIS.upload,
 });
 let upload_loading = ref(false);
+let max_active_uploads_per_user = ref(0); // 最大同时上传数量
 
 const countdownDisplay = ref("");
 const deadline = ref(new Date("2025-01-01T21:00:00+08:00"));
@@ -137,12 +144,13 @@ function updateCountdown() {
 
 onMounted(async () => {
   try {
-    const result = await request(APIS.get_competition_time, {
+    const result = await request(APIS.get_competition_info, {
       method: "GET",
     });
     // 返回的是时间戳
-    deadline.value = new Date(result["data"][1] * 1000);
-    let start_time = new Date(result["data"][0] * 1000);
+    deadline.value = new Date(result["data"]['time_stmp'][1] * 1000);
+    let start_time = new Date(result["data"]['time_stmp'][0] * 1000);
+    max_active_uploads_per_user.value = result["data"]['max_active_uploads_per_user'];
     time_range_str.value = `${start_time.toLocaleString()}～${deadline.value.toLocaleString()}`;
     updateCountdown();
     timer = setInterval(updateCountdown, 1000);
@@ -164,7 +172,7 @@ const uploadFile = async ({file}) => {
       {body: formData, isFormData: true},
       {showError: false}
     );
-    let message = result["message"];
+    let message = `${file.name}: ${result["message"]}`;
     let title = "上传成功";
     if (result["enqueue_summary"]["failed_enqueues"] !== 0) {
       title = "上传成功，部分任务未入队";
@@ -202,9 +210,13 @@ const uploadFile = async ({file}) => {
         // 用户点击取消或关闭弹窗
       });
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    let msg = error.message || "上传失败，请稍后再试";
+    if (store.is_admin) {
+      msg = `${file.name}: ${msg}`;
+    }
     await ElMessageBox.alert(
-      error.message || "请检查文件格式或网络连接",
+      msg,
       "上传失败",
       {
         confirmButtonText: "确定",
@@ -217,11 +229,11 @@ const uploadFile = async ({file}) => {
 };
 
 const handlePreview = (file) => {
-  console.log("Preview:", file);
+  console.debug("Preview:", file);
 };
 
 const handleRemove = (file, fileList) => {
-  console.log("Remove:", file, fileList);
+  console.debug("Remove:", file, fileList);
 };
 
 const beforeRemove = (file, fileList) => {
@@ -249,7 +261,7 @@ const handleChange = (file, fileList) => {
 };
 
 const handleSuccess = (response, file, fileList) => {
-  console.log("Success:", response, file, fileList);
+  console.debug("Success:", response, file, fileList);
 };
 </script>
 
@@ -309,7 +321,7 @@ const handleSuccess = (response, file, fileList) => {
 }
 
 /* 移动端样式优化 */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 960px) {
   .countdown-timer-card {
     position: relative;
     right: auto;

@@ -4,14 +4,20 @@
     <v-col>
       <div
         style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-          "
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        "
       >
         <span class="text-h4">历史记录</span>
         <div>
+          <el-button type="warning" @click="exportHistoryToExcel">
+            <el-icon>
+              <Download/>
+            </el-icon>
+            导出Excel
+          </el-button>
           <el-button type="success" @click="toggleExpandAll">
             {{ allExpanded ? "折叠所有" : "展开所有" }}
           </el-button>
@@ -47,17 +53,17 @@
         ref="tableRef"
         v-loading="loading"
         :data="
-            totalTableData.slice(
-              (pageParams.page - 1) * pageParams.pageSize,
-              pageParams.page * pageParams.pageSize
-            )
-          "
+          totalTableData.slice(
+            (pageParams.page - 1) * pageParams.pageSize,
+            pageParams.page * pageParams.pageSize
+          )
+        "
         :header-cell-style="{ 'text-align': 'center' }"
         :cell-style="{ textAlign: 'center' }"
         style="width: 100%"
         height="100%"
         @sort-change="handleSortChange"
-        :default-sort="{ prop: 'formatted_time', order: 'descending' }"
+        :default-sort="{ prop: 'created_time', order: 'descending' }"
         @expand-change="handleExpandChange"
         row-key="upload_id"
       >
@@ -66,21 +72,16 @@
             <div class="expanded-content">
               <task-detail-table
                 :ref="
-                    (el) => {
-                      if (el) taskDetailRefs[props.row.upload_id] = el;
-                    }
-                  "
+                  (el) => {
+                    if (el) taskDetailRefs[props.row.upload_id] = el;
+                  }
+                "
                 :upload_id="props.row.upload_id"
               />
             </div>
           </template>
         </el-table-column>
-        <el-table-column
-          label="编号"
-          type="index"
-          :index="indexAdd"
-          width="60"
-        >
+        <el-table-column label="编号" type="index" :index="indexAdd" width="60">
         </el-table-column>
         <el-table-column prop="cname" label="比赛名称" min-width="100">
         </el-table-column>
@@ -90,12 +91,26 @@
           min-width="150"
         ></el-table-column>
         <el-table-column
-          prop="formatted_time"
+          prop="created_time"
           label="上传时间"
           width="180"
           sortable="custom"
           :sort-orders="['ascending', 'descending']"
         >
+          <template #default="scope">
+            {{ formatDateTime(scope.row.created_time) }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="updated_at"
+          label="更新时间"
+          width="180"
+          sortable="custom"
+          :sort-orders="['ascending', 'descending']"
+        >
+          <template #default="scope">
+            {{ formatDateTime(scope.row.updated_at) }}
+          </template>
         </el-table-column>
         <el-table-column
           prop="status"
@@ -116,11 +131,11 @@
           <template #default="{ row }">
             <div
               style="
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  gap: 4px;
-                "
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+              "
             >
               <el-button type="success" plain @click="toggleExpand(row)"
               >查看
@@ -137,9 +152,25 @@
         </el-table-column>
         <el-table-column label="代码">
           <template #default="{ row }">
-            <el-button type="success" plain @click="checkCode(row.upload_id)"
-            >下载
-            </el-button>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+              "
+            >
+              <el-button type="success" plain @click="viewCode(row.upload_id)"
+              >查看
+              </el-button>
+              <v-icon
+                class="download-icon"
+                style="cursor: pointer; font-size: 16px; color: #409eff"
+                @click="handleDownloadCode(row.upload_id)"
+              >
+                mdi-download
+              </v-icon>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -161,16 +192,61 @@
       </el-pagination>
     </v-col>
   </v-row>
+
+  <!-- Code View Dialog -->
+  <code-view-dialog
+    ref="codeDialogRef"
+    v-model:visible="codeDialogVisible"
+    :upload-id="currentUploadId"
+  />
 </template>
 
 <script setup>
 import {nextTick, onBeforeUnmount, onMounted, ref} from "vue";
 import {useRouter} from "vue-router";
 import {APIS} from "@/config";
+import {exportDataToExcel, formatDateTime, request} from "@/utility.js";
 import {ElMessage} from "element-plus";
-import {formatDateTime, request} from "@/utility.js";
-import {InfoFilled, Link} from "@element-plus/icons-vue";
+import {Download, InfoFilled, Link} from "@element-plus/icons-vue";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
+import CodeViewDialog from "@/components/CodeViewDialog.vue";
+
+// 导出历史记录为Excel
+function exportHistoryToExcel() {
+  try {
+    const fileName = exportDataToExcel(totalTableData.value, {
+      formatter: (row, index) => ({
+        "序号": index + 1,
+        "比赛名称": row.cname || "-",
+        "算法": row.algorithm || "-",
+        "上传时间": formatDateTime(row.created_time),
+        "更新时间": formatDateTime(row.updated_at),
+        "状态": row.status || "-",
+        "总分":
+          typeof row.score === "number"
+            ? row.score.toFixed(2)
+            : row.score || "-",
+      }),
+      sheetName: "历史记录",
+      fileName: "历史记录",
+      colWidths: [
+        {wch: 8}, // 序号
+        {wch: 20}, // 比赛名称
+        {wch: 20}, // 算法
+        {wch: 20}, // 上传时间
+        {wch: 20}, // 更新时间
+        {wch: 12}, // 状态
+        {wch: 10}, // 总分
+      ],
+    });
+    ElMessage.success(
+      `成功导出 ${totalTableData.value.length} 条记录到 ${fileName}`
+    );
+  } catch (error) {
+    console.error("导出Excel失败:", error);
+    ElMessage.error("导出Excel失败");
+  }
+}
 
 const router = useRouter();
 const totalTableData = ref([]);
@@ -183,9 +259,12 @@ const tableRef = ref(null);
 const taskDetailRefs = ref({});
 const allExpanded = ref(false);
 const loading = ref(false);
+const codeDialogVisible = ref(false);
+const currentUploadId = ref("");
+const codeDialogRef = ref(null);
 let autoRefreshTimer = null;
 // Keep track of current sort state for data refresh
-let currentTableSort = {prop: "formatted_time", order: "descending"};
+let currentTableSort = {prop: "created_time", order: "descending"};
 
 // 从 localStorage 加载分页状态
 const loadPageState = () => {
@@ -214,12 +293,12 @@ const applySorting = (data) => {
   return [...data].sort((a, b) => {
     const {prop, order} = currentTableSort;
     if (order === "ascending") {
-      if (prop === "formatted_time") {
+      if (prop === "created_time") {
         return new Date(a.created_time) - new Date(b.created_time);
       }
       return a[prop] > b[prop] ? 1 : -1;
     } else {
-      if (prop === "formatted_time") {
+      if (prop === "created_time") {
         return new Date(b.created_time) - new Date(a.created_time);
       }
       return a[prop] < b[prop] ? 1 : -1;
@@ -233,20 +312,11 @@ async function get_history_records(loading_delay = 0) {
     const res = await request(APIS.get_history_records, {
       method: "GET",
     });
-    let temp = res.history;
     // Save the upload_id list of currently expanded rows
     const currentExpandedIds = [...expandedRows.value];
 
-    const formattedData = temp.map((record) => {
-      const formatted_time = formatDateTime(record.created_time);
-      return {
-        ...record,
-        formatted_time,
-      };
-    });
-
     // Apply current sorting to the entire dataset
-    totalTableData.value = applySorting(formattedData);
+    totalTableData.value = applySorting(res.history);
 
     // Don't force re-render TaskDetailTable components, let them reuse existing instances
     // Refresh data of expanded components in the next tick
@@ -305,43 +375,15 @@ function viewDetail(upload_id) {
   router.push({name: "Detail", params: {upload_id}});
 }
 
-async function checkCode(upload_id) {
-  try {
-    const params = new URLSearchParams();
-    params.append("upload_id", upload_id);
+async function viewCode(upload_id) {
+  currentUploadId.value = upload_id;
+  codeDialogVisible.value = true;
+}
 
-    const url = `${APIS.get_code}?${params.toString()}`;
-
-    const response = await request(
-      url,
-      {
-        method: "GET",
-      },
-      {raw: true}
-    );
-    if (response.ok) {
-      const contentDisposition = response.headers.get("Content-Disposition");
-      const fileNameMatch = contentDisposition
-        ? contentDisposition.match(/filename="?([^"]+)"?/)
-        : null;
-      let fileName = "code.cc";
-      if (fileNameMatch && fileNameMatch[1]) {
-        fileName = fileNameMatch[1];
-      }
-      ElMessage.success(`代码下载成功`);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    }
-  } catch (error) {
-    console.error("Failed to download code:", error);
-    // ElMessage.error("Failed to download code");
+// 处理代码下载，调用组件的方法
+function handleDownloadCode(upload_id) {
+  if (codeDialogRef.value) {
+    codeDialogRef.value.downloadCode(upload_id);
   }
 }
 
@@ -508,5 +550,11 @@ onBeforeUnmount(() => {
 
 .expanded-content {
   padding: 20px;
+}
+
+.download-icon:hover {
+  color: #409eff !important;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
 }
 </style>
