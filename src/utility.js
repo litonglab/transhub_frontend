@@ -70,6 +70,17 @@ export async function request(url, options = {}, config = {}) {
         // 防止一直跳转
         const loginUrl = "/login";
         if (window.location.pathname !== loginUrl) {
+          ElMessage({
+            message: data.message || "未登录或登录已过期，请重新登录",
+            type: "error",
+            duration: 3000,
+          });
+          ElMessage({
+            message: "正在重定向至登录页面...",
+            type: "success",
+            duration: 3000,
+          });
+          await new Promise((resolve) => setTimeout(resolve, 3000));
           window.location.href = loginUrl;
         }
         throw new Error(data.message);
