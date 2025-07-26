@@ -113,6 +113,7 @@
           </v-alert>
           <div>
             <v-chip-group
+              v-if="traceCases.length > 0"
               v-model="selectedCases"
               multiple
               class="case-chips"
@@ -131,6 +132,19 @@
                 {{ item.trace_name }}{{ item.is_blocked ? ' *' : '' }}
               </v-chip>
             </v-chip-group>
+            <v-alert
+              v-else
+              type="warning"
+              variant="tonal"
+              icon="mdi-alert-circle-outline"
+              class="mt-2"
+            >
+              <template v-slot:text>
+                <div class="alert-content">
+                  当前没有可用的评测用例，请稍后再试或联系管理员。
+                </div>
+              </template>
+            </v-alert>
           </div>
         </v-card-text>
 
@@ -328,6 +342,12 @@ onMounted(async () => {
     const traceRes = await request(APIS.get_trace_list, {method: "GET"});
 
     traceCases.value = traceRes.trace_list;
+    // 先按is_blocked排序，公开用例在前，然后按trace_name排序
+    traceCases.value.sort((a, b) => {
+      if (a.is_blocked && !b.is_blocked) return 1;
+      if (!a.is_blocked && b.is_blocked) return -1;
+      return a.trace_name.localeCompare(b.trace_name);
+    });
     // 请求成功后再读取localStorage并过滤
     const saved = localStorage.getItem(SELECTED_CASES_KEY);
     if (saved) {

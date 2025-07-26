@@ -94,7 +94,22 @@
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item>
-                <v-list-item-title>日志级别</v-list-item-title>
+                <v-list-item-title>日志级别
+                  <v-tooltip location="top">
+                    <template v-slot:activator="{ props }">
+                      <v-icon
+                        v-bind="props"
+                        icon="mdi-information-outline"
+                        size="16"
+                        color="grey"
+                        class="ml-1"
+                      ></v-icon>
+                    </template>
+                    <span
+                    >生产环境中，日志级别建议为INFO及以上。  </span
+                    >
+                  </v-tooltip>
+                </v-list-item-title>
                 <v-list-item-subtitle>
                   <v-chip
                     :color="getLogLevelColor(systemInfo.config?.log_level)"
@@ -374,7 +389,7 @@
                   </v-row>
 
                   <!-- 如果有trace配置，显示trace详情 -->
-                  <div v-if="courseConfig.trace" class="mt-4">
+                  <div v-if="courseConfig.trace && Object.keys(courseConfig.trace).length > 0" class="mt-4">
                     <v-divider class="mb-3"></v-divider>
                     <h4 class="mb-3">网络trace配置</h4>
                     <v-row>
