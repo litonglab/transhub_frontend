@@ -438,7 +438,7 @@
                               </v-chip>
                             </div>
                             <div class="d-flex justify-space-between mb-1">
-                              <span class="text-caption">往返时延:</span>
+                              <span class="text-caption">单向时延:</span>
                               <v-chip
                                 size="x-small"
                                 variant="tonal"
