@@ -204,6 +204,14 @@
               >
                 <Link/>
               </el-icon>
+              <el-icon
+                v-if="store.is_admin || row.username === store.name"
+                class="delete-icon"
+                style="cursor: pointer"
+                @click="handleDeleteRank(row)"
+              >
+                <Delete/>
+              </el-icon>
             </div>
           </template>
         </el-table-column>
@@ -257,6 +265,37 @@
     v-model:visible="codeDialogVisible"
     :upload-id="currentUploadId"
   />
+
+  <v-dialog v-model="showDeleteDialog" max-width="500px">
+    <v-card>
+      <v-card-title class="text-h6">确认删除</v-card-title>
+      <v-card-text style="white-space: pre-line">{{
+          deleteDialogMessage
+        }}
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer/>
+        <v-btn
+          variant="text"
+          @click="onDeleteDialogCancel"
+          :disabled="deleteLoading"
+        >取消
+        </v-btn
+        >
+        <v-btn
+          color="error"
+          :loading="deleteLoading"
+          :disabled="deleteCountdown > 0 || deleteLoading"
+          @click="onDeleteDialogConfirm"
+        >
+          <template v-if="deleteCountdown > 0">
+            确定删除 ({{ deleteCountdown }})
+          </template>
+          <template v-else> 确定删除</template>
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -264,7 +303,7 @@ import {onBeforeUnmount, onMounted, ref} from "vue";
 import {APIS} from "@/config.js";
 import {exportDataToExcel, formatDateTime, request} from "@/utility.js";
 import {useRouter} from "vue-router";
-import {Download, InfoFilled, Link} from "@element-plus/icons-vue";
+import {Delete, Download, InfoFilled, Link} from "@element-plus/icons-vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 import CodeViewDialog from "@/components/CodeViewDialog.vue";
@@ -712,6 +751,64 @@ async function exportToExcel() {
   } catch (error) {
     console.error("导出Excel失败:", error);
     ElMessage.error("导出Excel失败");
+  }
+}
+
+// ===== Vuetify删除弹窗相关 =====
+const showDeleteDialog = ref(false);
+const deleteDialogMessage = ref("");
+const deleteCountdown = ref(5);
+const deleteLoading = ref(false);
+let deleteTimer = null;
+let deleteTargetRow = null;
+
+function handleDeleteRank(row) {
+  let tips =
+    "请注意：\n1. 删除后无法恢复，需要重新提交代码才能更新榜单，否则无成绩；\n2. 比赛截止前12小时内及截止后禁止删除";
+  deleteDialogMessage.value = store.is_admin
+    ? `确定要删除用户 "${row.username}" 的榜单记录吗？\n${tips}。`
+    : `确定要删除您的榜单记录吗？\n${tips}；\n3. 每12小时只能删除一次。`;
+  deleteCountdown.value = 10;
+  deleteLoading.value = false;
+  showDeleteDialog.value = true;
+  deleteTargetRow = row;
+  if (deleteTimer) clearInterval(deleteTimer);
+  deleteTimer = setInterval(() => {
+    if (deleteCountdown.value > 0) {
+      deleteCountdown.value--;
+    } else {
+      clearInterval(deleteTimer);
+      deleteTimer = null;
+    }
+  }, 1000);
+}
+
+function onDeleteDialogCancel() {
+  showDeleteDialog.value = false;
+  deleteLoading.value = false;
+  if (deleteTimer) clearInterval(deleteTimer);
+}
+
+async function onDeleteDialogConfirm() {
+  deleteLoading.value = true;
+  if (deleteTimer) clearInterval(deleteTimer);
+  try {
+    // 构建请求参数
+    const requestOptions = {
+      method: "DELETE",
+      body: JSON.stringify({
+        rank_id: deleteTargetRow?.to_admin?.rank_id || -1,
+      }),
+    };
+    await request(APIS.delete_rank, requestOptions);
+    ElMessage.success("删除成功");
+    showDeleteDialog.value = false;
+    await get_ranklist();
+  } catch (error) {
+    console.error("删除榜单记录失败:", error);
+  } finally {
+    deleteLoading.value = false;
+    if (deleteTimer) clearInterval(deleteTimer);
   }
 }
 

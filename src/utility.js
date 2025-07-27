@@ -148,7 +148,6 @@ export function parseFilenameFromContentDisposition(contentDisposition) {
   return fileName;
 }
 
-
 /**
  * 获取图片并转为 blob url（内部使用统一 request 封装）
  * @param {string} url 图片请求地址

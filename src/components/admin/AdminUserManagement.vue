@@ -352,7 +352,7 @@
   </v-dialog>
 
   <!-- 删除用户确认对话框 -->
-  <v-dialog v-model="deleteDialog" max-width="400px">
+  <v-dialog v-model="deleteDialog" max-width="500px">
     <v-card>
       <v-card-title class="headline">确认删除</v-card-title>
       <v-card-text>
@@ -371,7 +371,7 @@
   </v-dialog>
 
   <!-- 恢复用户确认对话框 -->
-  <v-dialog v-model="restoreDialog" max-width="400px">
+  <v-dialog v-model="restoreDialog" max-width="500px">
     <v-card>
       <v-card-title class="headline">确认恢复</v-card-title>
       <v-card-text>
