@@ -329,6 +329,14 @@ async function get_history_records(loading_delay = 0) {
     // Apply current sorting to the entire dataset
     totalTableData.value = applySorting(res.history);
 
+    // 检查当前页码是否超出最大页数，若超出则跳转到最后一页
+    const total = totalTableData.value.length;
+    const maxPage = Math.max(1, Math.ceil(total / pageParams.value.pageSize));
+    if (pageParams.value.page > maxPage) {
+      pageParams.value.page = maxPage;
+      savePageState();
+    }
+
     // Don't force re-render TaskDetailTable components, let them reuse existing instances
     // Refresh data of expanded components in the next tick
     await nextTick(() => {

@@ -474,6 +474,14 @@ async function get_ranklist(loading_delay = 0) {
     const sortedData = applySorting(res.rank);
     totalTableData.value = sortedData;
 
+    // 检查当前页码是否超出最大页数，若超出则跳转到最后一页
+    const total = totalTableData.value.length;
+    const maxPage = Math.max(1, Math.ceil(total / pageParams.value.pageSize));
+    if (pageParams.value.page > maxPage) {
+      pageParams.value.page = maxPage;
+      savePageState();
+    }
+
     // 计算当前用户排名
     const idx = sortedData.findIndex((row) => row.username === store.name);
     userRank.value = idx >= 0 ? idx : null;
