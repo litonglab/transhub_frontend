@@ -237,7 +237,7 @@ const checkMobile = () => {
 onMounted(() => {
   checkMobile();
   updateSystemInfo();
-  sysInfoTimer = setInterval(updateSystemInfo, 2000);
+  sysInfoTimer = setInterval(updateSystemInfo, 5000);
   window.addEventListener("resize", checkMobile);
   // 监听顶栏菜单按钮事件，移动端切换抽屉
   window.addEventListener("toggle-home-drawer", () => {
