@@ -195,7 +195,7 @@
           variant="text"
           @click="toggleFullScreen"
           :title="isFullScreen ? '退出全屏' : '全屏'"
-          style="margin-right: -15px;"
+          style="margin-right: -15px"
         ></v-btn>
         <v-btn
           icon="mdi-refresh"
@@ -245,17 +245,15 @@
           <span v-else>-</span>
         </template>
         <template v-slot:item.log="{ item }">
-          <div class="log-cell limited-log">
-            <span
-              v-for="(line, idx) in getLimitedLogLines(item.log)"
-              :key="idx"
-            >
-              {{
-                line
-              }}<br v-if="idx < getLimitedLogLines(item.log).length - 1"/>
-            </span>
-            <span v-if="isLogTruncated(item.log)" style="color: #888">...</span>
-          </div>
+          <v-btn
+            size="small"
+            variant="text"
+            color="primary"
+            @click="showLog(item.task_id, item)"
+            title="查看日志"
+          >
+            查看日志
+          </v-btn>
         </template>
 
         <template v-slot:item.created_time="{ item }">
@@ -432,20 +430,15 @@
           <v-col cols="12" v-if="selectedTask.log">
             <v-list-item>
               <v-list-item-title>日志</v-list-item-title>
-              <v-list-item-subtitle>
-                <pre
-                  style="
-                    white-space: pre-wrap;
-                    word-break: break-all;
-                    background-color: #f5f5f5;
-                    padding: 10px;
-                    border-radius: 4px;
-                    max-height: 300px;
-                    overflow-y: auto;
-                  "
-                >{{ selectedTask.log }}</pre
-                >
-              </v-list-item-subtitle>
+              <v-btn
+                size=""
+                variant="text"
+                color="primary"
+                @click="showLog(selectedTask.task_id, selectedTask)"
+                title="查看日志"
+              >
+                查看日志
+              </v-btn>
             </v-list-item>
           </v-col>
         </v-row>
@@ -458,7 +451,7 @@
   </v-dialog>
 
   <!-- 提交记录详情对话框 -->
-  <v-dialog v-model="recordDetailDialog" max-width="1200px" scrollable>
+  <v-dialog v-model="recordDetailDialog" max-width="1800px" scrollable>
     <v-card>
       <v-card-title class="d-flex align-center">
         <span class="headline">提交记录详情</span>
@@ -476,20 +469,17 @@
   </v-dialog>
 
   <!-- 图弹窗 -->
-  <v-dialog
-    v-model="imageDialogVisible"
-    style="max-width: 70%; max-height: 95%"
-  >
-    <v-card>
-      <v-card-title
-      >{{ imageDialogType === "throughput" ? "吞吐量图" : "时延图" }}
-      </v-card-title>
-      <div style="padding: 5px 15px">
-        <img v-if="imageDialogUrl" :src="imageDialogUrl" style="width: 100%"/>
-        <div v-else style="min-height: 80px; padding: 10px 0">暂无图片</div>
-      </div>
-    </v-card>
-  </v-dialog>
+  <ImageAndLogViewDialog
+    :visible="dialogState.visible"
+    :title="dialogState.title"
+    :loading="dialogState.loading"
+    :error="dialogState.error"
+    :error-message="dialogState.errorMessage"
+    :content="dialogState.content"
+    :content-type="dialogState.contentType"
+    :filename="dialogState.filename"
+    @update:visible="dialogState.visible = $event"
+  />
 </template>
 
 <script setup>
@@ -497,6 +487,7 @@ import {computed, onMounted, reactive, ref} from "vue";
 import {APIS} from "@/config";
 import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
+import ImageAndLogViewDialog from "@/components/ImageAndLogViewDialog.vue";
 
 // 防抖函数
 function debounce(fn, delay = 300) {
@@ -544,7 +535,7 @@ const headers = [
   {title: "状态", key: "task_status", sortable: false, default: true},
   {title: "上传时间", key: "created_time", sortable: true, default: true},
   {title: "创建时间", key: "created_at", sortable: false, default: false,},
-  {title: "更新时间", key: "updated_at", sortable: false, default: true,},
+  {title: "更新时间", key: "updated_at", sortable: true, default: true,},
   {title: "吞吐量图", key: "throughput_graph", sortable: false, default: false,},
   {title: "时延图", key: "delay_graph", sortable: false, default: false},
   {title: "操作", key: "actions", sortable: false, align: "center", default: true,},
@@ -571,10 +562,18 @@ const computedHeaders = computed(() => {
 
 const isMobile = ref(false);
 const showAllFilters = ref(false);
-const imageDialogVisible = ref(false);
-const imageDialogUrl = ref("");
-const imageDialogType = ref("");
 const isFullScreen = ref(false);
+
+const dialogState = reactive({
+  visible: false,
+  title: "",
+  contentType: "image",
+  content: "",
+  filename: "",
+  loading: false,
+  error: false,
+  errorMessage: "",
+});
 
 onMounted(() => {
   isMobile.value = window.innerWidth <= 960;
@@ -639,6 +638,7 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
       const sortByMap = {
         task_score: "score",
         created_time: "created_time",
+        updated_at: "updated_at",
       };
       if (sortByMap[sortItem.key]) {
         params.append("sort_by", sortByMap[sortItem.key]);
@@ -701,34 +701,64 @@ const loadCourseList = async () => {
   }
 };
 
-const isLogTruncated = (log) => {
-  if (!log) return false;
-  const lines = log.split(/\r?\n/);
-  return lines.length > 5;
-};
-
-const getLimitedLogLines = (log) => {
-  if (!log) return [];
-  const lines = log.split(/\r?\n/);
-  return lines.slice(0, 5);
-};
 
 async function showImage(type, task_id) {
+  dialogState.visible = true;
+  dialogState.loading = true;
+  dialogState.error = false;
+  dialogState.contentType = "image";
+  dialogState.title = type === "throughput" ? "吞吐量图" : "时延图";
+  dialogState.content = "";
+  dialogState.filename = "";
+
   try {
     const params = new URLSearchParams();
     params.append("task_id", task_id);
     params.append("graph_type", type);
     const url = `${APIS.get_graph}?${params.toString()}`;
-    const blobUrl = await fetchImageBlobUrl(url);
-    if (!blobUrl) {
+    const result = await fetchImageBlobUrl(url);
+    if (!result) {
+      dialogState.error = true;
+      dialogState.errorMessage = "无法获取性能图";
       return;
     }
-    imageDialogUrl.value = blobUrl || "";
-    imageDialogType.value = type;
-    imageDialogVisible.value = true;
+    const {blobUrl, filename} = result;
+    dialogState.content = blobUrl;
+    dialogState.filename = filename;
   } catch (error) {
-    imageDialogUrl.value = "";
-    imageDialogVisible.value = false;
+    dialogState.error = true;
+    dialogState.errorMessage = "加载性能图失败";
+  } finally {
+    dialogState.loading = false;
+  }
+}
+
+async function showLog(task_id, row) {
+  dialogState.visible = true;
+  dialogState.loading = true;
+  dialogState.error = false;
+  dialogState.contentType = "log";
+  dialogState.title = "日志信息";
+  dialogState.content = "";
+  const traceName = row ? row.trace_name : "unknown";
+  dialogState.filename = `${row.algorithm}_${traceName}.log`;
+  try {
+    // 假设新接口为APIS.task_get_log，GET，参数task_id
+    const params = new URLSearchParams();
+    params.append("task_id", task_id);
+    const url = `${APIS.task_get_log}?${params.toString()}`;
+    const result = await request(url, {method: "GET"});
+    if (!result || !result.log) {
+      dialogState.error = true;
+      dialogState.errorMessage = "未获取到日志内容";
+      return;
+    }
+    dialogState.content = result.log;
+  } catch (error) {
+    dialogState.error = true;
+    dialogState.errorMessage = "加载日志失败";
+  } finally {
+    dialogState.loading = false;
   }
 }
 
@@ -777,7 +807,7 @@ const statusOptions = statusMeta.map((s) => ({
 .table-actions {
   position: absolute;
   top: -8px;
-  right: 0px;
+  right: 0;
   z-index: 2000;
 }
 
@@ -803,21 +833,6 @@ const statusOptions = statusMeta.map((s) => ({
   color: #1976d2;
   align-items: center;
   display: inline-flex;
-}
-
-.log-cell {
-  max-width: 300px;
-  white-space: pre-wrap;
-  word-break: break-all;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.limited-log {
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: normal;
 }
 
 .actions-cell {

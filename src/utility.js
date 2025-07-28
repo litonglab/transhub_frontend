@@ -98,22 +98,60 @@ export async function request(url, options = {}, config = {}) {
   }
 }
 
+/**
+ * 从 Content-Disposition 标头解析文件名
+ * @param {string | null} contentDisposition
+ * @returns {string}
+ */
+export function parseFilenameFromContentDisposition(contentDisposition) {
+  let fileName = ""; // 默认文件名
+
+  if (contentDisposition) {
+    // 优先匹配 RFC 5987 的 filename*
+    const fileNameStarMatch = contentDisposition.match(
+      /filename\*\s*=\s*([^;]+)/i
+    );
+    if (fileNameStarMatch) {
+      try {
+        let value = fileNameStarMatch[1].trim();
+        // 格式如: UTF-8''%E4%B8%AD%E6%96%87.cc
+        const parts = value.split("''");
+        if (parts.length === 2) {
+          fileName = decodeURIComponent(parts[1]);
+        } else {
+          fileName = decodeURIComponent(value);
+        }
+        return fileName;
+      } catch (e) {
+        console.error("Error decoding filename*:", e);
+      }
+    }
+
+    // 兼容 filename="xxx"
+    const fileNameMatch = contentDisposition.match(/filename="?([^";]+)"?/);
+    if (fileNameMatch && fileNameMatch[1]) {
+      fileName = fileNameMatch[1];
+    }
+  }
+
+  return fileName;
+}
+
 //
 /**
  * 获取图片并转为 blob url（内部使用统一 request 封装）
  * @param {string} url 图片请求地址
  * @param {object} options fetch 选项（可选）
- * @returns {Promise<string|null>} 成功返回 blob url，失败或无图片返回 null
- * @description 用法示例：const imgUrl = await fetchImageBlobUrl(url)
+ * @returns {Promise<{blobUrl: string, filename: string}|null>} 成功返回 blob url 和文件名，失败或无图片返回 null
+ * @description 用法示例：const img = await fetchImageBlobUrl(url)
  */
 export async function fetchImageBlobUrl(url, options = {}) {
   try {
     // 只允许 GET
     const mergedOptions = {method: "GET", ...options};
-    // 使用 request 封装，传 raw:true 返回原始 response
-    const response = await request(url, mergedOptions, {
-      raw: true,
-    });
+    // 使用 request 封装，它会返回原始 response
+    const response = await request(url, mergedOptions);
+
     if (!response.ok) {
       console.error("fetchImageBlobUrl: response not ok", response.status, url);
       return null;
@@ -132,7 +170,13 @@ export async function fetchImageBlobUrl(url, options = {}) {
       console.error("fetchImageBlobUrl: blob is empty", url);
       return null;
     }
-    return URL.createObjectURL(blob);
+
+    const contentDisposition = response.headers.get("Content-Disposition");
+    const filename = parseFilenameFromContentDisposition(contentDisposition);
+    return {
+      blobUrl: URL.createObjectURL(blob),
+      filename: filename,
+    };
   } catch (e) {
     console.error("fetchImageBlobUrl: exception", e, url);
     return null;

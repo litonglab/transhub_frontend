@@ -40,15 +40,34 @@
           5.
           截止时间以服务器接收文件时间为准，页面倒计时为本机时间，仅供参考。截止后不再接受新的提交，已提交的算法将继续运行并更新排行榜。
           <br/>
-          6.
-          当前课程（比赛）最大可同时提交的文件数量为<b><u>{{ max_active_uploads_per_user }}个</u></b>，处于队列中和运行中的提交数量超出此限制后将无法再继续上传，请等待其完成后再尝试上传。
+          6. 当前课程（比赛）最大可同时提交的文件数量为<b><u>{{ max_active_uploads_per_user }}个</u></b>，
+          处于队列中和运行中的提交数量超出此限制后将无法再继续上传，请等待其完成后再尝试上传。
           <br/>
           7.
           利用漏洞取得的不当成绩视为无效，打榜结束后，将对每个同学的最终代码进行审查。
           <br/>
           8. 如需切换课程（比赛），请退出登录后再重新选择相应课程（比赛）登录。
           <br/>
+          9. 在上传代码前，请选择要使用的评测用例。选择少量用例，可以缩短评测时间，并减轻系统负载。即使上传时未选择所有用例，您后续仍可在任务详情页手动重新执行评测。
+          此功能建议在以下情况下使用：i)
+          如果算法处于开发初期，您可以选择少量用例（特别是已公开的用例）进行快速测试；ii)
+          如果你的算法已相对完善，但在某些特定用例上表现不佳，您可以选择单独评测这些用例以进行针对性优化。iii)
+          如果算法开发已基本完成，建议选择全部用例进行全面测试，只有完成全部用例测试，才会更新对应榜单数据。
+          <br/>
         </div>
+
+        <!-- 评测用例多选框（el-checkbox版） -->
+        <el-form-item label="选择评测用例" style="margin-top: 10px">
+          <el-checkbox-group v-model="selectedCases">
+            <el-checkbox
+              v-for="item in traceCases"
+              :key="item"
+              :label="item"
+              :value="item"
+              style="margin-right: 16px;"
+            />
+          </el-checkbox-group>
+        </el-form-item>
         <el-upload
           class="upload-demo"
           action=""
@@ -86,21 +105,22 @@
           <el-text class="mx-1" type="info" v-if="store.is_admin"
           ><br/>（管理员用户支持批量上传且不受比赛时间和上传数量限制）
           </el-text>
+
+          <div class="countdown-timer-card">
+            <span class="countdown-timer">剩余：{{ countdownDisplay }}</span>
+          </div>
           <template #tip>
             <div class="el-upload__tip">代码文件以“算法名称.cc”的格式命名</div>
           </template>
         </el-upload>
-        <div class="countdown-timer-card">
-          <span class="countdown-timer">剩余：{{ countdownDisplay }}</span>
-        </div>
       </el-card>
     </v-col>
   </v-row>
 </template>
 
 <script setup>
-import {onMounted, onUnmounted, ref} from "vue";
-import {ElMessage, ElMessageBox} from "element-plus";
+import {onMounted, onUnmounted, ref, watch} from "vue";
+import {ElFormItem, ElMessage, ElMessageBox} from "element-plus";
 import {APIS} from "@/config";
 import {request} from "@/utility.js";
 import {useRouter} from "vue-router";
@@ -121,6 +141,17 @@ const countdownDisplay = ref("");
 const deadline = ref(new Date("2025-01-01T21:00:00+08:00"));
 let time_range_str = ref("加载中...");
 let timer = null;
+// 评测用例相关
+const traceCases = ref([]);
+const selectedCases = ref([]);
+
+// 记忆功能：保存和恢复评测用例选择
+const SELECTED_CASES_KEY = 'transhub_selected_cases';
+
+// 监听选择变化，自动保存
+watch(selectedCases, (val) => {
+  localStorage.setItem(SELECTED_CASES_KEY, JSON.stringify(val));
+}, {deep: true});
 
 function updateCountdown() {
   const now = new Date();
@@ -154,8 +185,24 @@ onMounted(async () => {
     time_range_str.value = `${start_time.toLocaleString()}～${deadline.value.toLocaleString()}`;
     updateCountdown();
     timer = setInterval(updateCountdown, 1000);
+
+    // 获取评测用例列表（字符串数组）
+    const traceRes = await request(APIS.get_trace_list, {method: "GET"});
+
+    traceCases.value = traceRes.trace_list;
+    // 请求成功后再读取localStorage并过滤
+    const saved = localStorage.getItem(SELECTED_CASES_KEY);
+    if (saved) {
+      try {
+        const arr = JSON.parse(saved);
+        selectedCases.value = Array.isArray(arr) ? arr.filter(val => traceCases.value.includes(val)) : [];
+      } catch {
+        selectedCases.value = [];
+      }
+    }
   } catch (error) {
     time_range_str.value = "加载失败，请稍后再试";
+    traceCases.value = [];
   }
 });
 onUnmounted(() => {
@@ -165,6 +212,16 @@ onUnmounted(() => {
 const uploadFile = async ({file}) => {
   const formData = new FormData();
   formData.append("file", file);
+  // 判断用例是否为空
+  if (selectedCases.value.length === 0) {
+    ElMessage.error("请至少选择一个评测用例");
+    return;
+  }
+  // 发送选中的评测用例
+  if (Array.isArray(selectedCases.value)) {
+    // 以JSON字符串形式发送，后端可按需解析
+    formData.append("trace_list", JSON.stringify(selectedCases.value));
+  }
   try {
     upload_loading.value = true;
     let result = await request(
@@ -215,15 +272,11 @@ const uploadFile = async ({file}) => {
     if (store.is_admin) {
       msg = `${file.name}: ${msg}`;
     }
-    await ElMessageBox.alert(
-      msg,
-      "上传失败",
-      {
-        confirmButtonText: "确定",
-        type: "error",
-        center: true,
-      }
-    );
+    await ElMessageBox.alert(msg, "上传失败", {
+      confirmButtonText: "确定",
+      type: "error",
+      center: true,
+    });
   }
   upload_loading.value = false;
 };
@@ -292,8 +345,8 @@ const handleSuccess = (response, file, fileList) => {
 
 .countdown-timer-card {
   position: absolute;
-  right: 38px;
-  bottom: 18px;
+  left: 5px;
+  top: 18px;
   z-index: 2;
   pointer-events: none;
 }
@@ -327,8 +380,6 @@ const handleSuccess = (response, file, fileList) => {
     right: auto;
     bottom: auto;
     text-align: center;
-    margin-top: 20px;
-    margin-bottom: 10px;
   }
 
   .countdown-timer {

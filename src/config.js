@@ -12,6 +12,9 @@ export const APIS = {
 
   //task
   upload: hostname + "/task_upload",
+  task_get_log: hostname + "/task_get_log",
+  task_enqueue: hostname + "/task_enqueue",
+  get_trace_list: hostname + "/task_get_trace_list",
 
   //history
   get_history_records: hostname + "/history_get_history_records",

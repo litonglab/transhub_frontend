@@ -5,8 +5,8 @@
     <v-fab
       v-if="showToc"
       icon="mdi-format-list-bulleted"
-      color="primary"
-      size="large"
+      color="#b00020"
+      size="default"
       location="bottom end"
       class="toc-btn"
       @click="toggleToc"
@@ -359,8 +359,7 @@ onUnmounted(() => {
 .markdown-body :deep(h1) {
   font-size: 2.5em;
   color: #1a202c;
-  border-bottom: 3px solid #667eea;
-  padding-bottom: 8px;
+  border-bottom: 2px solid #b00020;
   margin-bottom: 22px;
   margin-top: 0;
   font-weight: 700;
@@ -383,9 +382,9 @@ onUnmounted(() => {
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 4px;
+  width: 3px;
   height: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #d58391 0%, #b00020 100%);
   border-radius: 2px;
 }
 
@@ -430,8 +429,8 @@ onUnmounted(() => {
 }
 
 .markdown-body :deep(a:hover) {
-  color: #764ba2;
-  border-bottom-color: #764ba2;
+  color: #b00020;
+  border-bottom-color: #b00020;
 }
 
 /* 列表样式 */
@@ -451,12 +450,12 @@ onUnmounted(() => {
 }
 
 .markdown-body :deep(ul li::marker) {
-  color: #667eea;
+  color: #b00020;
 }
 
 /* 引用块样式 */
 .markdown-body :deep(blockquote) {
-  border-left: 4px solid #667eea;
+  border-left: 3px solid #b00020;
   background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
   margin: 24px 0;
   padding: 20px 24px 10px;
@@ -469,7 +468,7 @@ onUnmounted(() => {
 .markdown-body :deep(blockquote::before) {
   content: '"';
   font-size: 3em;
-  color: #667eea;
+  color: #b00020;
   position: absolute;
   top: -10px;
   left: 15px;
@@ -539,12 +538,13 @@ onUnmounted(() => {
 }
 
 .markdown-body :deep(code) {
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Consolas", "Courier New", monospace;
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Consolas",
+  "Courier New", monospace;
   font-size: 0.9em;
 }
 
 .markdown-body :deep(p code),
-.markdown-body :deep(li code) {
+.markdown-body :deep(li > code) {
   background: #f7fafc;
   color: #e53e3e;
   padding: 4px 8px;
@@ -566,13 +566,13 @@ onUnmounted(() => {
 }
 
 .markdown-body :deep(th) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  font-weight: 600;
+  color: #b00020;
+  font-weight: 700;
   padding: 16px;
   text-align: left;
-  font-size: 0.95em;
+  font-size: 1em;
   letter-spacing: 0.05em;
+  border-bottom: 2px solid #f8bbd0;
 }
 
 .markdown-body :deep(td) {
@@ -616,7 +616,7 @@ onUnmounted(() => {
 .markdown-body :deep(hr) {
   border: none;
   height: 2px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #d58391 0%, #b00020 100%);
   margin: 40px 0;
   border-radius: 1px;
 }
@@ -680,10 +680,10 @@ onUnmounted(() => {
   top: 0;
   font-size: 1.2em;
   font-weight: 700;
-  color: #667eea;
+  color: #b00020;
   margin-bottom: 16px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid #b00020;
   z-index: 9999;
   background: #f8faff;
 }
@@ -725,14 +725,14 @@ onUnmounted(() => {
 .toc-content :deep(a:hover) {
   background: linear-gradient(
     135deg,
-    rgba(102, 126, 234, 0.15) 0%,
-    rgba(118, 75, 162, 0.15) 100%
+    rgba(213, 131, 145, 0.15) 0%,
+    rgba(176, 0, 32, 0.15) 100%
   );
-  color: #667eea;
-  border-left-color: #667eea;
+  color: #b00020;
   transform: translateX(6px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(213, 131, 145, 0.15);
+  border-color: #f8bbd0;
+  border-left-color: #b00020;
 }
 
 /* 悬浮按钮样式优化 */

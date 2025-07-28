@@ -16,7 +16,7 @@
         :to="{ name: power.id_name }"
         @click="handleNavigation(power.id_name)"
         link
-        color="success"
+        color="#b00020"
         rounded="lg"
         class="ma-2"
       >
