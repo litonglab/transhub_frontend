@@ -77,6 +77,7 @@
                   }
                 "
                 :upload_id="props.row.upload_id"
+                :height="'450'"
               />
             </div>
           </template>
@@ -124,7 +125,17 @@
           :sort-orders="['ascending', 'descending']"
         >
           <template #default="scope">
-            {{ scope.row.score.toFixed(2) }}
+            <span
+              :style="{
+                fontStyle:
+                  scope.row.status !== 'finished' ? 'italic' : 'normal',
+                fontWeight: scope.row.status === 'finished' ? 'bold' : 'normal',
+              }"
+            >
+              {{
+                scope.row.score.toFixed(2)
+              }}{{ scope.row.status !== "finished" ? "*" : "" }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="详情" min-width="90">
@@ -317,6 +328,14 @@ async function get_history_records(loading_delay = 0) {
 
     // Apply current sorting to the entire dataset
     totalTableData.value = applySorting(res.history);
+
+    // 检查当前页码是否超出最大页数，若超出则跳转到最后一页
+    const total = totalTableData.value.length;
+    const maxPage = Math.max(1, Math.ceil(total / pageParams.value.pageSize));
+    if (pageParams.value.page > maxPage) {
+      pageParams.value.page = maxPage;
+      savePageState();
+    }
 
     // Don't force re-render TaskDetailTable components, let them reuse existing instances
     // Refresh data of expanded components in the next tick

@@ -69,7 +69,19 @@ export async function request(url, options = {}, config = {}) {
       } else if (data.code === 401) {
         // 防止一直跳转
         const loginUrl = "/login";
-        if (window.location.pathname !== loginUrl) {
+        if (window.location.pathname !== loginUrl
+          && window.location.pathname !== "/") {
+          ElMessage({
+            message: data.message || "未登录或登录已过期，请重新登录",
+            type: "error",
+            duration: 3000,
+          });
+          ElMessage({
+            message: "正在重定向至登录页面...",
+            type: "success",
+            duration: 3000,
+          });
+          await new Promise((resolve) => setTimeout(resolve, 3000));
           window.location.href = loginUrl;
         }
         throw new Error(data.message);
@@ -137,7 +149,6 @@ export function parseFilenameFromContentDisposition(contentDisposition) {
   return fileName;
 }
 
-//
 /**
  * 获取图片并转为 blob url（内部使用统一 request 封装）
  * @param {string} url 图片请求地址

@@ -1,4 +1,4 @@
-<!--课程管理-->
+<!--算法提交-->
 <template>
   <!-- Header -->
   <v-row class="flex-grow-0">
@@ -15,116 +15,205 @@
       </div>
     </v-col>
   </v-row>
+
   <!-- Scrollable Content -->
-  <v-row class="flex-grow-1" style="overflow-y: auto; min-height: 0">
+  <v-row class="flex-grow-1" style="overflow-y: auto; margin-top: 0">
     <v-col>
-      <!--  <detail :task_ID="task_id"></detail>-->
-      <el-card class="box-card">
-        <template #header>
-          <div class="card-header">
-            <span>使用指南</span>
-          </div>
-        </template>
-        <div style="line-height: 36px" class="text item">
-          1. 文件名可由字母、下划线和数字组成。
-          <br/>
-          2.
-          文件名推荐命名为参赛选手的姓名和学号信息：姓名首字母缩写_学号.cc，如：xyz_2021123456.cc。
-          <br/>
-          3.
-          运行结束后，排行榜将更新个人最高分数及对应算法，可在排行榜或历史记录中查看得分和性能图。
-          <br/>
-          4.
-          代码提交后需等待评测运行完成后才能查看结果，等待时间由并发提交的文件数量决定，但最多不超过两小时，超过该时间请与管理员联系。
-          <br/>
-          5.
-          截止时间以服务器接收文件时间为准，页面倒计时为本机时间，仅供参考。截止后不再接受新的提交，已提交的算法将继续运行并更新排行榜。
-          <br/>
-          6. 当前课程（比赛）最大可同时提交的文件数量为<b><u>{{ max_active_uploads_per_user }}个</u></b>，
-          处于队列中和运行中的提交数量超出此限制后将无法再继续上传，请等待其完成后再尝试上传。
-          <br/>
-          7.
-          利用漏洞取得的不当成绩视为无效，打榜结束后，将对每个同学的最终代码进行审查。
-          <br/>
-          8. 如需切换课程（比赛），请退出登录后再重新选择相应课程（比赛）登录。
-          <br/>
-          9. 在上传代码前，请选择要使用的评测用例。选择少量用例，可以缩短评测时间，并减轻系统负载。即使上传时未选择所有用例，您后续仍可在任务详情页手动重新执行评测。
-          此功能建议在以下情况下使用：i)
-          如果算法处于开发初期，您可以选择少量用例（特别是已公开的用例）进行快速测试；ii)
-          如果你的算法已相对完善，但在某些特定用例上表现不佳，您可以选择单独评测这些用例以进行针对性优化。iii)
-          如果算法开发已基本完成，建议选择全部用例进行全面测试，只有完成全部用例测试，才会更新对应榜单数据。
-          <br/>
-        </div>
+      <!-- 快速操作卡片 -->
+      <v-card class="mb-4" elevation="2">
+        <v-card-title class="card-title">
+          <v-icon class="title-icon">mdi-information-outline</v-icon>
+          快速开始
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12" md="4">
+              <div class="quick-info">
+                <v-icon color="info" size="24">mdi-clock-outline</v-icon>
+                <div class="info-content">
+                  <div class="info-title">评测时间</div>
+                  <div class="info-desc">{{ time_range_str }}</div>
+                </div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="4">
+              <div class="quick-info">
+                <v-icon color="warning" size="24">mdi-account-multiple</v-icon>
+                <div class="info-content">
+                  <div class="info-title">并发限制</div>
+                  <div class="info-desc">
+                    最多 {{ max_active_uploads_per_user }} 个文件
+                  </div>
+                </div>
+              </div>
+            </v-col>
+            <v-col cols="12" md="4">
+              <div class="quick-info">
+                <v-icon color="success" size="24">mdi-check-circle</v-icon>
+                <div class="info-content">
+                  <div class="info-title">支持格式</div>
+                  <div class="info-desc">.cc</div>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
 
-        <!-- 评测用例多选框（el-checkbox版） -->
-        <el-form-item label="选择评测用例" style="margin-top: 10px">
-          <el-checkbox-group v-model="selectedCases">
-            <el-checkbox
-              v-for="item in traceCases"
-              :key="item"
-              :label="item"
-              :value="item"
-              style="margin-right: 16px;"
-            />
-          </el-checkbox-group>
-        </el-form-item>
-        <el-upload
-          class="upload-demo"
-          action=""
-          drag
-          :http-request="uploadFile"
-          :on-preview="handlePreview"
-          :on-remove="handleRemove"
-          :before-remove="beforeRemove"
-          :multiple="store.is_admin"
-          :on-exceed="handleExceed"
-          :on-change="handleChange"
-          :data="{ url: upload.url }"
-          :on-success="handleSuccess"
-          :file-list="fileList"
-          :accept="'.cc,.c,.cxx,.cpp,.c++'"
-          :disabled="upload_loading"
-        >
-          <el-icon class="el-icon--upload" style="height: 0">
-            <upload-filled/>
-          </el-icon>
-          <div class="el-upload__text"></div>
-          <el-button
-            plain
-            link
-            type="primary"
-            :disabled="upload_loading"
-            :loading="upload_loading"
+      <!-- 使用指南折叠面板 -->
+      <v-expansion-panels class="mt-4" variant="accordion">
+        <v-expansion-panel>
+          <v-expansion-panel-title class="v-card-title card-title">
+            <v-card-title class="card-title mb-2" style="padding: 0 !important">
+              <v-icon class="title-icon">mdi-help-circle-outline</v-icon>
+              详细使用指南
+            </v-card-title>
+          </v-expansion-panel-title>
+          <v-expansion-panel-text>
+            <div class="guide-content">
+              <div v-for="item in guideItems" :key="item.id" class="guide-item">
+                <v-icon color="primary" class="guide-icon"
+                >{{ item.icon }}
+                </v-icon>
+                <div class="guide-text">
+                  <strong>{{ item.title }}：</strong>
+                  <span>{{ item.content }}</span>
+                  <ul v-if="item.subItems" class="guide-sublist">
+                    <li v-for="subItem in item.subItems" :key="subItem">
+                      {{ subItem }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+      </v-expansion-panels>
+
+      <!-- 主要内容卡片 -->
+      <v-card elevation="3" class="main-card">
+        <!-- 评测用例选择 -->
+        <v-card-title class="card-title">
+          <v-icon class="title-icon">mdi-playlist-check</v-icon>
+          选择评测用例
+        </v-card-title>
+        <v-card-text class="pb-0">
+          <v-alert
+            type="info"
+            variant="tonal"
+            icon="mdi-lightbulb-outline"
+            class="mb-2"
           >
-            将代码文件拖入此处或点击上传
-          </el-button>
-          <br/>
-          <el-text class="mx-1" type="info"
-          >竞赛时间：{{ time_range_str }}
-          </el-text>
-          <el-text class="mx-1" type="info" v-if="store.is_admin"
-          ><br/>（管理员用户支持批量上传且不受比赛时间和上传数量限制）
-          </el-text>
-
-          <div class="countdown-timer-card">
-            <span class="countdown-timer">剩余：{{ countdownDisplay }}</span>
+            <template v-slot:text>
+              <div class="alert-content">
+                选择少量用例可缩短评测时间，建议初期开发时选择公开用例快速测试，完善后再选择全部用例进行完整评测。
+                <br><small class="text-medium-emphasis">* 标记的用例为非公开用例</small>
+              </div>
+            </template>
+          </v-alert>
+          <div>
+            <v-chip-group
+              v-if="traceCases.length > 0"
+              v-model="selectedCases"
+              multiple
+              class="case-chips"
+              mandatory
+              column
+            >
+              <v-chip
+                v-for="item in traceCases"
+                :key="item.trace_name"
+                :value="item.trace_name"
+                filter
+                variant="outlined"
+                color="primary"
+                class="case-chip"
+              >
+                {{ item.trace_name }}{{ item.is_blocked ? ' *' : '' }}
+              </v-chip>
+            </v-chip-group>
+            <v-alert
+              v-else
+              type="warning"
+              variant="tonal"
+              icon="mdi-alert-circle-outline"
+              class="mt-2"
+            >
+              <template v-slot:text>
+                <div class="alert-content">
+                  当前没有可用的评测用例，请稍后再试或联系管理员。
+                </div>
+              </template>
+            </v-alert>
           </div>
-          <template #tip>
-            <div class="el-upload__tip">代码文件以“算法名称.cc”的格式命名</div>
-          </template>
-        </el-upload>
-      </el-card>
+        </v-card-text>
+
+        <!-- 文件上传区域 -->
+        <v-card-title class="card-title">
+          <v-icon class="title-icon">mdi-file-upload</v-icon>
+          上传代码文件
+        </v-card-title>
+        <v-card-text>
+          <div class="upload-container">
+            <el-upload
+              class="upload-demo"
+              action=""
+              drag
+              :http-request="uploadFile"
+              :on-preview="handlePreview"
+              :on-remove="handleRemove"
+              :before-remove="beforeRemove"
+              :multiple="store.is_admin"
+              :on-exceed="handleExceed"
+              :on-change="handleChange"
+              :data="{ url: upload.url }"
+              :on-success="handleSuccess"
+              :file-list="fileList"
+              :accept="'.cc,.c,.cxx,.cpp,.c++'"
+              :disabled="upload_loading"
+            >
+              <div>
+                <!-- 倒计时显示 -->
+                <div class="countdown-timer-card">
+                  <span class="countdown-timer"
+                  >剩余：{{ countdownDisplay }}</span
+                  >
+                </div>
+                <v-icon size="48" color="primary" class="upload-icon"
+                >mdi-cloud-upload
+                </v-icon>
+                <div class="upload-text">
+                  <el-button
+                    plain
+                    link
+                    type="primary"
+                    :disabled="upload_loading"
+                    :loading="upload_loading"
+                    size="large"
+                  >
+                    将代码文件拖入此处或点击上传
+                  </el-button>
+                </div>
+                <div class="upload-hint" v-if="store.is_admin">
+                  <v-icon color="warning" size="20">mdi-shield-crown</v-icon>
+                  <span class="info-label">管理员权限：</span>
+                  <span>支持批量上传且不受时间和数量限制</span>
+                </div>
+              </div>
+            </el-upload>
+          </div>
+        </v-card-text>
+      </v-card>
     </v-col>
   </v-row>
 </template>
 
 <script setup>
 import {onMounted, onUnmounted, ref, watch} from "vue";
-import {ElFormItem, ElMessage, ElMessageBox} from "element-plus";
+import {ElMessage, ElMessageBox} from "element-plus";
 import {APIS} from "@/config";
 import {request} from "@/utility.js";
 import {useRouter} from "vue-router";
-import {UploadFilled} from "@element-plus/icons-vue";
 import {useAppStore} from "@/store/app";
 
 const store = useAppStore();
@@ -146,7 +235,70 @@ const traceCases = ref([]);
 const selectedCases = ref([]);
 
 // 记忆功能：保存和恢复评测用例选择
-const SELECTED_CASES_KEY = 'transhub_selected_cases';
+const SELECTED_CASES_KEY = "transhub_selected_cases";
+
+// 使用指南内容
+const guideItems = ref([
+  {
+    id: 1,
+    icon: "mdi-numeric-1-circle",
+    title: "文件命名",
+    content:
+      "文件名可由字母、下划线和数字组成，推荐格式：姓名首字母缩写_学号.cc",
+  },
+  {
+    id: 2,
+    icon: "mdi-numeric-2-circle",
+    title: "结果查看",
+    content:
+      "运行结束后，排行榜将更新个人最高分数及对应算法，可在排行榜或历史记录中查看得分和性能图",
+  },
+  {
+    id: 3,
+    icon: "mdi-numeric-3-circle",
+    title: "等待时间",
+    content:
+      "代码提交后需等待评测运行完成，等待时间由并发提交数量决定，一般最多不超过两小时",
+  },
+  {
+    id: 4,
+    icon: "mdi-numeric-4-circle",
+    title: "截止时间",
+    content:
+      "以服务器接收文件时间为准，页面倒计时为本机时间，仅供参考，截止后不再接受新提交，已提交的代码仍会继续评测",
+  },
+  {
+    id: 5,
+    icon: "mdi-numeric-5-circle",
+    title: "并发限制",
+    content:
+      "处于队列中或运行中的提交数量超过并发提交限制后，需等待其完成后才能再次提交",
+  },
+  {
+    id: 6,
+    icon: "mdi-numeric-6-circle",
+    title: "代码审查",
+    content: "利用漏洞取得的不当成绩视为无效，提交结束后将对最终代码进行审查",
+  },
+  {
+    id: 7,
+    icon: "mdi-numeric-7-circle",
+    title: "课程切换",
+    content: "如需切换课程（比赛），请退出登录后重新选择相应课程登录",
+  },
+  {
+    id: 8,
+    icon: "mdi-numeric-8-circle",
+    title: "用例选择建议",
+    content:
+      "在上传代码前，请选择要使用的评测用例。选择少量用例，可以缩短评测时间，并减轻系统负载。即使上传时未选择所有用例，后续仍可在任务详情页手动执行其他用例的评测",
+    subItems: [
+      "开发初期：选择少量用例（特别是公开用例）进行快速测试",
+      "针对性优化：在某些特定用例上表现不佳，对其进行单独评测",
+      "完整测试：算法开发已基本完成，选择全部用例进行全面测试以更新榜单数据",
+    ],
+  },
+]);
 
 // 监听选择变化，自动保存
 watch(selectedCases, (val) => {
@@ -186,16 +338,24 @@ onMounted(async () => {
     updateCountdown();
     timer = setInterval(updateCountdown, 1000);
 
-    // 获取评测用例列表（字符串数组）
+    // 获取评测用例列表（对象数组）
     const traceRes = await request(APIS.get_trace_list, {method: "GET"});
 
     traceCases.value = traceRes.trace_list;
+    // 先按is_blocked排序，公开用例在前，然后按trace_name排序
+    traceCases.value.sort((a, b) => {
+      if (a.is_blocked && !b.is_blocked) return 1;
+      if (!a.is_blocked && b.is_blocked) return -1;
+      return a.trace_name.localeCompare(b.trace_name);
+    });
     // 请求成功后再读取localStorage并过滤
     const saved = localStorage.getItem(SELECTED_CASES_KEY);
     if (saved) {
       try {
         const arr = JSON.parse(saved);
-        selectedCases.value = Array.isArray(arr) ? arr.filter(val => traceCases.value.includes(val)) : [];
+        // 从对象数组中提取trace_name进行过滤
+        const availableTraceNames = traceCases.value.map(item => item.trace_name);
+        selectedCases.value = Array.isArray(arr) ? arr.filter(val => availableTraceNames.includes(val)) : [];
       } catch {
         selectedCases.value = [];
       }
@@ -319,36 +479,180 @@ const handleSuccess = (response, file, fileList) => {
 </script>
 
 <style scoped>
-.card-header {
+/* 卡片标题样式 */
+.card-title {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-size: 20px;
+  gap: 8px;
+  font-weight: 600;
+  padding: 16px 16px 8px 16px !important;
 }
 
-.text {
-  font-size: 14px;
+.title-icon {
+  opacity: 0.8;
 }
 
-.item {
-  margin-bottom: 0;
-  margin-top: 10px;
+/* 快速信息样式 */
+.quick-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #e7f2fe;
+  transition: all 0.3s ease;
 }
 
-.box-card {
-  position: relative;
-  left: 0;
-  right: 0;
-  margin: 1px 0;
-  padding-bottom: 10px;
+.quick-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.info-content {
+  flex: 1;
+}
+
+.info-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+}
+
+.info-desc {
+  font-size: 0.75rem;
+}
+
+/* 主卡片样式 */
+.main-card {
+  margin-top: 15px;
+  border-radius: 3px !important;
+  overflow: hidden;
+}
+
+
+.case-chips {
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  display: flex !important;
+  align-items: flex-start !important;
+}
+
+.case-chip {
+  margin: 4px !important;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* 确保Vuetify chip group内部也能换行 */
+:deep(.v-chip-group) {
+  flex-wrap: wrap !important;
+  display: flex !important;
+}
+
+:deep(.v-chip-group .v-slide-group__content) {
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  display: flex !important;
+  width: 100% !important;
+}
+
+:deep(.v-chip-group .v-slide-group__container) {
+  overflow: visible !important;
+}
+
+:deep(.v-chip-group .v-slide-group) {
+  overflow: visible !important;
+}
+
+/* 上传区域样式 */
+.upload-container {
+  margin-top: 16px;
+}
+
+.upload-icon {
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.upload-text {
+  margin-bottom: 12px;
+}
+
+.upload-hint {
+  font-size: 0.875rem;
+  margin-top: 8px;
+}
+
+.info-label {
+  font-weight: 500;
+}
+
+/* 指南样式 */
+.guide-content {
+  padding: 8px 0;
+}
+
+.guide-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.guide-item:hover {
+  background: #e7f2fe;
+}
+
+.guide-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.guide-text {
+  flex: 1;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+.guide-sublist {
+  margin: 8px 0 0 16px;
+  padding-left: 0;
+}
+
+.guide-sublist li {
+  margin-bottom: 4px;
+}
+
+/* Element Plus 上传组件样式覆盖 */
+:deep(.el-upload-dragger) {
+  border: 2px dashed rgb(var(--v-theme-primary)) !important;
+  border-radius: 12px !important;
+  background: rgba(var(--v-theme-primary), 0.04) !important;
+  transition: all 0.3s ease !important;
+}
+
+:deep(.el-upload-dragger:hover) {
+  border-color: rgb(var(--v-theme-primary)) !important;
+  background: rgba(var(--v-theme-primary), 0.08) !important;
+}
+
+:deep(.el-upload-dragger.is-dragover) {
+  border-color: rgb(var(--v-theme-primary)) !important;
+  background: rgba(var(--v-theme-primary), 0.12) !important;
+}
+
+/* Alert 样式优化 */
+.alert-content {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* 倒计时样式 */
 .countdown-timer-card {
-  position: absolute;
-  left: 5px;
-  top: 18px;
-  z-index: 2;
-  pointer-events: none;
+  display: flex;
+  justify-content: center;
 }
 
 .countdown-timer {
@@ -357,35 +661,46 @@ const handleSuccess = (response, file, fileList) => {
   color: #ff4d4f;
   background: #fff7e6;
   border-radius: 8px;
-  padding: 6px 18px;
+  padding: 8px 20px;
   box-shadow: 0 2px 8px rgba(255, 77, 79, 0.08);
-  margin-left: 10px;
-  margin-right: 10px;
   letter-spacing: 1px;
   transition: color 0.5s;
   min-width: 200px;
   white-space: nowrap;
   display: inline-block;
+  text-align: center;
+  border: 1px solid rgba(255, 77, 79, 0.2);
 }
 
 .countdown-timer:before {
-  content: "\23F1  ";
+  content: "⏱️ ";
   font-size: 18px;
+  margin-right: 4px;
 }
 
-/* 移动端样式优化 */
-@media screen and (max-width: 960px) {
-  .countdown-timer-card {
-    position: relative;
-    right: auto;
-    bottom: auto;
+/* 响应式设计 */
+@media (max-width: 960px) {
+  .quick-info {
+    flex-direction: column;
     text-align: center;
+    gap: 8px;
+  }
+
+  .case-chips {
+    justify-content: center;
+    flex-wrap: wrap !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .upload-icon {
+    font-size: 36px !important;
   }
 
   .countdown-timer {
     font-size: 16px;
-    padding: 4px 12px;
-    margin: 0 auto;
+    padding: 6px 16px;
+    min-width: auto;
   }
 }
 </style>
