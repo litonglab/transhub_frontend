@@ -63,7 +63,7 @@
             <v-col v-if="!isMobile || showAllFilters" cols="12" sm="6" md="2">
               <v-text-field
                 v-model="traceNameFilter"
-                label="测试用例"
+                label="Trace 名称"
                 @input="searchTasks"
                 @click:clear="searchTasks"
                 clearable
@@ -212,7 +212,6 @@
         :items-length="pagination.total"
         v-model:page="pagination.page"
         v-model:items-per-page="pagination.size"
-        v-model:sort-by="sortBy"
         :items-per-page-options="[10, 20, 50, 100]"
         @update:options="loadTasks"
         show-current-page
@@ -245,6 +244,17 @@
           </span>
           <span v-else>-</span>
         </template>
+        <template v-slot:item.log="{ item }">
+          <v-btn
+            size="small"
+            variant="text"
+            color="primary"
+            @click="showLog(item.task_id, item)"
+            title="查看日志"
+          >
+            查看日志
+          </v-btn>
+        </template>
 
         <template v-slot:item.created_time="{ item }">
           {{ formatDateTime(item.created_time) }}
@@ -258,58 +268,44 @@
 
         <template v-slot:item.actions="{ item }">
           <div class="actions-cell">
-            <div>
-              <v-btn
-                icon="mdi-eye"
-                size="small"
-                @click="viewTaskDetail(item)"
-                variant="text"
-                title="查看任务运行详情"
-              ></v-btn>
-              <v-btn
-                v-if="item.upload_id"
-                icon="mdi-file-document-outline"
-                size="small"
-                @click="viewRecordDetail(item.upload_id)"
-                variant="text"
-                title="查看提交记录详情"
-              ></v-btn>
-              <v-btn
-                v-if="item.upload_id"
-                icon="mdi-file-code-outline"
-                size="small"
-                @click="viewCode(item.upload_id)"
-                variant="text"
-                title="查看代码"
-              ></v-btn>
-            </div>
-            <div>
-              <v-btn
-                icon="mdi-math-log"
-                size="small"
-                variant="text"
-                @click="showLog(item.task_id, item)"
-                title="查看日志"
-              >
-              </v-btn>
-              <v-btn
-                icon="mdi-chart-line"
-                size="small"
-                variant="text"
-                @click="showImage('throughput', item.task_id)"
-                title="查看吞吐量图"
-              >
-              </v-btn>
-              <v-btn
-                icon="mdi-chart-bell-curve"
-                size="small"
-                variant="text"
-                @click="showImage('delay', item.task_id)"
-                title="查看时延图"
-              >
-              </v-btn>
-            </div>
+            <v-btn
+              icon="mdi-eye"
+              size="small"
+              @click="viewTaskDetail(item)"
+              variant="text"
+              title="查看任务运行详情"
+            ></v-btn>
+            <v-btn
+              v-if="item.upload_id"
+              icon="mdi-file-document-outline"
+              size="small"
+              @click="viewRecordDetail(item.upload_id)"
+              variant="text"
+              title="查看提交记录详情"
+            ></v-btn>
           </div>
+        </template>
+        <template v-slot:item.throughput_graph="{ item }">
+          <v-btn
+            size="small"
+            variant="text"
+            color="primary"
+            @click="showImage('throughput', item.task_id)"
+            title="查看吞吐量图"
+          >
+            查看
+          </v-btn>
+        </template>
+        <template v-slot:item.delay_graph="{ item }">
+          <v-btn
+            size="small"
+            variant="text"
+            color="primary"
+            @click="showImage('delay', item.task_id)"
+            title="查看时延图"
+          >
+            查看
+          </v-btn>
         </template>
       </v-data-table-server>
     </div>
@@ -355,7 +351,7 @@
           </v-col>
           <v-col cols="12" md="4">
             <v-list-item>
-              <v-list-item-title>测试用例</v-list-item-title>
+              <v-list-item-title>Trace</v-list-item-title>
               <v-list-item-subtitle
               >{{ selectedTask.trace_name }}
               </v-list-item-subtitle>
@@ -401,6 +397,14 @@
           </v-col>
           <v-col cols="12" md="4">
             <v-list-item>
+              <v-list-item-title>缓冲区大小</v-list-item-title>
+              <v-list-item-subtitle
+              >{{ selectedTask.buffer_size }}
+              </v-list-item-subtitle>
+            </v-list-item>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-list-item>
               <v-list-item-title>丢包率</v-list-item-title>
               <v-list-item-subtitle
               >{{ selectedTask.loss_rate }}
@@ -415,36 +419,26 @@
               </v-list-item-subtitle>
             </v-list-item>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" v-if="selectedTask.task_desc">
             <v-list-item>
-              <v-list-item-title>缓冲区大小</v-list-item-title>
+              <v-list-item-title>任务描述</v-list-item-title>
               <v-list-item-subtitle
-              >{{ selectedTask.buffer_size }}
+              >{{ selectedTask.task_desc }}
               </v-list-item-subtitle>
             </v-list-item>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" v-if="selectedTask.log">
             <v-list-item>
-              <v-list-item-title>时延得分</v-list-item-title>
-              <v-list-item-subtitle
-              >{{ selectedTask.delay_score }}
-              </v-list-item-subtitle>
-            </v-list-item>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-list-item>
-              <v-list-item-title>丢包率得分</v-list-item-title>
-              <v-list-item-subtitle
-              >{{ selectedTask.loss_score }}
-              </v-list-item-subtitle>
-            </v-list-item>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-list-item>
-              <v-list-item-title>吞吐量得分</v-list-item-title>
-              <v-list-item-subtitle
-              >{{ selectedTask.throughput_score }}
-              </v-list-item-subtitle>
+              <v-list-item-title>日志</v-list-item-title>
+              <v-btn
+                size=""
+                variant="text"
+                color="primary"
+                @click="showLog(selectedTask.task_id, selectedTask)"
+                title="查看日志"
+              >
+                查看日志
+              </v-btn>
             </v-list-item>
           </v-col>
         </v-row>
@@ -486,12 +480,6 @@
     :filename="dialogState.filename"
     @update:visible="dialogState.visible = $event"
   />
-
-  <!-- 代码查看对话框 -->
-  <CodeViewDialog
-    v-model:visible="codeDialogVisible"
-    :upload-id="selectedUploadId"
-  />
 </template>
 
 <script setup>
@@ -500,7 +488,6 @@ import {APIS} from "@/config";
 import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
 import TaskDetailTable from "@/components/TaskDetailTable.vue";
 import ImageAndLogViewDialog from "@/components/ImageAndLogViewDialog.vue";
-import CodeViewDialog from "@/components/CodeViewDialog.vue";
 
 // 防抖函数
 function debounce(fn, delay = 300) {
@@ -514,7 +501,6 @@ function debounce(fn, delay = 300) {
 const loading = ref(false);
 const detailDialog = ref(false);
 const recordDetailDialog = ref(false);
-const codeDialogVisible = ref(false);
 const usernameFilter = ref("");
 const statusFilter = ref(null);
 const cnameFilter = ref(null);
@@ -528,7 +514,6 @@ const taskScoreFilter = ref(""); // 得分范围筛选
 const courseList = ref([]);
 const courseListLoading = ref(false);
 const taskIdFilter = ref("");
-const sortBy = ref([]);
 
 const tasks = ref([]);
 const selectedTask = ref(null);
@@ -544,31 +529,20 @@ const headers = [
   {title: "上传ID", key: "upload_id", sortable: false, default: false},
   {title: "用户", key: "username", sortable: false, default: true},
   {title: "算法", key: "algorithm", sortable: false, default: true},
-  {title: "测试用例", key: "trace_name", sortable: false, default: true},
-  {title: "丢包率", key: "loss_rate", sortable: false, default: false},
-  {title: "往返时延", key: "delay", sortable: false, default: false},
-  {title: "缓冲区大小", key: "buffer_size", sortable: false, default: false},
-  {title: "丢包率得分", key: "loss_score", sortable: true, default: false},
-  {title: "时延得分", key: "delay_score", sortable: true, default: false},
-  {
-    title: "吞吐量得分",
-    key: "throughput_score",
-    sortable: true,
-    default: false,
-  },
+  {title: "Trace", key: "trace_name", sortable: false, default: true},
   {title: "得分", key: "task_score", sortable: true, default: true},
   {title: "比赛名称", key: "cname", sortable: false, default: true},
   {title: "状态", key: "task_status", sortable: false, default: true},
   {title: "上传时间", key: "created_time", sortable: true, default: true},
-  {title: "创建时间", key: "created_at", sortable: false, default: false},
-  {title: "更新时间", key: "updated_at", sortable: true, default: true},
-  {
-    title: "操作",
-    key: "actions",
-    sortable: false,
-    align: "center",
-    default: true,
-  },
+  {title: "创建时间", key: "created_at", sortable: false, default: false,},
+  {title: "更新时间", key: "updated_at", sortable: true, default: true,},
+  {title: "吞吐量图", key: "throughput_graph", sortable: false, default: false,},
+  {title: "时延图", key: "delay_graph", sortable: false, default: false},
+  {title: "操作", key: "actions", sortable: false, align: "center", default: true,},
+  {title: "丢包率", key: "loss_rate", sortable: false, default: false},
+  {title: "往返时延", key: "delay", sortable: false, default: false},
+  {title: "缓冲区大小", key: "buffer_size", sortable: false, default: false},
+  {title: "日志", key: "log", sortable: true, default: false},
 ];
 
 const allColumnOptions = headers.map((h) => ({title: h.title, value: h.key}));
@@ -663,9 +637,6 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
       const sortItem = sortBy[0];
       const sortByMap = {
         task_score: "score",
-        delay_score: "delay_score",
-        loss_score: "loss_score",
-        throughput_score: "throughput_score",
         created_time: "created_time",
         updated_at: "updated_at",
       };
@@ -683,12 +654,6 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
     });
 
     tasks.value = result.data.tasks || [];
-    // 后端返回的是单向时延，需要转换为双向时延
-    tasks.value.forEach((task) => {
-      if (task.delay) {
-        task.delay = task.delay * 2;
-      }
-    });
     pagination.total = result.data.pagination.total;
   } catch (error) {
     console.error("加载任务列表失败:", error);
@@ -699,11 +664,7 @@ const loadTasks = async ({page, itemsPerPage, sortBy}) => {
 
 const debouncedSearch = debounce(() => {
   pagination.page = 1;
-  loadTasks({
-    page: pagination.page,
-    itemsPerPage: pagination.size,
-    sortBy: sortBy.value,
-  });
+  loadTasks({page: pagination.page, itemsPerPage: pagination.size});
 }, 500);
 
 const searchTasks = () => {
@@ -711,11 +672,7 @@ const searchTasks = () => {
 };
 
 const refreshTasks = () => {
-  loadTasks({
-    page: pagination.page,
-    itemsPerPage: pagination.size,
-    sortBy: sortBy.value,
-  });
+  loadTasks({page: pagination.page, itemsPerPage: pagination.size});
 };
 
 const viewTaskDetail = (task) => {
@@ -727,11 +684,6 @@ const viewRecordDetail = (uploadId) => {
   // router.push({ name: "Detail", params: { upload_id: uploadId } });
   selectedUploadId.value = uploadId;
   recordDetailDialog.value = true;
-};
-
-const viewCode = (uploadId) => {
-  selectedUploadId.value = uploadId;
-  codeDialogVisible.value = true;
 };
 
 const loadCourseList = async () => {
@@ -748,6 +700,7 @@ const loadCourseList = async () => {
     courseListLoading.value = false;
   }
 };
+
 
 async function showImage(type, task_id) {
   dialogState.visible = true;
@@ -883,10 +836,8 @@ const statusOptions = statusMeta.map((s) => ({
 }
 
 .actions-cell {
-  min-width: 120px;
+  width: 80px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
 }
 

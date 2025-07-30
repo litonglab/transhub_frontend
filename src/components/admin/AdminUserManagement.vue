@@ -154,7 +154,6 @@
         :items-length="pagination.total"
         v-model:page="pagination.page"
         v-model:items-per-page="pagination.size"
-        v-model:sort-by="sortBy"
         :items-per-page-options="[10, 20, 50, 100]"
         @update:options="loadUsers"
         show-current-page
@@ -219,33 +218,32 @@
 
         <template v-slot:item.actions="{ item }">
           <template v-if="!item.is_deleted">
-            <div style="min-width: 130px">
-              <v-btn
-                icon="mdi-pencil"
-                size="small"
-                @click="editUser(item)"
-                variant="text"
-                title="编辑"
-              ></v-btn>
-              <v-btn
-                icon="mdi-key-variant"
-                size="small"
-                @click="resetPasswordUser(item)"
-                variant="text"
-                color="warning"
-                :disabled="item.username === store.name"
-                title="重置密码"
-              ></v-btn>
-              <v-btn
-                icon="mdi-delete"
-                size="small"
-                @click="promptDeleteUser(item)"
-                variant="text"
-                color="error"
-                :disabled="item.username === store.name"
-                title="删除"
-              ></v-btn>
-            </div>
+            <v-btn
+              icon="mdi-pencil"
+              size="small"
+              @click="editUser(item)"
+              variant="text"
+              class="mr-1"
+              title="编辑"
+            ></v-btn>
+            <v-btn
+              icon="mdi-key-variant"
+              size="small"
+              @click="resetPasswordUser(item)"
+              variant="text"
+              color="warning"
+              :disabled="item.username === store.name"
+              title="重置密码"
+            ></v-btn>
+            <v-btn
+              icon="mdi-delete"
+              size="small"
+              @click="promptDeleteUser(item)"
+              variant="text"
+              color="error"
+              :disabled="item.username === store.name"
+              title="删除"
+            ></v-btn>
           </template>
           <template v-else>
             <v-btn
@@ -352,7 +350,7 @@
   </v-dialog>
 
   <!-- 删除用户确认对话框 -->
-  <v-dialog v-model="deleteDialog" max-width="500px">
+  <v-dialog v-model="deleteDialog" max-width="400px">
     <v-card>
       <v-card-title class="headline">确认删除</v-card-title>
       <v-card-text>
@@ -371,7 +369,7 @@
   </v-dialog>
 
   <!-- 恢复用户确认对话框 -->
-  <v-dialog v-model="restoreDialog" max-width="500px">
+  <v-dialog v-model="restoreDialog" max-width="400px">
     <v-card>
       <v-card-title class="headline">确认恢复</v-card-title>
       <v-card-text>
@@ -423,7 +421,6 @@ const newPassword = ref("");
 const selectedUser = ref(null);
 const userIdFilter = ref("");
 const isFullScreen = ref(false);
-const sortBy = ref([]);
 
 const users = ref([]);
 const pagination = reactive({
@@ -556,15 +553,11 @@ const loadUsers = async ({page, itemsPerPage, sortBy}) => {
 
 const searchUsers = () => {
   pagination.page = 1;
-  loadUsers({page: 1, itemsPerPage: pagination.size, sortBy: sortBy.value});
+  loadUsers({page: 1, itemsPerPage: pagination.size});
 };
 
 const refreshUsers = () => {
-  loadUsers({
-    page: pagination.page,
-    itemsPerPage: pagination.size,
-    sortBy: sortBy.value,
-  });
+  loadUsers({page: pagination.page, itemsPerPage: pagination.size});
 };
 
 const debouncedSearch = debounce(searchUsers, 500);

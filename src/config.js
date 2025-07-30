@@ -30,7 +30,6 @@ export const APIS = {
 
   //summary
   get_ranks: hostname + "/summary_get_ranks",
-  delete_rank: hostname + "/summary_delete_rank",
 
   //graph
   get_graph: hostname + "/graph_get_graph",

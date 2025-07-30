@@ -327,17 +327,13 @@ defineExpose({
   border-radius: 4px;
   padding: 16px;
   margin: 0;
+  font-family: "Courier New", Consolas, "Liberation Mono", monospace;
   font-size: 14px;
   line-height: 1.6;
   white-space: pre;
   color: #333;
   overflow: auto;
   box-sizing: border-box;
-}
-
-.code-content code {
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Consolas",
-  "Courier New", monospace;
 }
 
 .floating-controls {

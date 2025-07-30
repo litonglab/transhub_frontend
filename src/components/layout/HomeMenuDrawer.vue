@@ -89,9 +89,7 @@
                   class="ml-1"
                 ></v-icon>
               </template>
-              <span>当系统处于满载状态时，评测程序性能可能会受到影响，导致分数略有波动。<br/>
-               上述为正常现象，请尽量选择避开高峰期提交。如分数明显异常，可尝试重新提交，如有需要可联系管理员。
-              </span>
+              <span>当系统处于满载状态时，评测程序偶现不稳定现象，如分数明显异常，可尝试重新提交任务，如有需要可联系管理员。</span>
             </v-tooltip>
           </div>
           <div
@@ -144,7 +142,7 @@
                   class="ml-1"
                 ></v-icon>
               </template>
-              <span>系统中待处理的评测任务数量，可简单换算还需等待的时间。</span>
+              <span>系统中待处理的任务数量，可简单换算还需等待的时间。</span>
             </v-tooltip>
           </div>
         </div>
@@ -153,7 +151,7 @@
           href="https://www.litonglab.com/"
           target="_blank"
           style="color: #888; text-decoration: underline"
-        >LitongLab</a><br/>© 2025 Transhub. All rights reserved.
+        >LitongLab</a><br/>© 2025 TransHub. All rights reserved.
       </div>
     </template>
   </v-navigation-drawer>
@@ -237,7 +235,7 @@ const checkMobile = () => {
 onMounted(() => {
   checkMobile();
   updateSystemInfo();
-  sysInfoTimer = setInterval(updateSystemInfo, 5000);
+  sysInfoTimer = setInterval(updateSystemInfo, 2000);
   window.addEventListener("resize", checkMobile);
   // 监听顶栏菜单按钮事件，移动端切换抽屉
   window.addEventListener("toggle-home-drawer", () => {

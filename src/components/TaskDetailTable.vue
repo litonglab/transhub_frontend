@@ -1,30 +1,28 @@
 <template>
-  <el-card shadow="hover" style="min-width: 600px">
-    <div class="task-detail-table-flex" style="min-height: 350px">
+  <el-card shadow="hover">
+    <div class="task-detail-table-flex">
       <div class="task-detail-table-wrapper">
         <el-table
           :data="internalTasks"
+          style="width: 100%"
           :max-height="height"
           class="task-detail-table"
           v-loading="loading"
           element-loading-text="加载中..."
-          :span-method="objectSpanMethod"
-          :cell-class-name="tableCellClassName"
         >
           <template #empty>
             <div class="empty-container">
               <span>暂无数据</span>
-              <v-btn
-                icon
-                variant="text"
-                size="small"
+              <el-button
+                link
+                :icon="RefreshIcon"
                 @click="handleRefresh"
                 :loading="loading"
+                size="small"
                 class="refresh-button"
                 title="刷新数据"
               >
-                <v-icon>mdi-refresh</v-icon>
-              </v-btn>
+              </el-button>
             </div>
           </template>
           <el-table-column
@@ -32,7 +30,6 @@
             label="测试用例"
             min-width="160"
             align="center"
-            fixed
           >
             <template #header>
               <span>测试用例</span>
@@ -46,20 +43,58 @@
                     class="ml-1"
                   ></v-icon>
                 </template>
-                <span
-                >若相关数据显示为*，则表示对应测试用例已被屏蔽，比赛结束后开放查询。</span
-                >
+                <span>若相关数据显示为*，则表示对应测试用例已被屏蔽，比赛结束后开放查询。</span>
               </v-tooltip>
             </template>
           </el-table-column>
+          <el-table-column prop="created_at" label="创建时间" align="center">
+            <template #default="scope">
+              {{ formatDateTime(scope.row.created_at, true) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="updated_at" label="更新时间" align="center">
+            <template #default="scope">
+              {{ formatDateTime(scope.row.updated_at, true) }}
+            </template>
+          </el-table-column>
           <el-table-column
-            prop="created_at"
-            label="任务时间"
+            prop="task_status"
+            label="任务状态"
             align="center"
-            min-width="100"
-          >
+          ></el-table-column>
+          <el-table-column label="丢包率" align="center">
+            <template #default="scope">
+              <span>{{ scope.row.loss_rate }}</span>
+              <span v-if="scope.row.task_status === 'finished' && scope.row.loss_score !== 0">
+                <br/>
+                <v-chip
+                  :color="getScoreColor(scope.row.loss_score)"
+                  size="small"
+                  text-color="white"
+                >
+                  {{ scope.row.loss_score.toFixed(2) ?? "-" }}
+                </v-chip>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="往返时延" align="center">
+            <template #default="scope">
+              <span>{{ scope.row.delay }}</span>
+              <span v-if="scope.row.task_status === 'finished' && scope.row.delay_score !== 0">
+                <br/>
+                <v-chip
+                  :color="getScoreColor(scope.row.delay_score)"
+                  size="small"
+                  text-color="white"
+                >
+                  {{ scope.row.delay_score.toFixed(2) ?? "-" }}
+                </v-chip>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="缓冲区容量" align="center">
             <template #header>
-              <span>任务时间</span>
+              <span>缓冲区</span>
               <v-tooltip location="bottom">
                 <template v-slot:activator="{ props }">
                   <v-icon
@@ -70,106 +105,22 @@
                     class="ml-1"
                   ></v-icon>
                 </template>
-                <span
-                >上方为任务创建时间，下方为任务状态最近一次更新时间。</span
-                >
+                <span>此列上方数字为缓冲区容量（单位：数据包个数），为简化表格，将吞吐量分数合并至此列显示。</span>
               </v-tooltip>
             </template>
             <template #default="scope">
-              {{ formatDateTime(scope.row.created_at, true) }}
-              <br/>
-              <v-chip color="" size="small">
-                {{ formatDateTime(scope.row.updated_at, true) }}
-              </v-chip>
+              <span>{{ scope.row.buffer_size }}</span>
+              <span v-if="scope.row.task_status === 'finished' && scope.row.throughput_score !== 0">
+                <br/>
+                <v-chip
+                  :color="getScoreColor(scope.row.throughput_score)"
+                  size="small"
+                  text-color="white"
+                >
+                  {{ scope.row.throughput_score.toFixed(2) ?? "-" }}
+                </v-chip>
+              </span>
             </template>
-          </el-table-column>
-          <el-table-column
-            prop="task_status"
-            label="任务状态"
-            align="center"
-          ></el-table-column>
-          <el-table-column label="网络环境配置与得分" align="center">
-            <el-table-column label="丢包率" align="center">
-              <template #default="scope">
-                <span>{{ scope.row.loss_rate }}</span>
-                <span
-                  v-if="
-                    scope.row.task_status === 'finished' &&
-                    scope.row.loss_score !== 0
-                  "
-                >
-                  <br/>
-                  <v-chip
-                    :color="getScoreColor(scope.row.loss_score)"
-                    size="small"
-                  >
-                    {{ scope.row.loss_score.toFixed(2) ?? "-" }}
-                  </v-chip>
-                </span>
-              </template>
-            </el-table-column>
-            <el-table-column label="往返时延" align="center">
-              <template #default="scope">
-                <!-- 判断是否是数字，如果是再乘2 -->
-                <span>
-                  {{
-                    typeof scope.row.delay === "number"
-                      ? scope.row.delay * 2
-                      : scope.row.delay
-                  }}
-                </span>
-                <span
-                  v-if="
-                    scope.row.task_status === 'finished' &&
-                    scope.row.delay_score !== 0
-                  "
-                >
-                  <br/>
-                  <v-chip
-                    :color="getScoreColor(scope.row.delay_score)"
-                    size="small"
-                  >
-                    {{ scope.row.delay_score.toFixed(2) ?? "-" }}
-                  </v-chip>
-                </span>
-              </template>
-            </el-table-column>
-            <el-table-column label="缓冲区容量" align="center">
-              <template #header>
-                <span>缓冲区</span>
-                <v-tooltip location="bottom">
-                  <template v-slot:activator="{ props }">
-                    <v-icon
-                      v-bind="props"
-                      icon="mdi-information-outline"
-                      size="16"
-                      color="grey"
-                      class="ml-1"
-                    ></v-icon>
-                  </template>
-                  <span
-                  >此列上方数字为缓冲区容量（单位：KB，此处1KB=1000Byte），为简化表格，将吞吐量分数合并至此列显示。</span
-                  >
-                </v-tooltip>
-              </template>
-              <template #default="scope">
-                <span>{{ formatBufferSize(scope.row.buffer_size) }}</span>
-                <span
-                  v-if="
-                    scope.row.task_status === 'finished' &&
-                    scope.row.throughput_score !== 0
-                  "
-                >
-                  <br/>
-                  <v-chip
-                    :color="getScoreColor(scope.row.throughput_score)"
-                    size="small"
-                  >
-                    {{ scope.row.throughput_score.toFixed(2) ?? "-" }}
-                  </v-chip>
-                </span>
-              </template>
-            </el-table-column>
           </el-table-column>
           <el-table-column prop="task_score" label="总分" align="center">
             <template #header>
@@ -195,146 +146,55 @@
                 <v-chip
                   :color="getScoreColor(scope.row.task_score)"
                   size="medium"
+                  text-color="white"
                   style="padding: 5px 10px"
                 >
-                  {{ scope.row.task_score.toFixed(2) ?? "-" }}
+                {{ scope.row.task_score.toFixed(2) ?? "-" }}
                 </v-chip>
               </span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center" fixed="right">
+          <el-table-column label="性能图" min-width="150" align="center">
+            <template #default="scope">
+              <span v-if="scope.row.task_status === 'finished'">
+                <el-button @click="showImage('throughput', scope.row.task_id)"
+                >吞吐
+                </el-button>
+                <el-button @click="showImage('delay', scope.row.task_id)"
+                >时延
+                </el-button>
+              </span>
+              <span v-else-if="scope.row.task_status === 'not_queued'">
+                <el-button
+                  @click="handleEnqueue(scope.row.task_id)"
+                  :loading="enqueueLoadingMap[scope.row.task_id]"
+                >执行评测</el-button
+                >
+              </span>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="hasAnyLog" label="日志">
             <template #header>
               <div class="column-header">
-                <span style="text-align: center; flex-grow: 1">操作</span>
-                <v-btn
-                  icon
-                  variant="text"
-                  size="small"
+                <span>日志</span>
+                <el-button
+                  link
+                  :icon="RefreshIcon"
                   @click="handleRefresh"
                   :loading="loading"
+                  size="small"
                   class="refresh-button"
                   title="刷新数据"
                 >
-                  <v-icon>mdi-refresh</v-icon>
-                </v-btn>
+                </el-button>
               </div>
             </template>
-            <el-table-column label="性能图" min-width="160" align="center">
-              <template #header>
-                <span>性能图</span>
-                <v-tooltip location="bottom">
-                  <template v-slot:activator="{ props }">
-                    <v-icon
-                      v-bind="props"
-                      icon="mdi-information-outline"
-                      size="16"
-                      color="grey"
-                      class="ml-1"
-                    ></v-icon>
-                  </template>
-                  <div style="text-align: center">
-                    <span
-                    >任务完成后，系统将在后台按序生成性能图，请耐心等待。</span
-                    >
-                  </div>
-                </v-tooltip>
-              </template>
-              <template #default="scope">
-                <span v-if="scope.row.task_status === 'finished'">
-                  <el-button @click="showImage('throughput', scope.row.task_id)"
-                  >吞吐
-                  </el-button>
-                  <el-button @click="showImage('delay', scope.row.task_id)"
-                  >时延
-                  </el-button>
-                </span>
-                <span v-else-if="scope.row.task_status === 'not_queued'">
-                  <el-button
-                    @click="handleEnqueue(scope.row.task_id)"
-                    :loading="enqueueLoadingMap[scope.row.task_id]"
-                  >执行评测</el-button
-                  >
-                </span>
-                <span v-else>-</span>
-              </template>
-            </el-table-column>
-            <el-table-column v-if="hasAnyLog" label="日志" min-width="90" align="center">
-              <template #default="scope">
-                <el-button @click="showLog(scope.row)">查看</el-button>
-              </template>
-            </el-table-column>
-            <el-table-column
-              v-if="isInTableRadarVisible"
-              label="雷达图列"
-              align="center"
-              :width="radarColumnWidth"
-            >
-              <template #header>
-                <div class="column-header">
-                  <div class="radar-header">
-                    <span
-                      style="font-weight: bold; text-align: center"
-                      class="ml-8"
-                    >
-                      综合雷达图
-                    </span>
-                    <v-tooltip location="bottom">
-                      <template v-slot:activator="{ props }">
-                        <v-icon
-                          v-bind="props"
-                          icon="mdi-information-outline"
-                          size="16"
-                          color="grey"
-                          class="ml-1"
-                        ></v-icon>
-                      </template>
-                      <div style="text-align: center">
-                        <span
-                        >综合雷达图各项分数为所有有效测试用例对应原始分数的平均值。</span
-                        >
-                      </div>
-                    </v-tooltip>
-                  </div>
-
-                  <v-btn
-                    icon
-                    variant="text"
-                    size="small"
-                    @click="showAllRadarDialog"
-                    :disabled="!hasAnyRadarData"
-                    class="radar-expand-button"
-                    title="查看所有测试雷达图"
-                    color="grey"
-                  >
-                    <v-icon>mdi-apps</v-icon>
-                  </v-btn>
-                </div>
-              </template>
-              <!-- 空白内容，实际雷达图通过绝对定位显示 -->
-              <template #default>
-                <div style="height: 1px"></div>
-              </template>
-            </el-table-column>
+            <template #default="scope">
+              <el-button @click="showLog(scope.row)">查看</el-button>
+            </template>
           </el-table-column>
         </el-table>
-
-        <!--         固定位置的雷达图 -->
-        <div
-          v-if="isInTableRadarVisible"
-          class="fixed-radar-chart"
-          :style="{
-            width: radarColumnWidth + 'px',
-            top: tableHeaderHeight + 'px',
-          }"
-        >
-          <div class="radar-center">
-            <RadarChart
-              :delay="avgRadar.delay_score"
-              :loss="avgRadar.loss_score"
-              :throughput="avgRadar.throughput_score"
-            />
-          </div>
-        </div>
 
         <ImageAndLogViewDialog
           :visible="dialogState.visible"
@@ -394,9 +254,9 @@
           </v-card>
         </v-dialog>
       </div>
-      <div class="table-summary-radar" v-if="!isInTableRadarVisible">
+      <div class="table-summary-radar">
         <div class="radar-header">
-          <span style="font-weight: bold; text-align: center" class="ml-8">
+          <span style="font-weight: bold; text-align: center">
             综合雷达图
           </span>
           <v-tooltip location="bottom">
@@ -405,28 +265,22 @@
                 v-bind="props"
                 icon="mdi-information-outline"
                 size="16"
-                color="grey"
+                color="black"
                 class="ml-1"
               ></v-icon>
             </template>
-            <div style="text-align: center">
-              <span
-              >综合雷达图各项分数为所有测试用例各项原始分数的平均值：avg_score=sum(test_i_score)/count(test)</span
-              >
-            </div>
+            <span>综合雷达图各项分数为所有测试用例各项原始分数的平均值：avg_score=sum(test_i_score)/count(test)</span>
           </v-tooltip>
-          <v-btn
-            icon
-            variant="text"
-            size="small"
+          <el-button
+            link
+            :icon="ZoomInIcon"
             @click="showAllRadarDialog"
             :disabled="!hasAnyRadarData"
+            size="small"
             class="radar-expand-button"
             title="查看所有测试雷达图"
-            color="grey"
           >
-            <v-icon>mdi-apps</v-icon>
-          </v-btn>
+          </el-button>
         </div>
         <div class="radar-center">
           <RadarChart
@@ -441,79 +295,13 @@
 </template>
 
 <script setup>
-import {computed, onMounted, onUnmounted, reactive, ref, watch} from "vue";
+import {computed, reactive, ref, watch} from "vue";
 import {APIS} from "@/config.js";
 import {fetchImageBlobUrl, formatDateTime, request} from "@/utility.js";
+import {Refresh as RefreshIcon, ZoomIn as ZoomInIcon,} from "@element-plus/icons-vue";
 import RadarChart from "./RadarChart.vue";
 import ImageAndLogViewDialog from "./ImageAndLogViewDialog.vue";
 import {ElMessage} from "element-plus";
-
-const radarColumnWidth = ref(350);
-const isInTableRadarVisible = ref(true);
-const tableHeaderHeight = ref(50); // 表格头部高度
-
-const updateRadarColumnWidth = () => {
-  const width = window.innerWidth;
-  if (width < 768) {
-    isInTableRadarVisible.value = false;
-    return;
-  }
-
-  isInTableRadarVisible.value = true;
-  if (width >= 1800) {
-    radarColumnWidth.value = 350;
-  } else if (width >= 1500) {
-    radarColumnWidth.value = 250;
-  } else {
-    radarColumnWidth.value = 200;
-  }
-};
-
-// 计算表格头部高度
-const updateTableHeaderHeight = () => {
-  const tableElement = document.querySelector(
-    ".task-detail-table .el-table__header-wrapper"
-  );
-  if (tableElement) {
-    tableHeaderHeight.value = tableElement.offsetHeight;
-  }
-};
-
-onMounted(() => {
-  updateRadarColumnWidth();
-  window.addEventListener("resize", updateRadarColumnWidth);
-  // 延迟计算表格头部高度，确保DOM已渲染
-  setTimeout(() => {
-    updateTableHeaderHeight();
-  }, 100);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("resize", updateRadarColumnWidth);
-});
-
-const tableCellClassName = ({column}) => {
-  if (column.label === "雷达图列") {
-    return "radar-chart-cell";
-  }
-  return "";
-};
-
-const objectSpanMethod = ({row, column, rowIndex, columnIndex}) => {
-  if (column.label === "雷达图列") {
-    if (rowIndex === 0) {
-      return {
-        rowspan: internalTasks.value.length,
-        colspan: 1,
-      };
-    } else {
-      return {
-        rowspan: 0,
-        colspan: 0,
-      };
-    }
-  }
-};
 
 // 重新入队相关
 let enqueueLoadingMap = ref({});
@@ -564,7 +352,7 @@ const props = defineProps({
   },
   height: {
     type: String,
-    default: "9999999",
+    default: "500",
   },
 });
 
@@ -660,16 +448,6 @@ watch(
   {immediate: true}
 );
 
-// 监听任务数据变化，更新表格头部高度
-watch(
-  () => internalTasks.value,
-  () => {
-    setTimeout(() => {
-      updateTableHeaderHeight();
-    }, 100);
-  }
-);
-
 async function showImage(type, task_id) {
   dialogState.visible = true;
   dialogState.loading = true;
@@ -762,17 +540,14 @@ function checkTaskStatus() {
     return false;
   }
 
-  // Check if all tasks are finished, error or not_queued, this means reach final state
-  const allReachedFinalState = tasks.every(
-    (task) =>
-      task.task_status === "finished" ||
-      task.task_status === "error" ||
-      task.task_status === "not_queued"
+  // Check if all tasks are finished or error
+  const allFinishedOrError = tasks.every(
+    (task) => task.task_status === "finished" || task.task_status === "error"
   );
-  console.debug("All tasks reached final state:", allReachedFinalState);
+  console.debug("All tasks finished or error:", allFinishedOrError);
 
-  if (allReachedFinalState && tasks.length > 0) {
-    console.debug("All tasks reached final state, stopping auto-refresh");
+  if (allFinishedOrError && tasks.length > 0) {
+    console.debug("All tasks completed or failed, stopping auto-refresh");
     return false;
   }
 
@@ -784,13 +559,6 @@ function getScoreColor(score) {
   if (score < 60) return "#f44336"; // 红色
   if (score < 90) return "#ff9800"; // 橙色
   return "#4caf50"; // 绿色
-}
-
-// 格式化缓冲区大小：除以1000并添加千位分隔符
-function formatBufferSize(bufferSize) {
-  if (typeof bufferSize !== "number") return bufferSize;
-  const sizeInKB = bufferSize / 1000;
-  return sizeInKB.toLocaleString();
 }
 
 defineExpose({
@@ -810,10 +578,11 @@ defineExpose({
 .refresh-button {
   padding: 2px;
   margin-left: 8px;
+  color: #409eff;
 }
 
 .refresh-button:hover {
-  transform: scale(1.15);
+  color: #66b1ff;
 }
 
 .empty-container {
@@ -834,33 +603,9 @@ defineExpose({
   flex: 1 1 0;
   min-width: 0;
   width: auto;
-  position: relative; /* 为固定雷达图提供定位参考 */
   /* 让表格自适应剩余空间 */
 }
 
-/* 固定位置的雷达图 */
-.fixed-radar-chart {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-left: 1px solid #e0e0e0;
-  z-index: 10;
-  pointer-events: auto;
-  /* show table line */
-  margin: 0 1px 1px;
-  padding: 10px;
-}
-
-/* 雷达图单元格不被选中 */
-.task-detail-table :deep(.radar-chart-cell):hover, .task-detail-table :deep(.radar-chart-cell) {
-  background: white !important;
-}
-
-/* 雷达图 */
 .table-summary-radar {
   width: 150px;
   display: flex;
@@ -877,8 +622,20 @@ defineExpose({
 
   .table-summary-radar {
     width: 100%;
-    margin-top: 10px;
+    margin-top: 20px;
     height: 300px;
+  }
+}
+
+@media (min-width: 1500px) {
+  .table-summary-radar {
+    width: 250px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .table-summary-radar {
+    width: 350px;
   }
 }
 
@@ -899,6 +656,13 @@ defineExpose({
   gap: 8px;
   width: 100%;
   margin-bottom: 2px;
+}
+
+.radar-expand-button {
+  padding: 4px;
+  color: #606266;
+  font-size: 16px;
+  transition: all 0.3s ease;
 }
 
 .radar-expand-button:hover {

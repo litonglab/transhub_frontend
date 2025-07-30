@@ -1,5 +1,5 @@
 <template>
-  <v-card-text style="padding: 5px 15px 0">
+  <v-card-text style="padding: 5px 5px 0">
     <v-row>
       <!-- 概览统计 -->
       <v-col cols="12">

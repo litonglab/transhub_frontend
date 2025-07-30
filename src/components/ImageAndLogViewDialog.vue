@@ -206,6 +206,7 @@ function handleDownload() {
   border-radius: 4px;
   padding: 16px;
   margin: 0;
+  font-family: "Courier New", Consolas, "Liberation Mono", monospace;
   font-size: 14px;
   line-height: 1.6;
   white-space: pre-wrap;
@@ -213,11 +214,6 @@ function handleDownload() {
   overflow: auto;
   box-sizing: border-box;
   height: 100%;
-}
-
-.code-content code {
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Consolas",
-  "Courier New", monospace;
 }
 
 .floating-controls {
