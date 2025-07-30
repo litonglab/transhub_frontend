@@ -16,6 +16,103 @@ const chartRef = ref(null);
 let chartInstance = null;
 let resizeObserver = null;
 
+// 配置常量
+const CHART_COLORS = {
+  primary: "#409eff",
+  background: "rgba(64, 158, 255, 0.2)",
+  splitLine: "rgba(64, 158, 255, 0.15)",
+  shadow: "rgba(64, 158, 255, 0.3)",
+  itemShadow: "rgba(64, 158, 255, 0.5)",
+};
+
+const INDICATORS = ["时延", "丢包", "吞吐"];
+
+// 创建tooltip配置
+function createTooltipConfig(isMobile) {
+  return {
+    trigger: "item",
+    backgroundColor: "rgba(50, 50, 50, 0.95)",
+    borderColor: CHART_COLORS.primary,
+    borderWidth: 1,
+    textStyle: {
+      color: "#fff",
+      fontSize: isMobile ? 10 : 12,
+    },
+    formatter: function (params) {
+      let content = `<div style="font-weight: bold; margin-bottom: 5px;">${params.name}</div>`;
+      params.value.forEach((val, index) => {
+        content += `<div style="display: flex; align-items: center; margin: 2px 0;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${CHART_COLORS.primary}; margin-right: 5px;"></span>
+          ${INDICATORS[index]}: <span style="color: ${CHART_COLORS.primary}; font-weight: bold; margin-left: 5px;">${val}</span>
+        </div>`;
+      });
+      return content;
+    },
+  };
+}
+
+// 创建指标配置
+function createIndicator(name, isMobile) {
+  return {
+    name,
+    max: 100,
+    min: 0,
+    nameGap: isMobile ? 10 : 15,
+    nameTextStyle: {
+      color: "#333",
+      fontSize: isMobile ? 12 : 14,
+      fontWeight: "bold",
+    },
+  };
+}
+
+// 创建系列数据
+function createSeriesData(isHover = false, isMobile = false) {
+  return {
+    value: [
+      props.delay.toFixed(2),
+      props.loss.toFixed(2),
+      props.throughput.toFixed(2),
+    ],
+    name: "网络性能评分",
+    areaStyle: {
+      color: {
+        type: "radial",
+        x: 0.5,
+        y: 0.5,
+        r: 0.5,
+        colorStops: [
+          {
+            offset: 0,
+            color: isHover
+              ? "rgba(64, 158, 255, 0.6)"
+              : "rgba(64, 158, 255, 0.4)",
+          },
+          {
+            offset: 1,
+            color: isHover
+              ? "rgba(64, 158, 255, 0.2)"
+              : "rgba(64, 158, 255, 0.1)",
+          },
+        ],
+      },
+    },
+    lineStyle: {
+      color: CHART_COLORS.primary,
+      width: isMobile ? 2 : 3,
+      shadowColor: CHART_COLORS.shadow,
+      shadowBlur: 10,
+    },
+    itemStyle: {
+      color: CHART_COLORS.primary,
+      borderColor: "#fff",
+      borderWidth: 2,
+      shadowColor: CHART_COLORS.itemShadow,
+      shadowBlur: 5,
+    },
+  };
+}
+
 function renderChart() {
   nextTick(() => {
     if (!chartRef.value) return;
@@ -24,64 +121,13 @@ function renderChart() {
     }
     chartInstance = echarts.init(chartRef.value);
 
-    // 根据容器大小动态调整配置
-    const containerWidth = chartRef.value.offsetWidth;
-    const containerHeight = chartRef.value.offsetHeight;
-    const isMobile = containerWidth < 400;
+    const isMobile = chartRef.value.offsetWidth < 400;
 
     chartInstance.setOption({
       backgroundColor: "transparent",
-      tooltip: {
-        trigger: "item",
-        backgroundColor: "rgba(50, 50, 50, 0.95)",
-        borderColor: "#409eff",
-        borderWidth: 1,
-        textStyle: {
-          color: "#fff",
-          fontSize: isMobile ? 10 : 12,
-        },
-        formatter: function (params) {
-          const indicators = ["时延", "丢包", "吞吐"];
-          let content = `<div style="font-weight: bold; margin-bottom: 5px;">${params.name}</div>`;
-          params.value.forEach((val, index) => {
-            content += `<div style="display: flex; align-items: center; margin: 2px 0;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #409eff; margin-right: 5px;"></span>
-              ${indicators[index]}: <span style="color: #409eff; font-weight: bold; margin-left: 5px;">${val}</span>
-            </div>`;
-          });
-          return content;
-        },
-      },
+      tooltip: createTooltipConfig(isMobile),
       radar: {
-        indicator: [
-          {
-            name: "时延",
-            nameGap: isMobile ? 10 : 15,
-            nameTextStyle: {
-              color: "#333",
-              fontSize: isMobile ? 12 : 14,
-              fontWeight: "bold",
-            },
-          },
-          {
-            name: "丢包",
-            nameGap: isMobile ? 10 : 15,
-            nameTextStyle: {
-              color: "#333",
-              fontSize: isMobile ? 12 : 14,
-              fontWeight: "bold",
-            },
-          },
-          {
-            name: "吞吐",
-            nameGap: isMobile ? 10 : 15,
-            nameTextStyle: {
-              color: "#333",
-              fontSize: isMobile ? 12 : 14,
-              fontWeight: "bold",
-            },
-          },
-        ],
+        indicator: INDICATORS.map((name) => createIndicator(name, isMobile)),
         radius: isMobile ? "60%" : "70%",
         center: ["50%", "50%"],
         shape: "circle",
@@ -89,13 +135,13 @@ function renderChart() {
         splitNumber: 5,
         axisLine: {
           lineStyle: {
-            color: "rgba(64, 158, 255, 0.2)",
+            color: CHART_COLORS.background,
             width: 2,
           },
         },
         splitLine: {
           lineStyle: {
-            color: "rgba(64, 158, 255, 0.15)",
+            color: CHART_COLORS.splitLine,
             width: 1,
           },
         },
@@ -139,16 +185,16 @@ function renderChart() {
                 },
               },
               lineStyle: {
-                color: "#409eff",
+                color: CHART_COLORS.primary,
                 width: isMobile ? 2 : 3,
-                shadowColor: "rgba(64, 158, 255, 0.3)",
+                shadowColor: CHART_COLORS.shadow,
                 shadowBlur: 10,
               },
               itemStyle: {
-                color: "#409eff",
+                color: CHART_COLORS.primary,
                 borderColor: "#fff",
                 borderWidth: 2,
-                shadowColor: "rgba(64, 158, 255, 0.5)",
+                shadowColor: CHART_COLORS.itemShadow,
                 shadowBlur: 5,
               },
             },
@@ -165,81 +211,13 @@ function renderChart() {
     // 添加鼠标悬停效果
     chartInstance.on("mouseover", function () {
       chartInstance.setOption({
-        series: [
-          {
-            data: [
-              {
-                value: [props.delay.toFixed(2), props.loss.toFixed(2), props.throughput.toFixed(2)],
-                name: "网络性能评分",
-                areaStyle: {
-                  color: {
-                    type: "radial",
-                    x: 0.5,
-                    y: 0.5,
-                    r: 0.5,
-                    colorStops: [
-                      {offset: 0, color: "rgba(64, 158, 255, 0.6)"},
-                      {offset: 1, color: "rgba(64, 158, 255, 0.2)"},
-                    ],
-                  },
-                },
-                lineStyle: {
-                  color: "#409eff",
-                  width: isMobile ? 2 : 3,
-                  shadowColor: "rgba(64, 158, 255, 0.3)",
-                  shadowBlur: 10,
-                },
-                itemStyle: {
-                  color: "#409eff",
-                  borderColor: "#fff",
-                  borderWidth: 2,
-                  shadowColor: "rgba(64, 158, 255, 0.5)",
-                  shadowBlur: 5,
-                },
-              },
-            ],
-          },
-        ],
+        series: [{data: [createSeriesData(true, isMobile)]}],
       });
     });
 
     chartInstance.on("mouseout", function () {
       chartInstance.setOption({
-        series: [
-          {
-            data: [
-              {
-                value: [props.delay.toFixed(2), props.loss.toFixed(2), props.throughput.toFixed(2)],
-                name: "网络性能评分",
-                areaStyle: {
-                  color: {
-                    type: "radial",
-                    x: 0.5,
-                    y: 0.5,
-                    r: 0.5,
-                    colorStops: [
-                      {offset: 0, color: "rgba(64, 158, 255, 0.4)"},
-                      {offset: 1, color: "rgba(64, 158, 255, 0.1)"},
-                    ],
-                  },
-                },
-                lineStyle: {
-                  color: "#409eff",
-                  width: isMobile ? 2 : 3,
-                  shadowColor: "rgba(64, 158, 255, 0.3)",
-                  shadowBlur: 10,
-                },
-                itemStyle: {
-                  color: "#409eff",
-                  borderColor: "#fff",
-                  borderWidth: 2,
-                  shadowColor: "rgba(64, 158, 255, 0.5)",
-                  shadowBlur: 5,
-                },
-              },
-            ],
-          },
-        ],
+        series: [{data: [createSeriesData(false, isMobile)]}],
       });
     });
 

@@ -1,26 +1,5 @@
 <template>
   <div class="admin-container">
-    <!-- <v-row class="flex-grow-0 mb-4">
-      <v-col>
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-          "
-        >
-          <span class="text-h4">管理员面板</span>
-          <v-chip
-            :color="store.is_super_admin ? 'purple' : 'primary'"
-            variant="elevated"
-          >
-            {{ store.is_super_admin ? "超级管理员" : "管理员" }}
-          </v-chip>
-        </div>
-      </v-col>
-    </v-row> -->
-
     <!-- 导航标签容器 -->
     <div class="tabs-container">
       <v-tabs
@@ -149,7 +128,7 @@ watch(activeTab, (newTab) => {
 .admin-tabs :deep(.v-tab) {
   font-weight: 500;
   text-transform: none;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .admin-tabs :deep(.v-tab--selected) {
