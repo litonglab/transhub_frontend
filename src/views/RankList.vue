@@ -269,9 +269,19 @@
   <v-dialog v-model="showDeleteDialog" max-width="500px">
     <v-card>
       <v-card-title class="text-h6">确认删除</v-card-title>
-      <v-card-text style="white-space: pre-line">{{
-          deleteDialogMessage
-        }}
+      <v-card-text style="white-space: pre-line">
+        <template v-if="store.is_admin && deleteTargetRow">
+          确定要删除用户
+          <strong>{{ deleteTargetRow.username }}</strong>
+          的榜单记录吗？
+        </template>
+        <template v-else>
+          确定要删除您的榜单记录吗？
+        </template>
+        <br/>请注意：<br/>
+        1. 删除后无法恢复，需要重新提交代码才能更新榜单，否则无成绩；<br/>
+        2. 比赛截止前12小时内及截止后禁止删除；<br/>
+        3. 每12小时只能删除一次（管理员不受限制）。
       </v-card-text>
       <v-card-actions>
         <v-spacer/>
@@ -764,18 +774,12 @@ async function exportToExcel() {
 
 // ===== Vuetify删除弹窗相关 =====
 const showDeleteDialog = ref(false);
-const deleteDialogMessage = ref("");
 const deleteCountdown = ref(5);
 const deleteLoading = ref(false);
 let deleteTimer = null;
 let deleteTargetRow = null;
 
 function handleDeleteRank(row) {
-  let tips =
-    "请注意：\n1. 删除后无法恢复，需要重新提交代码才能更新榜单，否则无成绩；\n2. 比赛截止前12小时内及截止后禁止删除";
-  deleteDialogMessage.value = store.is_admin
-    ? `确定要删除用户 "${row.username}" 的榜单记录吗？\n${tips}。`
-    : `确定要删除您的榜单记录吗？\n${tips}；\n3. 每12小时只能删除一次。`;
   deleteCountdown.value = 10;
   deleteLoading.value = false;
   showDeleteDialog.value = true;

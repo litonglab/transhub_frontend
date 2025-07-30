@@ -69,7 +69,8 @@ export async function request(url, options = {}, config = {}) {
       } else if (data.code === 401) {
         // 防止一直跳转
         const loginUrl = "/login";
-        if (window.location.pathname !== loginUrl) {
+        if (window.location.pathname !== loginUrl
+          && window.location.pathname !== "/") {
           ElMessage({
             message: data.message || "未登录或登录已过期，请重新登录",
             type: "error",
