@@ -107,7 +107,8 @@
             <template v-slot:text>
               <div class="alert-content">
                 选择少量用例可缩短评测时间，建议初期开发时选择公开用例快速测试，完善后再选择全部用例进行完整评测。
-                <br><small class="text-medium-emphasis">* 标记的用例为非公开用例</small>
+                <br><small class="text-medium-emphasis">*
+                标记的用例为非公开用例；临近比赛截止时间时，系统默认评测所有用例，评测用例选择功能不生效。</small>
               </div>
             </template>
           </v-alert>
@@ -393,7 +394,6 @@ const uploadFile = async ({file}) => {
     let title = "上传成功";
     if (result["enqueue_summary"]["failed_enqueues"] !== 0) {
       title = "上传成功，部分任务未入队";
-      message = result["message"];
       message += `<br/>任务列表：${result["tasks"]}`;
       message += `<br/>未入队的任务列表：${result["enqueue_summary"]["failed_tasks"]}`;
       message += `<br/>请将以上信息反馈给管理员，谢谢。`;
