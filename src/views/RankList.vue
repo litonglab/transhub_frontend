@@ -184,7 +184,7 @@
             {{ scope.row.task_score.toFixed(2) }}
           </template>
         </el-table-column>
-        <el-table-column label="详情" min-width="90">
+        <el-table-column label="详情" min-width="110">
           <template #default="{ row }">
             <div
               style="
@@ -280,8 +280,12 @@
         </template>
         <br/>请注意：<br/>
         1. 删除后无法恢复，需要重新提交代码才能更新榜单，否则无成绩；<br/>
-        2. 比赛截止前12小时内及截止后禁止删除；<br/>
-        3. 每12小时只能删除一次（管理员不受限制）。
+        2. 比赛截止前12小时内<span v-if="store.is_admin">*</span>及截止后禁止删除；<br/>
+        3. 每12小时只能删除一次<span v-if="store.is_admin">*</span>。
+        <span v-if="store.is_admin"><br/>
+          <v-icon color="warning" size="20">mdi-shield-crown</v-icon>
+          管理员权限：不受“*”规则限制。
+        </span>
       </v-card-text>
       <v-card-actions>
         <v-spacer/>
