@@ -152,7 +152,10 @@
         <el-table-column label="编号" type="index" width="60" :index="indexAdd">
         </el-table-column>
         <el-table-column prop="username" label="用户名"></el-table-column>
-        <el-table-column prop="real_name" label="姓名" min-width="100">
+        <el-table-column prop="real_name" label="姓名" min-width="100" v-if="store.is_admin">
+          <template #default="scope">
+            {{ scope.row.to_admin?.real_name || "-" }}
+          </template>
         </el-table-column>
         <el-table-column
           v-if="store.is_admin"

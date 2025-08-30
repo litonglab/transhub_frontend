@@ -1,5 +1,5 @@
 <template>
-  <el-card shadow="hover" style="min-width: 600px">
+  <el-card shadow="hover" style="min-width: 600px" class="el-card-wrapper">
     <div class="task-detail-table-flex" style="min-height: 350px">
       <div class="task-detail-table-wrapper">
         <el-table
@@ -20,7 +20,7 @@
                 size="small"
                 @click="handleRefresh"
                 :loading="loading"
-                class="refresh-button"
+                class="table-header-btn"
                 title="刷新数据"
               >
                 <v-icon>mdi-refresh</v-icon>
@@ -34,23 +34,6 @@
             align="center"
             fixed
           >
-            <template #header>
-              <span>测试用例</span>
-              <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
-                  <v-icon
-                    v-bind="props"
-                    icon="mdi-information-outline"
-                    size="16"
-                    color="grey"
-                    class="ml-1"
-                  ></v-icon>
-                </template>
-                <span
-                >若相关数据显示为*，则表示对应测试用例已被屏蔽，比赛结束后开放查询。</span
-                >
-              </v-tooltip>
-            </template>
           </el-table-column>
           <el-table-column
             prop="created_at"
@@ -58,23 +41,6 @@
             align="center"
             min-width="100"
           >
-            <template #header>
-              <span>任务时间</span>
-              <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
-                  <v-icon
-                    v-bind="props"
-                    icon="mdi-information-outline"
-                    size="16"
-                    color="grey"
-                    class="ml-1"
-                  ></v-icon>
-                </template>
-                <span
-                >上方为任务创建时间，下方为任务状态最近一次更新时间。</span
-                >
-              </v-tooltip>
-            </template>
             <template #default="scope">
               {{ formatDateTime(scope.row.created_at, true) }}
               <br/>
@@ -134,24 +100,7 @@
                 </span>
               </template>
             </el-table-column>
-            <el-table-column label="缓冲区容量" align="center">
-              <template #header>
-                <span>缓冲区</span>
-                <v-tooltip location="bottom">
-                  <template v-slot:activator="{ props }">
-                    <v-icon
-                      v-bind="props"
-                      icon="mdi-information-outline"
-                      size="16"
-                      color="grey"
-                      class="ml-1"
-                    ></v-icon>
-                  </template>
-                  <span
-                  >此列上方数字为缓冲区容量（单位：KB，此处1KB=1000Byte），为简化表格，将吞吐量分数合并至此列显示。</span
-                  >
-                </v-tooltip>
-              </template>
+            <el-table-column label="缓冲区" align="center">
               <template #default="scope">
                 <span>{{ formatBufferSize(scope.row.buffer_size) }}</span>
                 <span
@@ -172,21 +121,6 @@
             </el-table-column>
           </el-table-column>
           <el-table-column prop="task_score" label="总分" align="center">
-            <template #header>
-              <span>总分</span>
-              <v-tooltip location="bottom">
-                <template v-slot:activator="{ props }">
-                  <v-icon
-                    v-bind="props"
-                    icon="mdi-information-outline"
-                    size="16"
-                    color="grey"
-                    class="ml-1"
-                  ></v-icon>
-                </template>
-                <span>总分为各子项分数加权计算，具体权重请参阅相关文档。</span>
-              </v-tooltip>
-            </template>
             <template #default="scope">
               <span v-if="scope.row.task_status !== 'finished'"
               >任务完成后可查看</span
@@ -210,9 +144,20 @@
                   icon
                   variant="text"
                   size="small"
+                  @click="startGuide"
+                  :disabled="guide.active"
+                  class="table-header-btn"
+                  title="表格列说明"
+                >
+                  <v-icon>mdi-help-circle-outline</v-icon>
+                </v-btn>
+                <v-btn
+                  icon
+                  variant="text"
+                  size="small"
                   @click="handleRefresh"
                   :loading="loading"
-                  class="refresh-button"
+                  class="table-header-btn"
                   title="刷新数据"
                 >
                   <v-icon>mdi-refresh</v-icon>
@@ -220,25 +165,6 @@
               </div>
             </template>
             <el-table-column label="性能图" min-width="160" align="center">
-              <template #header>
-                <span>性能图</span>
-                <v-tooltip location="bottom">
-                  <template v-slot:activator="{ props }">
-                    <v-icon
-                      v-bind="props"
-                      icon="mdi-information-outline"
-                      size="16"
-                      color="grey"
-                      class="ml-1"
-                    ></v-icon>
-                  </template>
-                  <div style="text-align: center">
-                    <span
-                    >任务完成后，系统将在后台按序生成性能图，请耐心等待。</span
-                    >
-                  </div>
-                </v-tooltip>
-              </template>
               <template #default="scope">
                 <span v-if="scope.row.task_status === 'finished'">
                   <el-button @click="showImage('throughput', scope.row.task_id)"
@@ -278,22 +204,6 @@
                     >
                       综合雷达图
                     </span>
-                    <v-tooltip location="bottom">
-                      <template v-slot:activator="{ props }">
-                        <v-icon
-                          v-bind="props"
-                          icon="mdi-information-outline"
-                          size="16"
-                          color="grey"
-                          class="ml-1"
-                        ></v-icon>
-                      </template>
-                      <div style="text-align: center">
-                        <span
-                        >综合雷达图各项分数为所有有效测试用例对应原始分数的平均值。</span
-                        >
-                      </div>
-                    </v-tooltip>
                   </div>
 
                   <v-btn
@@ -302,7 +212,7 @@
                     size="small"
                     @click="showAllRadarDialog"
                     :disabled="!hasAnyRadarData"
-                    class="radar-expand-button"
+                    class="table-header-btn"
                     title="查看所有测试雷达图"
                     color="grey"
                   >
@@ -437,6 +347,73 @@
         </div>
       </div>
     </div>
+
+    <!-- 新手引导覆盖层 -->
+    <transition name="fade">
+      <div v-if="guide.active" class="guide-overlay">
+        <div
+          v-for="(step, idx) in guide.renderedSteps"
+          :key="idx"
+          v-show="idx === guide.stepIndex"
+        >
+          <template v-if="step.rect">
+            <div
+              v-for="(pieceStyle, i2) in computeMaskPieces(step)"
+              :key="'piece-' + i2"
+              class="guide-dim-piece"
+              :style="pieceStyle"
+              @click="finishGuide"
+            ></div>
+          </template>
+          <div
+            class="guide-highlight-box"
+            :style="computeHighlightStyle(step)"
+          ></div>
+          <div class="guide-tooltip" :style="computeTooltipStyle(step)">
+            <div class="guide-title">{{ step.title }}</div>
+            <div class="guide-content" v-html="step.content"></div>
+            <div class="guide-actions">
+              <v-btn
+                size="small"
+                variant="text"
+                @click="prevGuide"
+                :disabled="guide.stepIndex === 0"
+              >上一个
+              </v-btn
+              >
+              <v-btn
+                size="small"
+                variant="text"
+                @click="nextGuide"
+                v-if="guide.stepIndex < guide.renderedSteps.length - 1"
+              >下一个
+              </v-btn
+              >
+              <v-btn
+                size="small"
+                color="primary"
+                @click="finishGuide"
+                v-else
+              >明白了
+              </v-btn
+              >
+            </div>
+            <div class="guide-progress">
+              {{ guide.stepIndex + 1 }}/{{ guide.renderedSteps.length }}
+            </div>
+            <v-btn
+              icon
+              size="x-small"
+              class="guide-close"
+              variant="text"
+              @click="finishGuide"
+            >
+              <v-icon size="18">mdi-close</v-icon>
+            </v-btn>
+          </div>
+        </div>
+      </div>
+    </transition>
   </el-card>
 </template>
 
@@ -452,7 +429,8 @@ const radarColumnWidth = ref(350);
 const isInTableRadarVisible = ref(true);
 const tableHeaderHeight = ref(50); // 表格头部高度
 
-const updateRadarColumnWidth = () => {
+const handleWindowResize = () => {
+  // 根据窗口宽度调整雷达图列宽度和显示状态
   const width = window.innerWidth;
   if (width < 768) {
     isInTableRadarVisible.value = false;
@@ -467,6 +445,9 @@ const updateRadarColumnWidth = () => {
   } else {
     radarColumnWidth.value = 200;
   }
+
+  // 处理新手引导控件位置
+  if (guide.active) refreshGuideRects();
 };
 
 // 计算表格头部高度
@@ -480,8 +461,8 @@ const updateTableHeaderHeight = () => {
 };
 
 onMounted(() => {
-  updateRadarColumnWidth();
-  window.addEventListener("resize", updateRadarColumnWidth);
+  handleWindowResize();
+  window.addEventListener("resize", handleWindowResize);
   // 延迟计算表格头部高度，确保DOM已渲染
   setTimeout(() => {
     updateTableHeaderHeight();
@@ -489,7 +470,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener("resize", updateRadarColumnWidth);
+  window.removeEventListener("resize", handleWindowResize);
 });
 
 const tableCellClassName = ({column}) => {
@@ -797,7 +778,338 @@ defineExpose({
   fetchTasks,
   checkTaskStatus,
 });
+
+// ---------------- 新手引导逻辑 ----------------
+const guide = reactive({
+  active: false,
+  stepIndex: 0,
+  steps: [], // 原始（含 label 定义）
+  renderedSteps: [], // 解析后的（含 domRect）
+});
+const guideContainerRect = ref({left: 0, top: 0, width: 0, height: 0});
+
+function updateGuideContainerRect() {
+  const wrapper = document.querySelector(".el-card-wrapper");
+  if (wrapper) {
+    const rect = wrapper.getBoundingClientRect();
+    guideContainerRect.value = {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+  }
+}
+
+function buildGuideSteps() {
+  guide.steps = [
+    {
+      label: "测试用例",
+      title: "测试用例",
+      content:
+        "测试用例（trace）名称<br/>若名称末尾显示为*，则表示对应测试用例为非公开用例，测试环境配置和性能图已被屏蔽，比赛结束后开放查询",
+    },
+    {
+      label: "任务时间",
+      title: "任务时间",
+      content: "上：创建时间<br/>下：最近一次状态更新时间",
+    },
+    {
+      label: "任务状态",
+      title: "任务状态",
+      content: "展示该任务当前生命周期状态，如 finished / error 等",
+    },
+    {
+      label: "丢包率",
+      title: "丢包率与得分",
+      content:
+        "上：测试环境丢包率（范围0-1）<br/>下：任务完成后显示丢包性能得分（0-100分）",
+    },
+    {
+      label: "往返时延",
+      title: "往返时延与得分",
+      content:
+        "上：测试环境往返时延 (RTT，单位：ms)<br/>下：任务完成后显示时延性能得分（0-100分）",
+    },
+    {
+      label: "缓冲区",
+      title: "缓冲区容量与吞吐得分",
+      content:
+        "上：测试环境缓冲区容量（单位：KB，1KB = 1000Byte）<br/>下：任务完成后显示吞吐量性能得分（0-100分）",
+    },
+    {
+      label: "总分",
+      title: "总分",
+      content:
+        "各子项（丢包、时延、吞吐等）按设定权重加权后的结果（0-100分）<br/>具体权重请查询相关文档说明",
+    },
+    {
+      label: "性能图",
+      title: "性能图与操作",
+      content:
+        "任务完成后，系统将在后台按序生成性能图（届时可查看吞吐 / 时延曲线），请耐心等待<br/>若任务未执行评测，可点击执行评测",
+    },
+    hasAnyLog.value
+      ? {
+        label: "日志",
+        title: "日志",
+        content:
+          "查看评测日志，可根据日志分析算法运行情况并进行调试",
+      }
+      : null,
+    isInTableRadarVisible.value
+      ? {
+        label: "综合雷达图",
+        title: "综合雷达图",
+        content:
+          "综合雷达图各项分数为所有已完成评测的测试用例对应子项分数的平均值<br/>点击右侧按钮可查看所有测试雷达图",
+      }
+      : null,
+  ].filter(Boolean);
+}
+
+function findHeaderCell(labelText) {
+  const headers = document.querySelectorAll(
+    ".task-detail-table .el-table__header-wrapper th"
+  );
+  for (const th of headers) {
+    // 去除空白比较
+    const text = th.innerText.replace(/\s+/g, "").trim();
+    if (text.startsWith(labelText)) {
+      return th;
+    }
+  }
+  return null;
+}
+
+function refreshGuideRects() {
+  updateGuideContainerRect();
+  guide.renderedSteps = guide.steps
+    .map((s) => {
+      const el = findHeaderCell(s.label);
+      if (!el) return null;
+      const rect = el.getBoundingClientRect();
+      return {...s, rect};
+    })
+    .filter(Boolean);
+  // 若当前索引越界则重置
+  if (guide.stepIndex >= guide.renderedSteps.length) guide.stepIndex = 0;
+  // 自动滚动当前 step 可见
+  scrollCurrentIntoView();
+}
+
+function startGuide() {
+  buildGuideSteps();
+  guide.active = true;
+  guide.stepIndex = 0;
+  nextTickRefresh();
+}
+
+function finishGuide() {
+  guide.active = false;
+}
+
+function prevGuide() {
+  if (guide.stepIndex > 0) {
+    guide.stepIndex--;
+    scrollCurrentIntoView();
+  }
+}
+
+function nextGuide() {
+  if (guide.stepIndex < guide.renderedSteps.length - 1) {
+    guide.stepIndex++;
+    scrollCurrentIntoView();
+  }
+}
+
+function scrollCurrentIntoView() {
+  setTimeout(() => {
+    const step = guide.renderedSteps[guide.stepIndex];
+    if (!step) return;
+    const el = findHeaderCell(step.label);
+    if (el && el.scrollIntoView) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      });
+    }
+  }, 50);
+}
+
+function nextTickRefresh() {
+  setTimeout(() => {
+    refreshGuideRects();
+  }, 50);
+}
+
+
+watch(isInTableRadarVisible, () => {
+  if (guide.active) {
+    buildGuideSteps();
+    nextTickRefresh();
+  }
+});
+
+function computeHighlightStyle(step) {
+  if (!step.rect) return {};
+  const padding = 4;
+  const c = guideContainerRect.value;
+  return {
+    left: step.rect.left - c.left - padding + "px",
+    top: step.rect.top - c.top - padding + "px",
+    width: step.rect.width + padding * 2 + "px",
+    height: step.rect.height + padding * 2 + "px",
+  };
+}
+
+function computeTooltipStyle(step) {
+  if (!step.rect) return {};
+  const margin = 8;
+  const c = guideContainerRect.value;
+  const top = step.rect.bottom - c.top + margin;
+  let left = step.rect.left - c.left;
+  const maxWidth = 320;
+  const containerWidth = c.width;
+  if (left + maxWidth + 16 > containerWidth) {
+    left = containerWidth - maxWidth - 16;
+  }
+  return {top: top + "px", left: left + "px", maxWidth: maxWidth + "px"};
+}
+
+function computeMaskPieces(step) {
+  if (!step.rect) return [];
+  const padding = 4; // 与高亮框保持一致
+  const r = step.rect;
+  const c = guideContainerRect.value;
+  const vw = c.width;
+  const vh = c.height;
+  const x = r.left - c.left - padding;
+  const y = r.top - c.top - padding;
+  const w = r.width + padding * 2;
+  const h = r.height + padding * 2;
+  // 构造四块遮罩：上、左、右、下（顺序影响层级无所谓）
+  return [
+    {
+      left: "0px",
+      top: "0px",
+      width: vw + "px",
+      height: Math.max(0, y) + "px",
+    }, // 上方
+    {
+      left: "0px",
+      top: y + "px",
+      width: Math.max(0, x) + "px",
+      height: h + "px",
+    }, // 左侧
+    {
+      left: x + w + "px",
+      top: y + "px",
+      width: Math.max(0, vw - (x + w)) + "px",
+      height: h + "px",
+    }, // 右侧
+    {
+      left: "0px",
+      top: y + h + "px",
+      width: vw + "px",
+      height: Math.max(0, vh - (y + h)) + "px",
+    }, // 下方
+  ];
+}
 </script>
+
+<style scoped>
+/* 引导层覆盖在表格包装容器内部 */
+.guide-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.guide-dim-piece {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: auto; /* 点击退出 */
+  transition: all 0.15s;
+}
+
+.guide-highlight-box {
+  position: absolute;
+  border: 2px solid var(--el-color-primary, #409eff);
+  box-shadow: 0 0 0 4px rgba(64, 158, 255, 0.35), 0 4px 18px rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0); /* 完全透明，避免遮挡文字 */
+  pointer-events: none;
+  animation: guide-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes guide-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(64, 158, 255, 0.25),
+    0 4px 18px rgba(0, 0, 0, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(64, 158, 255, 0.4),
+    0 4px 18px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.guide-tooltip {
+  position: absolute;
+  background: #fff;
+  color: #333;
+  border-radius: 8px;
+  padding: 14px 16px 10px 16px;
+  box-shadow: 0 6px 24px -2px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  pointer-events: auto;
+  line-height: 1.45;
+}
+
+.guide-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.guide-content {
+  font-size: 13px;
+}
+
+.guide-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 6px;
+}
+
+.guide-progress {
+  position: absolute;
+  top: 6px;
+  right: 38px;
+  font-size: 11px;
+  color: #777;
+}
+
+.guide-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
 
 <style scoped>
 .column-header {
@@ -807,13 +1119,13 @@ defineExpose({
   width: 100%;
 }
 
-.refresh-button {
+.table-header-btn {
   padding: 2px;
-  margin-left: 8px;
+  margin-left: 2px;
 }
 
-.refresh-button:hover {
-  transform: scale(1.15);
+.table-header-btn:hover {
+  transform: scale(1.2);
 }
 
 .empty-container {
@@ -821,6 +1133,10 @@ defineExpose({
   justify-content: center;
   align-items: center;
   gap: 10px;
+}
+
+.el-card-wrapper {
+  position: relative;
 }
 
 .task-detail-table-flex {
@@ -856,7 +1172,8 @@ defineExpose({
 }
 
 /* 雷达图单元格不被选中 */
-.task-detail-table :deep(.radar-chart-cell):hover, .task-detail-table :deep(.radar-chart-cell) {
+.task-detail-table :deep(.radar-chart-cell):hover,
+.task-detail-table :deep(.radar-chart-cell) {
   background: white !important;
 }
 
@@ -899,11 +1216,6 @@ defineExpose({
   gap: 8px;
   width: 100%;
   margin-bottom: 2px;
-}
-
-.radar-expand-button:hover {
-  color: #409eff;
-  transform: scale(1.15);
 }
 
 .task-detail-table {

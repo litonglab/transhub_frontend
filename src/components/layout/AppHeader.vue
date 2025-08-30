@@ -4,6 +4,13 @@
     <v-app-bar-title>
       Transhub：中国人民大学“一人一栈”训练平台
     </v-app-bar-title>
+    <div class="http3-badge mr-2 d-none d-sm-block" v-if="show_http3_support">
+      <a :href="'https://http3.wcode.net/?q=' + current_host" target="_blank">
+        <img alt=""
+             :src="'https://http3.wcode.net/badges/http3.svg?host=' + current_host"
+        />
+      </a>
+    </div>
     <template v-if="isLoginPage">
       <a
         href="https://www.litonglab.com/"
@@ -19,19 +26,20 @@
       </a>
     </template>
     <template v-else>
-      <v-spacer></v-spacer>
-      <v-chip
-        :color="roleConfig[role]?.color || 'green'"
-        size="small"
-        variant="elevated"
-        class="mr-2"
-        v-if="role !== 'student'"
-      >
-        {{ roleConfig[role]?.text || "学生" }}
-      </v-chip>
-      <v-chip color="teal" size="small" variant="elevated">
-        Version: 3.0
-      </v-chip>
+      <div class="d-none d-sm-block">
+        <v-chip
+          :color="roleConfig[role]?.color || 'green'"
+          size="small"
+          variant="elevated"
+          class="mr-2"
+          v-if="role !== 'student'"
+        >
+          {{ roleConfig[role]?.text || "学生" }}
+        </v-chip>
+        <v-chip color="teal" size="small" variant="elevated">
+          Version: 3.0
+        </v-chip>
+      </div>
       <v-btn class="fill-height">
         {{ userName }}
       </v-btn>
@@ -46,6 +54,11 @@ import {useRoute, useRouter} from "vue-router";
 import {useAppStore} from "@/store/app.js";
 import {APIS} from "@/config";
 import {request} from "@/utility";
+
+// 支持 HTTP/3 的域名列表
+const http3_host_list = ["transhub.litonglab.com"];
+const current_host = window.location.host;
+const show_http3_support = http3_host_list.includes(current_host);
 
 const store = useAppStore();
 const router = useRouter();
@@ -95,5 +108,11 @@ async function logout() {
 
 .header-logo {
   height: 40px;
+}
+
+.http3-badge img {
+  display: block;
+  height: 20px;
+  max-width: 100%;
 }
 </style>
