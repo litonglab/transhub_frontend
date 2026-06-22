@@ -1,20 +1,18 @@
 <template>
-  <v-app class="bg-container">
+  <v-app class="bg-container" :style="brand.loginPage.backgroundStyle">
     <v-container class="fill-height main-container">
       <v-row justify="center" align="center" dense>
         <v-col cols="12" md="6" class="mobile-col">
           <v-card elevation="4" class="pa-6 frosted-card mobile-card">
             <v-card-title class="text-h6 font-weight-medium mb-4"
-            >平台介绍
+            >{{ brand.loginPage.introTitle }}
             </v-card-title>
             <v-card-text
               class="text-body-1 text-dark mobile-text-content"
               style="line-height: 1.8"
             >
               <div>
-                用户态协议框架Transhub基于UDP协议进行实现，提供传输协议基本的功能模块，如序号、包类型、确认机制等，并提供如发送、接收等预制的接口API。
-                同学们需要在该框架上，修改controller.cc代码中的内容，实现一个拥塞控制算法，尽可能地提高网络性能。平台通过模拟不同的网络环境，
-                并针对丢包、时延和吞吐量三个维度进行综合评分，对参赛者提供的拥塞控制算法进行评估。
+                {{ brand.loginPage.introText }}
               </div>
             </v-card-text>
           </v-card>
@@ -131,6 +129,7 @@ import {useRouter} from "vue-router";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {APIS} from "@/config";
 import {request} from "@/utility.js";
+import {brand} from "@/brand";
 
 const router = useRouter();
 const pantheons = ref([]);
@@ -303,20 +302,48 @@ onMounted(async () => {
 }
 
 .bg-container {
-  background: url("@/assets/ruc_background.jpg") center/cover no-repeat;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 82%);
+}
+
+.bg-container::after {
+  content: "";
+  position: fixed;
+  width: 520px;
+  height: 520px;
+  right: -180px;
+  bottom: -180px;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22), transparent 68%);
+  filter: blur(8px);
 }
 
 .main-container {
   padding-top: 80px; /* 为header留出空间 */
+  position: relative;
+  z-index: 1;
 }
 
 .frosted-card {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(15px); /* 关键：模糊背景 */
-  -webkit-backdrop-filter: blur(10px); /* 兼容 Safari */
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); /* 可选美化阴影 */
-  border: 1px solid rgba(255, 255, 255, 0.3); /* 可选边框美化 */
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px); /* 关键：模糊背景 */
+  -webkit-backdrop-filter: blur(18px); /* 兼容 Safari */
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(7, 26, 47, 0.28); /* 可选美化阴影 */
+  border: 1px solid rgba(255, 255, 255, 0.46); /* 可选边框美化 */
 }
 
 .mobile-card {
