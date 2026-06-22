@@ -2,7 +2,7 @@
   <v-app-bar flat elevation="2" color="error">
     <v-app-bar-nav-icon @click="handleMenuClick" class="d-md-none" v-if="!isLoginPage"/>
     <v-app-bar-title>
-      Transhub：中国人民大学“一人一栈”训练平台
+      {{ brand.platformTitle }}
     </v-app-bar-title>
     <div class="http3-badge mr-2 d-none d-sm-block" v-if="show_http3_support">
       <a :href="'https://http3.wcode.net/?q=' + current_host" target="_blank">
@@ -12,18 +12,9 @@
       </a>
     </div>
     <template v-if="isLoginPage">
-      <a
-        href="https://www.litonglab.com/"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="header-logo-link"
-      >
-        <img
-          src="../../assets/litonglab-logo-long.png"
-          class="header-logo"
-          alt="LitongLab Logo"
-        />
-      </a>
+      <div class="header-logo-link header-brand" :aria-label="brand.loginBrandAriaLabel">
+        {{ brand.loginBrandText }}
+      </div>
     </template>
     <template v-else>
       <div class="d-none d-sm-block">
@@ -54,9 +45,10 @@ import {useRoute, useRouter} from "vue-router";
 import {useAppStore} from "@/store/app.js";
 import {APIS} from "@/config";
 import {request} from "@/utility";
+import {brand} from "@/brand";
 
 // 支持 HTTP/3 的域名列表
-const http3_host_list = ["transhub.litonglab.com"];
+const http3_host_list = brand.http3BadgeHosts;
 const current_host = window.location.host;
 const show_http3_support = http3_host_list.includes(current_host);
 
@@ -107,8 +99,11 @@ async function logout() {
   margin-left: 16px;
 }
 
-.header-logo {
-  height: 40px;
+.header-brand {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .http3-badge img {

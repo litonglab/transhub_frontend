@@ -1,7 +1,7 @@
-# Transhub Frontend
+# OpenTransHub Frontend
 
-本仓库是Transhub的前端代码仓库，使用Vue框架开发  
-后端链接：[Transhub Backend](https://github.com/litonglab/transhub_backend)
+本仓库是 OpenTransHub 的前端代码仓库，使用 Vue 框架开发。
+后端仓库可根据实际部署的 OpenTransHub 后端服务进行配置。
 
 ## 1. 依赖
 
@@ -16,6 +16,10 @@
 ## 2. Config
 
 配置后端API地址：位于`.env.developmen`t和`.env.production`中，分别对应开发环境后端地址和生产环境后端地址，配置后端地址时不要以斜杠/结尾。
+
+品牌相关文案、标题、登录页视觉、页脚版权和 HTTP/3 徽章域名集中维护在 `src/brand.js`。如需维护校内版分支，优先修改该文件，避免在页面组件中分散硬编码品牌元素。
+
+如需在顶栏展示 HTTP/3 支持徽章，可通过 `VITE_HTTP3_BADGE_HOSTS` 配置允许展示徽章的域名，多个域名使用英文逗号分隔；默认不展示。该环境变量会在 `src/brand.js` 中汇总为品牌配置的一部分。
 
 - 本地开发（开发环境）：
 

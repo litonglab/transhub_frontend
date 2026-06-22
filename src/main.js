@@ -15,7 +15,10 @@ import {registerPlugins} from "@/plugins";
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
 import 'highlight.js/styles/github.css';
+import {brand} from "@/brand";
 
+
+document.title = brand.documentTitle;
 
 const app = createApp(App);
 app.use(ElementPlus);

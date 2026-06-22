@@ -149,11 +149,7 @@
           </div>
         </div>
         <v-divider style="margin: 10px auto; width: 80%"/>
-        <a
-          href="https://www.litonglab.com/"
-          target="_blank"
-          style="color: #888; text-decoration: underline"
-        >LitongLab</a><br/>© 2025 Transhub. All rights reserved.
+        <span>{{ brand.footerName }}</span><br/>{{ brand.copyright }}
       </div>
     </template>
   </v-navigation-drawer>
@@ -166,6 +162,7 @@ import {useRouter} from "vue-router";
 
 import {APIS} from "@/config";
 import {request} from "@/utility";
+import {brand} from "@/brand";
 
 // 系统负载和队列数据
 const sysLoad = ref(-1); // 0: 轻载, 1: 重载, 2: 满载, -1: 未获取
