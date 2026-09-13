@@ -162,7 +162,7 @@ let sno = ref("");
 const snoRules = [
   (value) => {
     if (value?.length === 0) return "学号不能为空";
-    if (value?.length < 10 || value?.length > 10)
+    if (value?.length < 1 || value?.length > 20)
       return "学号格式有误，请检查输入是否正确";
     return true;
   },
